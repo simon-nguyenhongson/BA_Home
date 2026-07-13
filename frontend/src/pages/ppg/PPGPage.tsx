@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react'
 import {
   Plus, RefreshCw, Calendar, Trash2, Edit,
   Zap, FileText, MessageSquare, ChevronRight, Download,
-  Upload, ExternalLink, Clock, Copy,
+  Upload, ExternalLink, Clock, Copy, CheckCircle, ChevronDown
 } from 'lucide-react'
 import {
   getProjects, createProject, updateProject, archiveProject,
@@ -37,6 +37,8 @@ const MILESTONE_STATUS_COLOR: Record<string, string> = {
 const MILESTONE_TYPE_ICON: Record<string, string> = {
   kickoff: '🚀', requirements: '📋', design: '🏗️', development: '💻',
   sit: '🔬', uat: '✅', golive: '🚀', hypercare: '🛡️', closure: '📦',
+  ba_kickoff: '🚀', ba_elicitation: '🔍', ba_analysis: '📊', ba_brd: '📄', ba_frs: '📐', ba_dev_support: '🔧', ba_uat_support: '🤝', ba_closure: '📦',
+  test_planning: '📅', test_design: '✍️', test_env_setup: '⚙️', test_sit_exec: '🧪', test_uat_exec: '✅', test_golive: '🚀', test_closure: '📦',
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -304,7 +306,7 @@ function OverviewTab({ project, annualPlans, onNavigate }: {
             <Btn variant="ghost" size="sm" onClick={() => onNavigate('milestones')}>Xem chi tiết →</Btn>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {milestones.slice(0, 6).map(ms => (
+            {milestones.filter(m => m.track === 'project' || !m.track).slice(0, 6).map(ms => (
               <div key={ms.id} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                 <span style={{ fontSize: 14 }}>{MILESTONE_TYPE_ICON[ms.milestone_type || ''] || '·'}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -318,8 +320,8 @@ function OverviewTab({ project, annualPlans, onNavigate }: {
                 }}>{ms.status}</span>
               </div>
             ))}
-            {milestones.length > 6 && (
-              <div style={{ fontSize: 11, color: 'var(--app-neutral-400)', textAlign: 'center' }}>+ {milestones.length - 6} milestones nữa</div>
+            {milestones.filter(m => m.track === 'project' || !m.track).length > 6 && (
+              <div style={{ fontSize: 11, color: 'var(--app-neutral-400)', textAlign: 'center' }}>+ {milestones.filter(m => m.track === 'project' || !m.track).length - 6} milestones nữa</div>
             )}
           </div>
         </div>
@@ -391,6 +393,8 @@ function MilestonesTab({ project }: { project: Project }) {
     ))
   }
 
+  const [collapsedTracks, setCollapsedTracks] = useState<Record<string, boolean>>({ ba: true, test: true })
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -408,70 +412,170 @@ function MilestonesTab({ project }: { project: Project }) {
         </div>
       </div>
 
-      {totalDays > 0 && (
-        <div style={{ position: 'relative', height: 32, background: 'var(--app-neutral-100)', borderRadius: 8, marginBottom: 20, overflow: 'hidden' }}>
-          {milestones.map(ms => {
-            const left = pct(ms.start_date)
-            const width = Math.max(1, pct(ms.end_date) - left)
-            const color = MILESTONE_STATUS_COLOR[ms.status] || 'var(--app-neutral-400)'
-            return (
-              <div key={ms.id} title={ms.name} style={{
-                position: 'absolute', top: 4, height: 24,
-                left: `${left}%`, width: `${width}%`,
-                background: color, borderRadius: 4, opacity: 0.85,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 10, color: '#fff', fontWeight: 600,
-                overflow: 'hidden', whiteSpace: 'nowrap', padding: '0 4px',
-                minWidth: 20,
-              }}>
-                {MILESTONE_TYPE_ICON[ms.milestone_type || ''] || '·'}
-              </div>
-            )
-          })}
-        </div>
-      )}
-
       {loading ? <div className="empty-state">Đang tải...</div> :
         milestones.length === 0 ? (
           <EmptyState icon="📍" title="Chưa có milestones"
             desc="Nhấn Regenerate để tự động tạo theo timeline dự án"
             action={<Btn onClick={regenerate} loading={generating}><Zap size={13} /> Tạo milestones</Btn>} />
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {milestones.map((ms, idx) => (
-              <div key={ms.id} className="card card-pad-sm" style={{
-                borderLeft: `4px solid ${MILESTONE_STATUS_COLOR[ms.status]}`,
-                display: 'grid', gridTemplateColumns: '32px 1fr auto', gap: 12, alignItems: 'start',
-              }}>
-                <div style={{ fontSize: 20, textAlign: 'center', paddingTop: 2 }}>
-                  {MILESTONE_TYPE_ICON[ms.milestone_type || ''] || String(idx + 1)}
-                </div>
-                <div>
-                  <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 4 }}>
-                    <span className="txt_r_xxs" style={{ fontWeight: 700 }}>{ms.name}</span>
-                    <StatusBadge status={ms.status} />
-                  </div>
-                  <div className="txt_r_xxxs text-muted">
-                    <Calendar size={11} style={{ display: 'inline', marginRight: 3 }} />
-                    {ms.start_date?.slice(0, 10)} → {ms.end_date?.slice(0, 10)}
-                  </div>
-                  {ms.done_criteria && (
-                    <div className="txt_r_xxxs text-muted" style={{ marginTop: 4 }}>✓ {ms.done_criteria}</div>
-                  )}
-                  {Array.isArray(ms.preconditions) && ms.preconditions.length > 0 && (
-                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
-                      {ms.preconditions.map((pre, i) => (
-                        <span key={i} style={{ fontSize: 10, background: 'var(--app-neutral-100)', padding: '1px 6px', borderRadius: 8 }}>{pre}</span>
-                      ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            {['project', 'ba', 'test'].map(trackId => {
+              const trackMs = milestones.filter(m => (m.track || 'project') === trackId);
+              if (trackMs.length === 0) return null;
+              
+              const TRACK_NAMES: Record<string, string> = { project: 'Project Milestones', ba: 'BA Track', test: 'Test Track' };
+              const TRACK_COLORS: Record<string, string> = { project: 'var(--app-primary)', ba: 'var(--app-warning)', test: 'var(--app-success)' };
+              const trackColor = TRACK_COLORS[trackId] || 'var(--app-primary)';
+              
+              const isCollapsed = collapsedTracks[trackId] || false;
+              const completedCount = trackMs.filter(m => m.status === 'completed').length;
+              const statusCounts = trackMs.reduce((acc, m) => {
+                acc[m.status] = (acc[m.status] || 0) + 1;
+                return acc;
+              }, {} as Record<string, number>);
+
+              // sort chronologically for the list and timeline
+              const chronTrackMs = [...trackMs].sort((a, b) => {
+                return new Date(a.start_date || 0).getTime() - new Date(b.start_date || 0).getTime()
+              })
+
+              // Calculate track-specific start and end dates to avoid indentation
+              const trackDates = trackMs.flatMap(m => [m.start_date, m.end_date]).filter(Boolean) as string[]
+              const trackStartDate = trackDates.length > 0 ? trackDates.reduce((min, p) => p < min ? p : min, trackDates[0]) : project.start_date
+              const trackEndDate = trackDates.length > 0 ? trackDates.reduce((max, p) => p > max ? p : max, trackDates[0]) : project.end_date
+              
+              const trackTotalDays = trackStartDate && trackEndDate 
+                ? Math.max(1, (new Date(trackEndDate).getTime() - new Date(trackStartDate).getTime()) / 86400000)
+                : totalDays
+
+              const trackPct = (d?: string) => {
+                if (!d || !trackStartDate || !trackTotalDays) return 0
+                return Math.min(100, Math.max(0,
+                  (new Date(d).getTime() - new Date(trackStartDate).getTime()) / 86400000 / trackTotalDays * 100
+                ))
+              }
+
+              return (
+                <div key={trackId} style={{ marginBottom: 32 }}>
+                  {/* Track Header / Summary */}
+                  <div 
+                    onClick={() => setCollapsedTracks(prev => ({ ...prev, [trackId]: !prev[trackId] }))}
+                    style={{ 
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--app-neutral-200)', 
+                      cursor: 'pointer', userSelect: 'none'
+                    }}
+                  >
+                    <h4 className="txt_s_xs" style={{ color: 'var(--app-neutral-600)', display: 'flex', alignItems: 'center', gap: 6, margin: 0 }}>
+                      {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+                      {TRACK_NAMES[trackId]}
+                    </h4>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        {['planned','in_progress','completed','delayed'].map(s => statusCounts[s] ? (
+                          <span key={s} style={{ fontSize: 10, padding: '2px 8px', borderRadius: 12, background: `${MILESTONE_STATUS_COLOR[s]}20`, color: MILESTONE_STATUS_COLOR[s], fontWeight: 700 }}>
+                            {statusCounts[s]} {s}
+                          </span>
+                        ) : null)}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span className="txt_r_xxxs text-muted" style={{ fontWeight: 600 }}>{completedCount}/{trackMs.length} completed ({Math.round(completedCount/trackMs.length*100)}%)</span>
+                        <div style={{ height: 6, width: 80, background: 'var(--app-neutral-100)', borderRadius: 3, overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${(completedCount/trackMs.length)*100}%`, background: trackColor, transition: 'width 0.3s' }} />
+                        </div>
+                      </div>
                     </div>
+                  </div>
+                  
+                  {!isCollapsed && (
+                    <>
+                      {/* Timeline Bar */}
+                      {trackTotalDays > 0 && (
+                        <div style={{ position: 'relative', height: 32, background: 'var(--app-neutral-100)', borderRadius: 16, marginBottom: 20, overflow: 'hidden' }}>
+                          {chronTrackMs.map((ms) => {
+                            const left = trackPct(ms.start_date)
+                            const width = Math.max(1, trackPct(ms.end_date) - left)
+                            
+                            let zIndex = 1
+                            if (ms.status === 'completed') zIndex = 4
+                            else if (ms.status === 'delayed') zIndex = 3
+                            else if (ms.status === 'in_progress') zIndex = 2
+
+                            return (
+                              <div key={ms.id} title={`${ms.name} (${ms.status})`} style={{
+                                position: 'absolute', top: 0, bottom: 0,
+                                left: `${left}%`, width: `${width}%`,
+                                background: MILESTONE_STATUS_COLOR[ms.status] || 'var(--app-neutral-400)',
+                                opacity: ms.status === 'planned' ? 0.4 : 1,
+                                zIndex: zIndex,
+                                borderRadius: 16,
+                                border: '1px solid rgba(255,255,255,0.2)',
+                                transition: 'all 0.2s',
+                                display: 'flex',
+                                alignItems: 'center',
+                                paddingLeft: 8,
+                                overflow: 'hidden',
+                              }}>
+                                {(ms.status === 'in_progress' || ms.status === 'delayed' || ms.status === 'completed') && (
+                                  <div style={{ fontSize: 14, color: '#fff', display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.1)', padding: 2, borderRadius: '50%' }}>
+                                    {ms.status === 'completed' ? <CheckCircle size={14} color="#fff" /> : (MILESTONE_TYPE_ICON[ms.milestone_type || ''] || '📌')}
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+
+                      {/* Checklist */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {chronTrackMs.map((ms, idx) => (
+                          <div key={ms.id} className="card card-pad-sm" style={{ 
+                            display: 'flex', gap: 12, alignItems: 'center',
+                            borderLeft: `4px solid ${MILESTONE_STATUS_COLOR[ms.status] || 'transparent'}`,
+                          }}>
+                            <div style={{ fontSize: 20, paddingTop: 2, width: 24, textAlign: 'center' }}>
+                              {ms.status === 'completed' ? <CheckCircle size={20} color="var(--app-success)" /> : (MILESTONE_TYPE_ICON[ms.milestone_type || ''] || String(idx + 1))}
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
+                                <span className="txt_r_xs" style={{ fontWeight: 700, color: ms.status === 'completed' ? 'var(--app-success)' : 'inherit', textDecoration: ms.status === 'completed' ? 'line-through' : 'none' }}>{ms.name}</span>
+                                <StatusBadge status={ms.status} />
+                              </div>
+                              <div className="txt_r_xxxs text-muted" style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  <Calendar size={12} /> {ms.start_date?.slice(0, 10)} → {ms.end_date?.slice(0, 10)}
+                                </span>
+                                {ms.done_criteria && (
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--app-neutral-500)' }}>
+                                    <CheckCircle size={12} /> {ms.done_criteria}
+                                  </span>
+                                )}
+                              </div>
+                              {Array.isArray(ms.preconditions) && ms.preconditions.length > 0 && (
+                                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
+                                  {ms.preconditions.map((pre, i) => (
+                                    <span key={i} style={{ fontSize: 10, background: 'var(--app-neutral-100)', color: 'var(--app-neutral-600)', padding: '2px 6px', borderRadius: 10 }}>{pre}</span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <div style={{ width: 120, flexShrink: 0 }}>
+                              <AppSelect value={ms.status} style={{ fontSize: 12, padding: '4px 8px', borderRadius: 8, fontWeight: 600, 
+                                color: MILESTONE_STATUS_COLOR[ms.status] || 'inherit'
+                              }}
+                                onChange={e => updateStatus(ms, e.target.value)}>
+                                {['planned','in_progress','completed','delayed'].map(s => <option key={s} value={s}>{s}</option>)}
+                              </AppSelect>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
                   )}
                 </div>
-                <AppSelect value={ms.status} style={{ fontSize: 11, padding: '2px 6px', width: 110 }}
-                  onChange={e => updateStatus(ms, e.target.value)}>
-                  {['planned','in_progress','completed','delayed'].map(s => <option key={s} value={s}>{s}</option>)}
-                </AppSelect>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )
       }
@@ -604,6 +708,7 @@ function FilesTab({ project }: { project: Project }) {
   const [showVersions, setShowVersions] = useState<ProjectFile | null>(null)
   const [versions, setVersions] = useState<FileVersion[]>([])
   const [filterMs, setFilterMs] = useState<string>('')
+  const [filterTrack, setFilterTrack] = useState<string>('project')
   const [form, setForm] = useState({ name: '', file_type: 'external_url', doc_category: '', current_version: 'v0.1', external_url: '', milestone_id: '' })
   const [uploadingId, setUploadingId] = useState<string | null>(null)
   const [copyingId, setCopyingId] = useState<string | null>(null)
@@ -696,9 +801,14 @@ function FilesTab({ project }: { project: Project }) {
         </div>
       </div>
 
+      <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
+        <Btn variant={filterTrack === 'project' ? 'primary' : 'ghost'} size="sm" onClick={() => {setFilterTrack('project'); setFilterMs('')}}>Project Milestones</Btn>
+        <Btn variant={filterTrack === 'ba' ? 'primary' : 'ghost'} size="sm" onClick={() => {setFilterTrack('ba'); setFilterMs('')}}>BA Track</Btn>
+        <Btn variant={filterTrack === 'test' ? 'primary' : 'ghost'} size="sm" onClick={() => {setFilterTrack('test'); setFilterMs('')}}>Test Track</Btn>
+      </div>
       <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
         <Btn variant={filterMs === '' ? 'primary' : 'ghost'} size="sm" onClick={() => setFilterMs('')}>Tất cả</Btn>
-        {milestones.map(ms => (
+        {milestones.filter(ms => (ms.track || 'project') === filterTrack).map(ms => (
           <Btn key={ms.id} variant={filterMs === ms.id ? 'primary' : 'ghost'} size="sm" onClick={() => setFilterMs(ms.id)}>
             {MILESTONE_TYPE_ICON[ms.milestone_type || ''] || ''} {ms.name}
           </Btn>

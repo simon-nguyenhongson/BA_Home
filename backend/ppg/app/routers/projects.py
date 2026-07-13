@@ -17,8 +17,14 @@ logger = logging.getLogger(__name__)
 UPLOAD_BASE = os.getenv("UPLOAD_DIR", os.path.join(os.path.dirname(__file__), "..", "..", "..", "uploads"))
 
 
+class ProjectInitOptions(BaseModel):
+    pm: bool = True
+    ba: bool = True
+    test: bool = True
+
 class ProjectCreate(BaseModel):
     code: str = Field(..., max_length=50)
+    init_options: Optional[ProjectInitOptions] = None
     name: str = Field(..., max_length=255)
     description: Optional[str] = None
     status: str = "active"
@@ -132,6 +138,7 @@ async def create_project(
         raise HTTPException(409, f"Project code '{body.code}' already exists")
 
     if auto_milestones:
+        opts = body.init_options or ProjectInitOptions()
         from app.services.milestone_generator import (
             generate_milestones, generate_ba_milestones, generate_test_milestones,
             generate_activity_tasks,
@@ -145,20 +152,22 @@ async def create_project(
         except Exception as e:
             logger.warning(f"Dir creation warning: {e}")
 
-        file_template_map = {
-            **{k: (v, "project") for k, v in MILESTONE_TEMPLATES.items()},
-            **{k: (v, "ba")      for k, v in BA_MILESTONE_TEMPLATES.items()},
-            **{k: (v, "test")    for k, v in TEST_MILESTONE_TEMPLATES.items()},
-        }
-        all_milestones = (
-            generate_milestones(project_id, body.start_date, body.end_date)
-            + generate_ba_milestones(project_id, body.start_date, body.end_date)
-            + generate_test_milestones(project_id, body.start_date, body.end_date)
-        )
+        file_template_map = {}
+        if opts.pm: file_template_map.update({k: (v, "project") for k, v in MILESTONE_TEMPLATES.items()})
+        # Note: BA and Test templates are no longer auto-generated in project_files
+        # They will only appear when approved in BA workflow and synced via sync-doc API
+
+        all_milestones = []
+        if opts.pm: all_milestones += generate_milestones(project_id, body.start_date, body.end_date)
+        if opts.ba: all_milestones += generate_ba_milestones(project_id, body.start_date, body.end_date)
+        if opts.test: all_milestones += generate_test_milestones(project_id, body.start_date, body.end_date)
 
         try:
             async with db.transaction():
                 for folder in build_folder_records(project_id, body.code, domain_code=body.domain_code):
+                    if folder["track"] == "project" and not opts.pm: continue
+                    if folder["track"] == "ba" and not opts.ba: continue
+                    if folder["track"] == "test" and not opts.test: continue
                     await db.execute("""
                         INSERT INTO project_folders
                             (id, project_id, parent_id, folder_name, folder_path, track, sort_order)

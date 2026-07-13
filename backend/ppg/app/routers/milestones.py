@@ -114,26 +114,31 @@ async def regenerate_milestones(
     }
 
     async with db.transaction():
+        if not track:
+            # If regenerating all, clean up everything (including legacy track=NULL)
+            await db.execute("DELETE FROM ba_tasks WHERE project_id=$1", project_id)
+            await db.execute("DELETE FROM test_tasks WHERE project_id=$1", project_id)
+            await db.execute("DELETE FROM project_milestones WHERE project_id=$1", project_id)
+
         for t in tracks_to_regen:
-            # Delete child tasks first to avoid FK violation
-            await db.execute(
-                """DELETE FROM ba_tasks WHERE project_id=$1
-                   AND milestone_id IN (
-                       SELECT id FROM project_milestones WHERE project_id=$1 AND track=$2
-                   )""",
-                project_id, t,
-            )
-            await db.execute(
-                """DELETE FROM test_tasks WHERE project_id=$1
-                   AND milestone_id IN (
-                       SELECT id FROM project_milestones WHERE project_id=$1 AND track=$2
-                   )""",
-                project_id, t,
-            )
-            await db.execute(
-                "DELETE FROM project_milestones WHERE project_id=$1 AND track=$2",
-                project_id, t,
-            )
+            if track:
+                # Only delete specific track if track is provided
+                await db.execute(
+                    """DELETE FROM ba_tasks WHERE project_id=$1
+                       AND milestone_id IN (
+                           SELECT id FROM project_milestones WHERE project_id=$1 AND track=$2
+                       )""", project_id, t,
+                )
+                await db.execute(
+                    """DELETE FROM test_tasks WHERE project_id=$1
+                       AND milestone_id IN (
+                           SELECT id FROM project_milestones WHERE project_id=$1 AND track=$2
+                       )""", project_id, t,
+                )
+                await db.execute(
+                    "DELETE FROM project_milestones WHERE project_id=$1 AND track=$2",
+                    project_id, t,
+                )
 
             if t == "project":
                 milestones = generate_milestones(project_id, proj["start_date"], proj["end_date"])

@@ -15,6 +15,7 @@ const DOC_TYPES: BADocType[] = [
   'DATA_DICT',
   'WIREFRAME',
   'PROCESS_FLOW',
+  'MASTER_DOC',
 ]
 
 const DOC_TYPE_DESCRIPTIONS: Record<BADocType, string> = {
@@ -26,6 +27,7 @@ const DOC_TYPE_DESCRIPTIONS: Record<BADocType, string> = {
   DATA_DICT: 'Data Dictionary',
   WIREFRAME: 'UI Wireframe',
   PROCESS_FLOW: 'Process Flow Diagram',
+  MASTER_DOC: 'Master Document',
 }
 
 interface BADocumentFormProps {

@@ -10,7 +10,7 @@ import {
   Plus, Send, CheckCircle, RotateCcw, Archive, ArrowRight, RefreshCw, Trash2
 } from 'lucide-react'
 import {
-  Btn, Modal, Field, AppInput, AppTextarea, AppSelect, StatusBadge, EmptyState,
+  Btn, Modal, Drawer, Field, AppInput, AppTextarea, AppSelect, StatusBadge, EmptyState,
 } from '../../components/ui'
 import {
   getBADocuments, createBADocument, transitionBADocumentStatus, deleteBADocument
@@ -167,7 +167,7 @@ function DocumentDetailModal({ doc, open, onClose, onUpdated, projects }: {
   const project = projects.find(p => p.id === doc.project_id)
 
   return (
-    <Modal title={`${doc.doc_type} — ${doc.title}`} open={open} onClose={onClose} width="700px">
+    <Drawer title={`${doc.doc_type} — ${doc.title}`} open={open} onClose={onClose} width="700px">
       <StateMachineBar status={doc.status} />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
@@ -236,7 +236,7 @@ function DocumentDetailModal({ doc, open, onClose, onUpdated, projects }: {
           <Trash2 size={14} /> Xóa
         </Btn>
       </div>
-    </Modal>
+    </Drawer>
   )
 }
 

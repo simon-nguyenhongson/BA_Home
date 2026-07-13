@@ -68,7 +68,7 @@ LƯU Ý QUAN TRỌNG: BẮT BUỘC PHẢI TRẢ LỜI 100% BẰNG TIẾNG VIỆT
         }
         
         async with httpx.AsyncClient() as client:
-            resp = await client.post(url, json=payload, timeout=30.0)
+            resp = await client.post(url, json=payload, timeout=120.0)
             if resp.status_code != 200:
                 print(f"Gemini API Error: {resp.text}")
                 return f"Error calling Gemini API: {resp.status_code}\n\n{resp.text}"

@@ -201,6 +201,18 @@ input, textarea, select { font-family: var(--font); }
 .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
 @keyframes panelDrop { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+.drawer-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 800;
+  display: flex; align-items: flex-start; justify-content: flex-end;
+  animation: fadeIn 0.15s ease;
+}
+.drawer-panel {
+  background: #fff; width: 100%; max-width: 700px; height: 100vh;
+  box-shadow: var(--shadow-modal); overflow: hidden; animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex; flex-direction: column;
+}
 
 /* Native <dialog> — PCR/SR modals (showModal() trigger) */
 dialog {
@@ -319,6 +331,7 @@ dialog[open] > .modal-panel { animation: panelDrop 0.2s ease; }
   background-size: 300% 100% !important;
   animation: gemini-gradient 2s linear infinite !important;
   color: white !important;
+  opacity: 1 !important;
 }
 
 @keyframes gemini-gradient {

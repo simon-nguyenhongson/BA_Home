@@ -349,7 +349,7 @@ export function RequirementsTab() {
                   const isGeneratingThis = generatingStates.has(dt);
                   return (
                     <Btn key={dt} variant="primary" size="sm"
-                         disabled={isGeneratingThis} 
+                         disabled={generatingStates.size > 0} 
                          onClick={() => handleGenerate(dt)}
                          className={isGeneratingThis ? 'ai-generating gemini-btn-loading' : ''}>
                       {isGeneratingThis ? <Loader2 size={13} className="spin" /> : <Search size={13} />} 

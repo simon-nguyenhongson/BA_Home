@@ -78,6 +78,28 @@ export function Modal({ title, open, onClose, children, width = '560px' }: Modal
   )
 }
 
+// ── Drawer ────────────────────────────────────────────────────────
+export function Drawer({ title, open, onClose, children, width = '700px' }: ModalProps) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [onClose])
+
+  if (!open) return null
+  return (
+    <div className="drawer-overlay" onClick={onClose}>
+      <div className="drawer-panel" style={{ maxWidth: width }} onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <span className="txt_s_xxs">{title}</span>
+          <button className="btn-icon" onClick={onClose}><X size={18} /></button>
+        </div>
+        <div className="modal-body">{children}</div>
+      </div>
+    </div>
+  )
+}
+
 // ── Form Field ───────────────────────────────────────────────────
 interface FieldProps {
   label: string

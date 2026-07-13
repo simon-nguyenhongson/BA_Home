@@ -17,6 +17,7 @@ const DOC_TYPE_COLORS: Record<BADocType, string> = {
   DATA_DICT: '#7C3AED',
   WIREFRAME: '#DB2777',
   PROCESS_FLOW: '#EA580C',
+  MASTER_DOC: '#4285F4',
 }
 
 const STATUS_ORDER: BADocStatus[] = ['draft', 'review', 'approved', 'archived']
