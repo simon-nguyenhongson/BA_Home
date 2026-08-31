@@ -488,17 +488,15 @@ async def close_task(
         """,
         task_id, user.sub,
     )
-    try:
-        await db.execute(
-            """
-            INSERT INTO request_history (id, request_type, request_id, action, notes, changed_by)
-            VALUES ($1, 'CR', $2, 'TEST_CLOSED', $3, $4)
-            """,
-            str(uuid4()), task["cr_id"],
-            f"Đóng công việc automation test ({run_count} lượt chạy)", user.sub,
-        )
-    except Exception:
-        pass
+    await db.execute(
+        """
+        INSERT INTO request_history
+            (ref_type, ref_id, action, actor, from_status, to_status, comment)
+        VALUES ('cr', $1::uuid, 'TEST_CLOSED', $2, $3, 'closed', $4)
+        """,
+        str(task["cr_id"]), user.sub, task["status"],
+        f"Đóng công việc automation test ({run_count} lượt chạy)",
+    )
     await log_audit(
         db=db, entity_type="automation_test_tasks", entity_id=task_id, action="STATUS_CHANGE",
         changed_by=user.sub, new_values={"status": "closed"},

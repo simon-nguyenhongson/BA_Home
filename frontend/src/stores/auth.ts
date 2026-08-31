@@ -63,18 +63,20 @@ interface AppState {
 }
 
 export const useStore = create<AppState>((set) => ({
-  // Auth
-  username: null,
+  // Auth — username persist qua sessionStorage để sau F5 vẫn còn (created_by phía FE)
+  username: sessionStorage.getItem('username'),
   isAuthenticated: !!sessionStorage.getItem('access_token'),
 
   login: async (username, password) => {
     const res = await apiLogin(username, password)
     sessionStorage.setItem('access_token', res.access_token)
+    sessionStorage.setItem('username', username)
     set({ username, isAuthenticated: true })
   },
 
   logout: () => {
     sessionStorage.removeItem('access_token')
+    sessionStorage.removeItem('username')
     set({ username: null, isAuthenticated: false, selectedProject: null })
   },
 

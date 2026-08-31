@@ -128,19 +128,23 @@ async def _save_history(
 
 
 async def _log_cr_history(
-    db: asyncpg.Connection, cr_id: str, action: str, note: str, actor: str
+    db: asyncpg.Connection,
+    cr_id: str,
+    action: str,
+    note: str,
+    actor: str,
+    from_status: Optional[str] = None,
+    to_status: Optional[str] = None,
 ) -> None:
     """Ghi vào request_history của CR để timeline CR thấy được hoạt động BRS."""
-    try:
-        await db.execute(
-            """
-            INSERT INTO request_history (id, request_type, request_id, action, notes, changed_by)
-            VALUES ($1, 'CR', $2, $3, $4, $5)
-            """,
-            str(uuid4()), cr_id, action, note, actor,
-        )
-    except Exception:  # bảng có thể khác schema ở môi trường cũ — không chặn luồng chính
-        pass
+    await db.execute(
+        """
+        INSERT INTO request_history
+            (ref_type, ref_id, action, actor, from_status, to_status, comment)
+        VALUES ('cr', $1::uuid, $2, $3, $4, $5, $6)
+        """,
+        cr_id, action, actor, from_status, to_status, note,
+    )
 
 
 # ── Sinh BRS bằng AI ─────────────────────────────────────────────────────────
@@ -365,6 +369,7 @@ async def change_brs_status(
     await _log_cr_history(
         db, str(brs["cr_id"]), f"BRS_{body.action.upper()}",
         f"BRS {current} → {new_status}. {body.note}".strip(), user.sub,
+        from_status=current, to_status=new_status,
     )
     await log_audit(
         db=db, entity_type="cr_brs_documents", entity_id=brs_id, action="STATUS_CHANGE",

@@ -195,7 +195,7 @@ async def list_project_changes(
     rows = await db.fetch(
         f"""
         SELECT cr.*, p.name AS project_name, p.code AS project_code,
-               cp.name AS product_name
+               cp.product_name, cp.product_code
         FROM change_requests cr
         LEFT JOIN projects p ON p.id = cr.project_id
         LEFT JOIN catalog_products cp ON cp.id = cr.product_id
