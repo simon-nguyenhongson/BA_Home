@@ -2,27 +2,11 @@
  * Dashboard API client — /api/ppg/dashboard
  */
 
+import { apiRequest } from '../lib/http'
+
 const BASE = '/api/ppg'
 
-function authHeaders(): HeadersInit {
-  const token = sessionStorage.getItem('access_token')
-  return token
-    ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
-    : { 'Content-Type': 'application/json' }
-}
-
-async function request<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, { headers: authHeaders() })
-  if (res.status === 401) {
-    sessionStorage.removeItem('access_token')
-    window.location.href = '/login'
-  }
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: res.statusText }))
-    throw new Error(err.detail || 'Request failed')
-  }
-  return res.json()
-}
+const request = <T,>(path: string) => apiRequest<T>(BASE, 'GET', path)
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

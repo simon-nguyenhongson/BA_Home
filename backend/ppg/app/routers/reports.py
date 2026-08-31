@@ -70,6 +70,47 @@ async def cross_project_connections(
             detail={"code": "NOT_FOUND", "message": "No objects found matching the query"},
         )
 
+    # Batch 2 query cho toàn bộ object khớp tên thay vì 2 query / object (N+1)
+    oids = [str(r["id"]) for r in obj_rows]
+    out_map: dict[str, list] = {}
+    in_map: dict[str, list] = {}
+    if direction in ("out", "both"):
+        out_rows_all = await db.fetch(
+            f"""
+            SELECT c.*,
+                tgt.name as target_name, tgt.object_type as target_type,
+                tgt.project_id as target_project_id,
+                tp.name as target_project_name
+            FROM ppg_object_connections c
+            JOIN ppg_project_objects tgt ON tgt.id = c.target_object_id
+            JOIN projects tp ON tp.id = tgt.project_id
+            WHERE c.source_object_id = ANY($1::uuid[])
+            {"AND c.status = $2" if status else "AND c.status != 'removed'"}
+            ORDER BY c.created_at DESC
+            """,
+            oids, *(([status]) if status else []),
+        )
+        for r in out_rows_all:
+            out_map.setdefault(str(r["source_object_id"]), []).append(r)
+    if direction in ("in", "both"):
+        in_rows_all = await db.fetch(
+            f"""
+            SELECT c.*,
+                src.name as source_name, src.object_type as source_type,
+                src.project_id as source_project_id,
+                sp.name as source_project_name
+            FROM ppg_object_connections c
+            JOIN ppg_project_objects src ON src.id = c.source_object_id
+            JOIN projects sp ON sp.id = src.project_id
+            WHERE c.target_object_id = ANY($1::uuid[])
+            {"AND c.status = $2" if status else "AND c.status != 'removed'"}
+            ORDER BY c.created_at DESC
+            """,
+            oids, *(([status]) if status else []),
+        )
+        for r in in_rows_all:
+            in_map.setdefault(str(r["target_object_id"]), []).append(r)
+
     results = []
     for obj_row in obj_rows:
         oid = str(obj_row["id"])
@@ -78,21 +119,7 @@ async def cross_project_connections(
         inbound: list[dict] = []
 
         if direction in ("out", "both"):
-            out_rows = await db.fetch(
-                f"""
-                SELECT c.*,
-                    tgt.name as target_name, tgt.object_type as target_type,
-                    tgt.project_id as target_project_id,
-                    tp.name as target_project_name
-                FROM ppg_object_connections c
-                JOIN ppg_project_objects tgt ON tgt.id = c.target_object_id
-                JOIN projects tp ON tp.id = tgt.project_id
-                WHERE c.source_object_id = $1
-                {"AND c.status = $2" if status else "AND c.status != 'removed'"}
-                ORDER BY c.created_at DESC
-                """,
-                oid, *(([status]) if status else []),
-            )
+            out_rows = out_map.get(oid, [])
             outbound = [
                 {
                     "connection_id": str(r["id"]),
@@ -114,21 +141,7 @@ async def cross_project_connections(
             ]
 
         if direction in ("in", "both"):
-            in_rows = await db.fetch(
-                f"""
-                SELECT c.*,
-                    src.name as source_name, src.object_type as source_type,
-                    src.project_id as source_project_id,
-                    sp.name as source_project_name
-                FROM ppg_object_connections c
-                JOIN ppg_project_objects src ON src.id = c.source_object_id
-                JOIN projects sp ON sp.id = src.project_id
-                WHERE c.target_object_id = $1
-                {"AND c.status = $2" if status else "AND c.status != 'removed'"}
-                ORDER BY c.created_at DESC
-                """,
-                oid, *(([status]) if status else []),
-            )
+            in_rows = in_map.get(oid, [])
             inbound = [
                 {
                     "connection_id": str(r["id"]),
@@ -174,6 +187,7 @@ async def cross_project_connections(
 
 @router.get("/annual-plan-summary/{plan_id}")
 async def annual_plan_summary(
+    user: CurrentUser,
     plan_id: str,
     db: asyncpg.Connection = Depends(get_db),
 ) -> dict:
@@ -207,48 +221,66 @@ async def annual_plan_summary(
     }
     project_details: list[dict] = []
 
+    # Batch 3 query cho toàn bộ dự án của plan thay vì 4 query / dự án (N+1)
+    pids = [str(p["id"]) for p in projects_rows]
+    ms_map: dict = {}
+    ba_map: dict = {}
+    cov_map: dict = {}
+    if pids:
+        ms_rows = await db.fetch(
+            """
+            SELECT project_id,
+                   COUNT(*) AS total_ms,
+                   COUNT(*) FILTER (WHERE status = 'completed') AS done_ms
+            FROM project_milestones
+            WHERE project_id = ANY($1::uuid[])
+            GROUP BY project_id
+            """,
+            pids,
+        )
+        ms_map = {str(r["project_id"]): r for r in ms_rows}
+        # BA docs approved — bảng mới ba_documents + legacy project_documents
+        ba_rows = await db.fetch(
+            """
+            SELECT project_id, COUNT(*) AS cnt FROM (
+                SELECT project_id FROM ba_documents
+                WHERE project_id = ANY($1::uuid[]) AND status = 'approved'
+                UNION ALL
+                SELECT project_id FROM project_documents
+                WHERE project_id = ANY($1::uuid[]) AND status = 'approved'
+            ) combined
+            GROUP BY project_id
+            """,
+            pids,
+        )
+        ba_map = {str(r["project_id"]): r["cnt"] for r in ba_rows}
+        # Test coverage từ báo cáo test mới nhất per project
+        cov_rows = await db.fetch(
+            """
+            SELECT DISTINCT ON (project_id) project_id, COALESCE(coverage, 0) AS coverage_pct
+            FROM test_reports
+            WHERE project_id = ANY($1::uuid[])
+            ORDER BY project_id, executed_at DESC
+            """,
+            pids,
+        )
+        cov_map = {str(r["project_id"]): float(r["coverage_pct"]) for r in cov_rows}
+
     for p in projects_rows:
         pstatus = p["status"]
         if pstatus in projects_by_status:
             projects_by_status[pstatus] += 1
 
-        # Milestone progress
-        total_ms = await db.fetchval(
-            "SELECT COUNT(*) FROM project_milestones WHERE project_id = $1", str(p["id"])
-        )
-        done_ms = await db.fetchval(
-            "SELECT COUNT(*) FROM project_milestones WHERE project_id = $1 AND status = 'completed'",
-            str(p["id"]),
-        )
-
-        # BA docs approved — try new ba_documents table first (schema-draft-v2 V008),
-        # fall back to legacy project_documents (exists in v1 schema)
-        ba_approved = await db.fetchval(
-            """
-            SELECT COUNT(*) FROM (
-                SELECT id FROM ba_documents WHERE project_id = $1 AND status = 'approved'
-                UNION ALL
-                SELECT id FROM project_documents WHERE project_id = $1 AND status = 'approved'
-            ) combined
-            """,
-            str(p["id"]),
-        )
-
-        # Test coverage from latest test report
-        # test_reports.coverage column in v1 schema; coverage_pct in schema-draft-v2
-        test_row = await db.fetchrow(
-            """
-            SELECT COALESCE(coverage, 0) AS coverage_pct FROM test_reports
-            WHERE project_id = $1
-            ORDER BY executed_at DESC LIMIT 1
-            """,
-            str(p["id"]),
-        )
-        test_coverage = float(test_row["coverage_pct"]) if test_row else 0.0
+        pid = str(p["id"])
+        ms = ms_map.get(pid)
+        total_ms = ms["total_ms"] if ms else 0
+        done_ms = ms["done_ms"] if ms else 0
+        ba_approved = ba_map.get(pid, 0)
+        test_coverage = cov_map.get(pid, 0.0)
 
         project_details.append(
             {
-                "id": str(p["id"]),
+                "id": pid,
                 "name": p["name"],
                 "status": pstatus,
                 "milestone_progress": f"{done_ms or 0}/{total_ms or 0}",

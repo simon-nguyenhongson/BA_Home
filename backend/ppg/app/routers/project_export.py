@@ -437,6 +437,23 @@ def _parse_arr(val: str) -> list[str]:
     return [x.strip() for x in str(val).split("\n") if x.strip()]
 
 
+def _parse_date_cell(val: object) -> Optional[date]:
+    """Cell Excel có thể là datetime/date (định dạng ngày) hoặc chuỗi 'YYYY-MM-DD'."""
+    if val is None:
+        return None
+    if isinstance(val, datetime):
+        return val.date()
+    if isinstance(val, date):
+        return val
+    s = str(val).strip()
+    if not s:
+        return None
+    try:
+        return datetime.strptime(s[:10], "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+
 @router.post("/{project_id}/import", status_code=200)
 async def import_project(
     user: CurrentUser,
@@ -544,8 +561,8 @@ async def import_project(
                 track_map = {"project": "project", "ba": "ba", "test": "test"}
                 track = track_map.get(track_raw, "project")
                 name    = str(row_cells[1]).strip()
-                start   = str(row_cells[4]).strip() if row_cells[4] else None
-                end     = str(row_cells[5]).strip() if row_cells[5] else None
+                start   = _parse_date_cell(row_cells[4])
+                end     = _parse_date_cell(row_cells[5])
                 status  = str(row_cells[6]).strip() if row_cells[6] else None
                 done_c  = str(row_cells[7]).strip() if row_cells[7] else None
 
@@ -725,7 +742,7 @@ async def import_project(
             for g in gate_rows:
                 stage_name = str(g[0]).strip() if g[0] else None
                 status     = str(g[2]).strip() if len(g) > 2 and g[2] else None
-                gate_date  = str(g[3]).strip() if len(g) > 3 and g[3] else None
+                gate_date  = _parse_date_cell(g[3]) if len(g) > 3 else None
                 sign_off   = str(g[4]).strip() if len(g) > 4 and g[4] else None
                 notes      = str(g[5]).strip() if len(g) > 5 and g[5] else None
 

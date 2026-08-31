@@ -275,10 +275,10 @@ async def get_todo_stats(
                COUNT(*) FILTER (WHERE status = 'done') AS done_count,
                COUNT(*) FILTER (WHERE due_date < CURRENT_DATE AND status NOT IN ('done','cancelled')) AS overdue_count
         FROM project_todos {where}
-        WHERE assignee_id IS NOT NULL
+        {"AND" if clauses else "WHERE"} assignee_id IS NOT NULL
         GROUP BY assignee_id
         ORDER BY open_count DESC
-        """.replace("WHERE assignee_id IS NOT NULL", ("AND" if clauses else "WHERE") + " assignee_id IS NOT NULL"),
+        """,
         *params,
     )
 
@@ -302,7 +302,7 @@ async def bulk_create_todos(
     body: BulkTodoCreate,
     db: asyncpg.Connection = Depends(get_db),
 ):
-    actor = user.username if hasattr(user, "username") else str(user.sub if hasattr(user, "sub") else "system")
+    actor = user.sub
     created = []
     for item in body.todos:
         row = await db.fetchrow(
@@ -341,7 +341,7 @@ async def create_todo(
     body: TodoCreate,
     db: asyncpg.Connection = Depends(get_db),
 ):
-    actor = user.username if hasattr(user, "username") else str(user.sub if hasattr(user, "sub") else "system")
+    actor = user.sub
     row = await db.fetchrow(
         """
         INSERT INTO project_todos
@@ -411,7 +411,7 @@ async def update_todo(
     db: asyncpg.Connection = Depends(get_db),
 ):
     await _get_or_404(db, todo_id)
-    actor = user.username if hasattr(user, "username") else str(user.sub if hasattr(user, "sub") else "system")
+    actor = user.sub
 
     sets:   list[str] = ["updated_at = NOW()"]
     params: list      = []
@@ -458,7 +458,7 @@ async def transition_todo_status(
     db: asyncpg.Connection = Depends(get_db),
 ):
     row = await _get_or_404(db, todo_id)
-    actor = user.username if hasattr(user, "username") else str(user.sub if hasattr(user, "sub") else "system")
+    actor = user.sub
     current = row["status"]
     allowed = _TRANSITIONS.get(current, [])
 
@@ -519,7 +519,7 @@ async def add_comment(
     db: asyncpg.Connection = Depends(get_db),
 ):
     await _get_or_404(db, todo_id)
-    actor = user.username if hasattr(user, "username") else str(user.sub if hasattr(user, "sub") else "system")
+    actor = user.sub
     row = await db.fetchrow(
         "INSERT INTO project_todo_comments (todo_id, author, content) VALUES ($1::uuid,$2,$3) RETURNING *",
         todo_id, actor, body.content,

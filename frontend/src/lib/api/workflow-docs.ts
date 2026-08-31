@@ -22,44 +22,17 @@ import type {
   TestCaseObjectLink,
 } from '../types/workflow-doc'
 
+import { apiRequest } from '../http'
+
 const BA_BASE = '/api/ba'
 const TEST_BASE = '/api/test'
 
-function authHeaders(): HeadersInit {
-  const token = sessionStorage.getItem('access_token')
-  return token
-    ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
-    : { 'Content-Type': 'application/json' }
-}
-
-async function request<T>(
-  base: string,
-  method: string,
-  path: string,
-  body?: unknown,
-): Promise<T> {
-  const res = await fetch(`${base}${path}`, {
-    method,
-    headers: authHeaders(),
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  })
-  if (res.status === 401) {
-    sessionStorage.removeItem('access_token')
-    window.location.href = '/login'
-  }
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: res.statusText }))
-    throw new Error(err.detail || err.error?.message || 'Request failed')
-  }
-  return res.status === 204 ? (undefined as T) : res.json()
-}
-
 function baRequest<T>(method: string, path: string, body?: unknown): Promise<T> {
-  return request<T>(BA_BASE, method, path, body)
+  return apiRequest<T>(BA_BASE, method, path, body)
 }
 
 function testRequest<T>(method: string, path: string, body?: unknown): Promise<T> {
-  return request<T>(TEST_BASE, method, path, body)
+  return apiRequest<T>(TEST_BASE, method, path, body)
 }
 
 // ─────────────────────────────────────────────────────────────────

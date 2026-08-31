@@ -138,6 +138,7 @@ def test_create_annual_plan_success(ppg_client):
         db = MagicMock()
         db.fetchrow = AsyncMock(return_value=created_plan)
         db.execute = AsyncMock(return_value="INSERT 1")
+        db.executemany = AsyncMock(return_value=None)
         db.fetch = AsyncMock(return_value=[])
         tx = MagicMock()
         tx.__aenter__ = AsyncMock(return_value=None)

@@ -9,10 +9,10 @@ import { StatusBadge, Btn, EmptyState } from '../ui'
 import type { BADocument, BADocType, BADocStatus } from '../../lib/types/workflow-doc'
 
 const DOC_TYPE_COLORS: Record<BADocType, string> = {
-  BRD: '#0066B3',
-  BRS: '#1B7A3F',
+  BRD: 'var(--app-primary)',
+  BRS: 'var(--app-success)',
   FSD: '#6B21A8',
-  API_SPEC: '#C97A00',
+  API_SPEC: 'var(--app-warning)',
   ERD: '#0F766E',
   DATA_DICT: '#7C3AED',
   WIREFRAME: '#DB2777',

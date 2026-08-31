@@ -16,6 +16,10 @@ import { RequestAttachments } from '../../components/RequestAttachments'
 import { FileQueueSection } from '../../components/FileQueueSection'
 import { createTodo, TodoType } from '../../api/todos'
 import { UserSelect } from '../../components/UserSelect'
+import {
+  CR_CHANGE_TYPE_LABELS, CR_STATUS_LABELS, CR_STATUS_TABS,
+  CR_PRIORITY_LABELS as PRIORITY_LABELS, CR_FLOW, TODO_TYPE_LABELS,
+} from '../../features/cr/constants'
 
 // ── ComboSelect — searchable LOV dropdown ────────────────────────────────────
 
@@ -127,21 +131,6 @@ function ComboSelect({
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const CR_CHANGE_TYPE_LABELS: Record<CRChangeType, string> = {
-  scope: 'Phạm vi', timeline: 'Timeline', resource: 'Nhân lực',
-  budget: 'Ngân sách', technical: 'Kỹ thuật', process: 'Quy trình', other: 'Khác',
-}
-
-const CR_STATUS_LABELS: Record<CRStatus, string> = {
-  submitted:    'Khởi tạo',
-  reviewing:    'Đang review',
-  approved:     'Pending',
-  rejected:     'Từ chối',
-  implementing: 'Đang triển khai',
-  implemented:  'Đã triển khai',
-  cancelled:    'Hủy',
-}
-
 const CR_STATUS_VARIANTS: Record<CRStatus, string> = {
   submitted:    'neutral',
   reviewing:    'warning',
@@ -151,18 +140,6 @@ const CR_STATUS_VARIANTS: Record<CRStatus, string> = {
   implemented:  'success',
   cancelled:    'neutral',
 }
-
-interface CrStatusTab { label: string; values: CRStatus[] | null }
-const CR_STATUS_TABS: CrStatusTab[] = [
-  { label: 'Tất cả',           values: null },
-  { label: 'Khởi tạo',         values: ['submitted'] },
-  { label: 'Đang review',      values: ['reviewing'] },
-  { label: 'Đang triển khai',  values: ['implementing'] },
-  { label: 'Đã triển khai',    values: ['implemented'] },
-  { label: 'Pending',          values: ['approved'] },
-  { label: 'Từ chối',          values: ['rejected'] },
-  { label: 'Hủy',              values: ['cancelled'] },
-]
 
 const SR_TYPE_LABELS: Record<SRRequestType, string> = {
   bug_fix: 'Bug Fix', enhancement: 'Cải tiến', support: 'Hỗ trợ',
@@ -205,13 +182,7 @@ const PRIORITY_VARIANTS: Record<Priority, string> = {
   critical: 'danger', high: 'warning', medium: 'info', low: 'neutral',
 }
 
-const PRIORITY_LABELS: Record<Priority, string> = {
-  critical: 'Khẩn cấp', high: 'Cao', medium: 'Trung bình', low: 'Thấp',
-}
-
 // ── CR Flow indicator ────────────────────────────────────────────────────────
-
-const CR_FLOW: CRStatus[] = ['submitted', 'reviewing', 'approved', 'implementing', 'implemented']
 
 function CRFlowBar({ current }: { current: CRStatus }) {
   const idx = CR_FLOW.indexOf(current)
@@ -266,11 +237,6 @@ function SRFlowBar({ current }: { current: SRStatus }) {
 }
 
 // ── CreateTaskFromRequestModal ────────────────────────────────────────────────
-
-const TODO_TYPE_LABELS: Record<TodoType, string> = {
-  feature: 'Tính năng', bug: 'Bug', review: 'Review',
-  meeting: 'Họp', documentation: 'Tài liệu', deployment: 'Triển khai', other: 'Khác',
-}
 
 interface CreateTaskProps {
   refType:             'CR' | 'SR'

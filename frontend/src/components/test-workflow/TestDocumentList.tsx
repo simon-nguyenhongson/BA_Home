@@ -15,7 +15,7 @@ const DOC_TYPE_LABELS: Record<TestDocType, string> = {
 }
 
 const DOC_TYPE_COLORS: Record<TestDocType, string> = {
-  TEST_PLAN: '#0066B3',
+  TEST_PLAN: 'var(--app-primary)',
   BUG_REPORT: '#DC2626',
   UAT_SIGNOFF: '#059669',
 }

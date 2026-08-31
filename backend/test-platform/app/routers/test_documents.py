@@ -153,12 +153,19 @@ def _compute_sha256(content: bytes) -> str:
     return hashlib.sha256(content).hexdigest()
 
 
+def _safe_filename(name: str) -> str:
+    """Chặn path traversal: chỉ giữ tên file, bỏ mọi thành phần đường dẫn."""
+    cleaned = os.path.basename(name.replace("\\", "/").strip())
+    return cleaned or "upload"
+
+
 async def _save_file_to_storage(
     content: bytes,
     document_id: str,
     version: int,
     filename: str,
 ) -> str:
+    filename = _safe_filename(filename)
     rel_path = os.path.join(document_id, str(version), filename)
     abs_path = os.path.join(STORAGE_BASE, rel_path)
     os.makedirs(os.path.dirname(abs_path), exist_ok=True)
@@ -661,7 +668,7 @@ async def upload_test_doc_file(
     )
     version = (latest_version or 0) + 1
     checksum = _compute_sha256(content)
-    filename = file.filename or "upload"
+    filename = _safe_filename(file.filename or "upload")
 
     try:
         file_path = await _save_file_to_storage(content, doc_id, version, filename)

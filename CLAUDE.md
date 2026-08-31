@@ -1,16 +1,20 @@
 # BA_Home — CLAUDE.md
+
 # Shared context cho tất cả agents và team members
+
 # Cập nhật sau mỗi decision quan trọng. KHÔNG xóa history — chỉ append.
+
 # Xem: Build_Standard.md — Section 1.4 (Multi-Human Collaboration)
 
 ---
 
 ## Project Profile
+
 project_id:     ba_home
 name:           BA_Home
 product_type:   internal_tool
 tech_stack:
-  frontend:     nextjs        # Next.js 15 + TypeScript
+  frontend:     react_vite    # React 18 + Vite 5 + TypeScript
   backend:      python        # Python 3.11 + FastAPI
   database:     postgres      # PostgreSQL
 launch_target:  internal_only
@@ -35,6 +39,7 @@ current_stage:  Stage 0.1 — Discover & Deconstruct
 ---
 
 ## Conventions bắt buộc
+
 - Mọi commit message phải chứa BRD reference: `feat(CVF-XXX): ...`
 - PR không được merge nếu chưa có test file
 - Không DROP/TRUNCATE/ALTER ngoài môi trường dev/test
@@ -45,21 +50,23 @@ current_stage:  Stage 0.1 — Discover & Deconstruct
 ---
 
 ## Decisions đang chờ (pending)
+
 - [ ] Confirm chi tiết tính năng convert: các format file cần hỗ trợ (waiting: PO)
-- [x] Confirm storage strategy cho converted files — RESOLVED bởi ADR-005 (Hybrid: DB text + local filesystem)
+- [X] Confirm storage strategy cho converted files — RESOLVED bởi ADR-005 (Hybrid: DB text + local filesystem)
 - [ ] Confirm authentication method:  SSO OAuth2 hay internal auth (waiting: Tech Lead)
 - [ ] Confirm deployment: Docker compose hay Kubernetes (waiting: DevOps)
-- [x] REQUEST-ARCH-001: Schema chuẩn Application Registry — RESOLVED bởi ADR-002
-- [x] REQUEST-ARCH-002: Cơ chế Basic Authentication — RESOLVED bởi ADR-003
+- [X] REQUEST-ARCH-001: Schema chuẩn Application Registry — RESOLVED bởi ADR-002
+- [X] REQUEST-ARCH-002: Cơ chế Basic Authentication — RESOLVED bởi ADR-003
 - [ ] REQUEST-BA-QA-001: BRS template chuẩn để auto-gen test case — waiting: QA, deadline: trước Stage 1.4
-- [x] OQ-004: Schema chuẩn Web App / Mobile App / API / ELT — RESOLVED bởi ADR-004
-- [x] OQ-005: Template export/import Web App / Mobile App / API / ELT — RESOLVED bởi ADR-004 (Excel .xlsx, columns cố định per type)
+- [X] OQ-004: Schema chuẩn Web App / Mobile App / API / ELT — RESOLVED bởi ADR-004
+- [X] OQ-005: Template export/import Web App / Mobile App / API / ELT — RESOLVED bởi ADR-004 (Excel .xlsx, columns cố định per type)
 - [ ] OQ-006: Ngưỡng coverage tối thiểu mặc định (đề xuất 80%) — waiting: PO, deadline: trước Stage 2.2
 - [ ] OQ-007: Phân quyền tạo kế hoạch năm — waiting: PO + Tech Lead, deadline: trước Stage 2.1
 
 ---
 
 ## Domain ownership
+
 - `docs/brd/`, `docs/research/` → BA / PO Team
 - `docs/arch/`, `docs/adr/`     → Architect
 - `frontend/src/`               → Frontend Dev (Agent 05)
@@ -67,55 +74,62 @@ current_stage:  Stage 0.1 — Discover & Deconstruct
 - `migrations/`                 → DBA (Agent 07)
 - `tests/`                      → QA Team (Agent 08)
 - `docs/user-guide/`            → Technical writer (Agent 09)
+- `automation-test/`            → QA Team (Agent 08) — Capture Studio (record/run/export Playwright)
+
 ---
 
 ## Artifacts đã complete
+
 <!-- Owner của artifact append sau khi artifact được approve -->
+
 <!-- Format: - {ARTIFACT_ID}: {tên} — approved {YYYY-MM-DD} -->
 
 ### BA artifacts
+
 - BRD-001: BA_Home — file: docs/brd/BRD-001-ba-home.md
   status: draft | date: 2026-04-09 | author: BA Team | ready-for: Architect, Dev, QA
   updated: 2026-04-10 | version: 1.1 | change: Thêm Module 1 Annual Plan (FR-019 đến FR-022), mở rộng Module 2 với Web App/Mobile App/API/ELT và cross-project report (FR-023 đến FR-026), làm rõ BA workflow (FR-027 đến FR-029) và Test workflow (FR-030 đến FR-032) gắn với đối tượng cụ thể. Tổng: 32 FR, 7 NFR, 14 BR. 4 Open Questions mới (OQ-004 đến OQ-007) | ready-for: Architect (OQ-004, OQ-005), PO (OQ-006, OQ-007)
 
 ### Dev artifacts
+
 - CODE-001: BA_Home scaffold — infra/init.sql, backend/ppg/, backend/ba-workflow/, backend/test-platform/, frontend/src/api/
   status: ready-for-review | date: 2026-04-09 | ready-for: QA
-
 - CODE-002: Module Danh Mục Dữ Liệu (Data Catalog)
   status: ready-for-review | date: 2026-04-10 | ready-for: QA
   updated: 2026-04-12 | version: 2.0 | change: Mở rộng toàn bộ metadata sản phẩm — 6 JSONB sections chung + chi tiết riêng per type
   files:
-    migration:  migrations/V021__catalog_module.sql
-                migrations/V025__fix_annual_plan_related_systems.sql
-                migrations/V026__catalog_product_extended.sql
-    models:     backend/ppg/app/models/catalog.py
-    routers:    backend/ppg/app/routers/catalog_products.py
-                backend/ppg/app/routers/catalog_users.py
-    api_client: frontend/src/api/catalog.ts
-    ui_page:    frontend/src/pages/catalog/CatalogPage.tsx
-    updated:    backend/ppg/app/main.py (v4 routers registered)
-                frontend/src/App.tsx (route /catalog + sidebar item)
+  migration:  migrations/V021__catalog_module.sql
+  migrations/V025__fix_annual_plan_related_systems.sql
+  migrations/V026__catalog_product_extended.sql
+  models:     backend/ppg/app/models/catalog.py
+  routers:    backend/ppg/app/routers/catalog_products.py
+  backend/ppg/app/routers/catalog_users.py
+  api_client: frontend/src/api/catalog.ts
+  ui_page:    frontend/src/pages/catalog/CatalogPage.tsx
+  updated:    backend/ppg/app/main.py (v4 routers registered)
+  frontend/src/App.tsx (route /catalog + sidebar item)
   scope:
-    - Danh mục sản phẩm (org-wide, không gắn project): Web App / Mobile / Job / ETL / API
-    - Mỗi sản phẩm: 6 sections chung (Architecture, Deployment, Security, Monitoring, Resource, Business)
-      + môi trường (DEV/SIT/UAT/PROD/DR/STAGING) với infra_type + region
-      + licence + chi tiết kỹ thuật riêng per type (JSONB)
-    - Type-specific fields: WebApp (domain_dns, cdn, browser_support…) | Mobile (platforms, store links…)
-      | API (spec_url, endpoints, rate_limit…) | ETL (source/target systems, lineage…) | Job (cron, retry, idempotent…)
-    - Danh mục nhân sự: internal / external / contractor / vendor — thông tin cơ bản
-    - Danh mục vai trò: role_code, role_category, workflow_permissions (JSONB), product_access_level
-    - Gán nhiều vai trò cho user với scope (global / product / team)
-    - 8 default roles seeded: BA, DEV, QA, PM, PO, ARCH, DEVOPS, VIEWER
-  db_tables: catalog_products (+7 columns), catalog_product_environments (+2 columns),
-             catalog_product_licenses, catalog_product_details,
-             catalog_users, catalog_roles, catalog_user_roles
-  api_prefix: /catalog/products (14 endpoints) | /catalog/users (7) | /catalog/roles (6)
-  ui_route: /catalog — 3 tabs: Danh mục sản phẩm / Danh mục nhân sự / Vai trò & Quyền
-  ui_detail_tabs: Tổng quan | Kiến trúc | Môi trường | Deployment | Bảo mật | Vận hành | Chi tiết | Licence
-  ui_create_tabs: Cơ bản | Kiến trúc | Deployment | Bảo mật | Vận hành
+
+  - Danh mục sản phẩm (org-wide, không gắn project): Web App / Mobile / Job / ETL / API
+  - Mỗi sản phẩm: 6 sections chung (Architecture, Deployment, Security, Monitoring, Resource, Business)
+    + môi trường (DEV/SIT/UAT/PROD/DR/STAGING) với infra_type + region
+    + licence + chi tiết kỹ thuật riêng per type (JSONB)
+  - Type-specific fields: WebApp (domain_dns, cdn, browser_support…) | Mobile (platforms, store links…)
+    | API (spec_url, endpoints, rate_limit…) | ETL (source/target systems, lineage…) | Job (cron, retry, idempotent…)
+  - Danh mục nhân sự: internal / external / contractor / vendor — thông tin cơ bản
+  - Danh mục vai trò: role_code, role_category, workflow_permissions (JSONB), product_access_level
+  - Gán nhiều vai trò cho user với scope (global / product / team)
+  - 8 default roles seeded: BA, DEV, QA, PM, PO, ARCH, DEVOPS, VIEWER
+    db_tables: catalog_products (+7 columns), catalog_product_environments (+2 columns),
+    catalog_product_licenses, catalog_product_details,
+    catalog_users, catalog_roles, catalog_user_roles
+    api_prefix: /catalog/products (14 endpoints) | /catalog/users (7) | /catalog/roles (6)
+    ui_route: /catalog — 3 tabs: Danh mục sản phẩm / Danh mục nhân sự / Vai trò & Quyền
+    ui_detail_tabs: Tổng quan | Kiến trúc | Môi trường | Deployment | Bảo mật | Vận hành | Chi tiết | Licence
+    ui_create_tabs: Cơ bản | Kiến trúc | Deployment | Bảo mật | Vận hành
 
 ### Arch artifacts
+
 - ADR-001: Tech Stack & System Architecture — file: docs/adr/ADR-001-tech-stack.md
   status: accepted | date: 2026-04-09 | ready-for: Dev
 - ADR-002: Application Registry Schema — file: docs/adr/ADR-002-application-registry-schema.md
@@ -136,12 +150,15 @@ current_stage:  Stage 0.1 — Discover & Deconstruct
 ---
 
 ## Highlight Log (recent — đọc trước khi làm việc)
+
 <!-- Agent 01 tự động inject 10 entries gần nhất từ .highlight-log.yaml -->
+
 _Xem .highlight-log.yaml để xem full log._
 
 ---
 
 ## Lessons learned (append only)
+
 <!-- Format: - {YYYY-MM-DD}: {insight} -->
 
 - 2026-04-09: Project khởi tạo. File system được tạo theo Build_Standard.md v7.0.
@@ -156,4 +173,7 @@ _Xem .highlight-log.yaml để xem full log._
 - 2026-08-31: Review session — Đọc toàn bộ codebase (~49k dòng), lưu báo cáo đầy đủ tại docs/review/CODE-REVIEW-2026-08-31.md. P0 nổi bật: bug 500 project_objects (_get_object_or_404 sai arity ×5), 8 endpoint không auth (+/sites StaticFiles), không RBAC, SSRF copy-from-url, secrets hardcode (JWT_SECRET default, devops123, find_key.py), audit log gần như không hoạt động, migrate.bat thiếu V045 + migrate_annual_plans_v2.sql, 4 cặp migration trùng version. Chưa sửa — chờ chỉ đạo. Lưu ý: stack thực tế là Vite + React (không phải Next.js như header CLAUDE.md ghi).
 - 2026-08-31: Gỡ bỏ tích hợp MCP ADO — xóa thư mục mcp-ado/ và section "Hướng dẫn làm việc với Azure DevOps (ADO) qua MCP" khỏi CLAUDE.md theo yêu cầu. Repo không còn phụ thuộc Azure DevOps.
 - 2026-08-31: Scrub "ecosys/ecosystem" — thay toàn bộ tham chiếu bằng BA_Home/ba_home trên 36 files (domain seed → example.local, test DB → ba_home_test_db, branding UI/scripts/docs). Rename files: BRD-001-ba-home.md, architecture-001-ba-home.md, Brd_ba_home.md, gnm_ba_home_*.xlsx. Xóa file temp Office ~$gnm. Lưu ý: giá trị cũ vẫn còn trong Git history; DB local nếu đã seed từ migration cũ vẫn chứa domain cũ.
+- 2026-08-31: Optimize session — Chạy workflow 14 agents (5 đọc hiểu + 9 kiểm chứng) rồi áp dụng 20+ fix đã verify: (1) Correctness: fix bug 500 _get_object_or_404 arity, gỡ double-encoding JSONB toàn PPG (projects/project_objects/app_registry/meetings/milestones — kèm read-side compensation cho data legacy), user.username→user.sub, parse date cell XLSX import. (2) Perf: gỡ 5 điểm N+1 (reports ×2, annual_plans_v2, project_management) bằng batch ANY($1::uuid[]), executemany cho create plan, pool size cấu hình qua DB_POOL_MIN_SIZE/DB_POOL_MAX_SIZE (default 20). (3) Security: sanitize filename upload (ba-workflow + test-platform), SSRF guard copy-from-url (chặn scheme lạ + private IP), Gemini key chuyển từ query string sang header x-goog-api-key, thêm auth cho GET /projects/{id}/objects, /reports/annual-plan-summary, /projects/domains. (4) Sync: /sync-doc /sync-test trả status thật (500 khi lỗi thay vì nuốt), sync_service log response body. (5) FE: hợp nhất 10 bản authHeaders/request → src/lib/http.ts, tách hằng số CR → src/features/cr/constants.ts, xóa dead exports annual-plan trong api/ppg.ts, bỏ 'use client'. (6) Setup: migrate.bat + README bổ sung migrate_annual_plans_v2.sql + V045-V047 + ghi chú thứ tự cặp trùng version, fix start.sh, fix ESLint config + devDeps, conftest.py chặn pytest collect script root, chuẩn hóa UPLOADS_DIR, GNM_TEMPLATE_PATH default đúng. Test: backend 18 fail → 13 fail (chữa 5, không hỏng mới — 13 còn lại là fail sẵn có), FE 21 fail giữ nguyên (stale từ trước), tsc + vite build sạch. Tài liệu giải thích codebase cho BA: docs/CODEBASE-GUIDE.md. CHƯA XÓA được dead files (bị permission chặn) — danh sách chờ duyệt trong báo cáo phiên. Chưa làm: RBAC, rate-limit login, refresh token, audit log đầy đủ, hợp nhất CR UI (bước 3 risky), 13+21 test fail sẵn có.
+- 2026-08-31: Research session — Nghiên cứu sâu BA Workflow + Auto Test theo yêu cầu user, báo cáo đầy đủ: docs/review/BA-WORKFLOW-AUTOTEST-RESEARCH-2026-08-31.md. Kết luận chính: BA Workflow tồn tại 2 thế hệ song song (documents cũ + ba_documents v2), 5 blocker (MASTER_DOC bị CHECK constraint chặn → 500, nút Xóa gọi endpoint không tồn tại → 405, AI generator trả mock/chuỗi lỗi âm thầm, sync sang PPG luôn fail vì UUID/datetime không JSON-serialize, truy vết CR→doc→test case đứt mọi mắt xích). Auto Test: generator BRS→test case chỉ là parser bullet 15 dòng (steps=expected=nguyên văn 1 câu, script Playwright chỉ có TODO), UI test case là dead code không được route, không có execution thật, bảng test_case_object_links không tồn tại → coverage 500. Đề xuất: bỏ generator, chuyển nguồn test case sang Capture Studio.
+- 2026-08-31: Automation Test — Tích hợp Capture Studio (repo Automation-Test của user) vào automation-test/: npm ci + Playwright chromium đã cài, hardening (bind 127.0.0.1, ws scheme động), dọn data demo, smoke test pass. FE: route /automation + sidebar item mới (iframe studio + fallback hướng dẫn khi studio chưa chạy, VITE_STUDIO_URL config). start.sh/start.bat/install.bat đã gắn studio (port 4700). Chạy: cd automation-test && npm run studio. Studio là local tool 1 người dùng/máy — ghi test case cần Chromium headed.
 - 2026-04-13: Dev session — CODE-003: 3 features shipped. (1) Export/Import XLSX project info (4 sheets: Overview/Timeline/Nguồn lực/To-do list) — backend StreamingResponse + openpyxl, frontend blob download + file upload. (2) Domain field cho project — V028 migration (project_domains LOV 12 entries + FK projects.domain_code), folder tree thay đổi thành {domain}/{project}/BA/ và {domain}/{project}/Tester/, GET /projects/domains LOV endpoint. (3) 5-domain governance checklist — V029 migration (project_activity_tasks), 38 tasks auto-generated per project, new router activity_tasks.py, ChecklistTab UI với progress bar + per-domain sections + click-to-cycle status.

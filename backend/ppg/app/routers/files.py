@@ -238,14 +238,10 @@ async def download_file_version(
         raise HTTPException(404, "File version not found or has no storage path")
 
     file_path = UPLOADS_DIR / ver_row["storage_path"]
-    print(f"[DEBUG] file_path={file_path}, UPLOADS_DIR={UPLOADS_DIR}")
-    print(f"[DEBUG] file_path.resolve()={file_path.resolve()}, UPLOADS_DIR.resolve()={UPLOADS_DIR.resolve()}")
-    print(f"[DEBUG] exists={file_path.exists()}")
-    
     if not file_path.exists():
         raise HTTPException(404, "File not found on disk")
 
-    # Let it raise an uncaught ValueError if it fails so we can see the stack trace
+    # Chặn path traversal: file phải nằm trong UPLOADS_DIR
     file_path.resolve().relative_to(UPLOADS_DIR.resolve())
 
     return FileResponse(

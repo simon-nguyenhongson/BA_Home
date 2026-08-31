@@ -2,7 +2,7 @@
 Sync Service — push to PPG and Test Platform on document approve
 FR-011: BRS approved → Test Platform; all docs → PPG
 BR-002: only BRS triggers test case generation
-ADR-001: sync failure logs to ppg_sync_log, does NOT rollback document transition
+ADR-001: sync failure is logged via logger (no retry), does NOT rollback document transition
 """
 import os
 import logging
@@ -20,6 +20,12 @@ async def push_doc_to_ppg(doc: dict) -> None:
         async with httpx.AsyncClient(timeout=10.0) as client:
             resp = await client.post(f"{PPG_URL}/sync-doc", json=doc)
             resp.raise_for_status()
+    except httpx.HTTPStatusError as e:
+        logger.error(
+            f"sync-doc to PPG failed: HTTP {e.response.status_code} {e.response.text[:500]} "
+            f"| doc_id={doc.get('id')}"
+        )
+        # BR: do NOT raise — sync failure must not rollback document transition
     except Exception as e:
         logger.error(f"sync-doc to PPG failed: {e} | doc_id={doc.get('id')}")
         # BR: do NOT raise — sync failure must not rollback document transition
@@ -39,5 +45,10 @@ async def push_brs_to_test_platform(doc: dict) -> None:
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.post(f"{TEST_URL}/brs", json=payload)
             resp.raise_for_status()
+    except httpx.HTTPStatusError as e:
+        logger.error(
+            f"BRS push to Test Platform failed: HTTP {e.response.status_code} "
+            f"{e.response.text[:500]} | doc_id={doc.get('id')}"
+        )
     except Exception as e:
         logger.error(f"BRS push to Test Platform failed: {e} | doc_id={doc.get('id')}")

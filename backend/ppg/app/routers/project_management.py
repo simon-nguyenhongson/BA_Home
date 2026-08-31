@@ -389,17 +389,30 @@ async def portfolio_summary(
             "SELECT * FROM projects WHERE status != 'archived' ORDER BY name"
         )
 
+    # Batch 2 query cho toàn bộ danh sách thay vì 2 query / project (N+1)
+    pids = [str(p["id"]) for p in projects]
+    health_map: dict = {}
+    prio_map: dict = {}
+    if pids:
+        health_rows = await db.fetch("""
+            SELECT DISTINCT ON (project_id) project_id, overall_rag, assessed_date
+            FROM project_health_scores
+            WHERE project_id = ANY($1::uuid[])
+            ORDER BY project_id, assessed_date DESC
+        """, pids)
+        health_map = {str(r["project_id"]): r for r in health_rows}
+        prio_rows = await db.fetch(
+            "SELECT project_id, wsjf_score, priority_rank FROM project_priorities "
+            "WHERE project_id = ANY($1::uuid[])",
+            pids,
+        )
+        prio_map = {str(r["project_id"]): r for r in prio_rows}
+
     result = []
     for p in projects:
         pid = str(p["id"])
-        health = await db.fetchrow("""
-            SELECT overall_rag, assessed_date FROM project_health_scores
-            WHERE project_id=$1 ORDER BY assessed_date DESC LIMIT 1
-        """, pid)
-        priority = await db.fetchrow(
-            "SELECT wsjf_score, priority_rank FROM project_priorities WHERE project_id=$1",
-            pid,
-        )
+        health = health_map.get(pid)
+        priority = prio_map.get(pid)
         result.append({
             **dict(p),
             "latest_health_rag": health["overall_rag"] if health else None,

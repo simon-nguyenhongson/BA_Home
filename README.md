@@ -75,12 +75,18 @@ Từ `<project_root>`, chạy **1 lệnh duy nhất**:
 migrate.bat
 ```
 
-Script này sẽ tự động chạy `infra/init.sql` + toàn bộ 32 migration files theo đúng thứ tự.
+Script này sẽ tự động chạy `infra/init.sql` + `infra/migrate_annual_plans_v2.sql` + toàn bộ 35 migration files (V017–V047) theo đúng thứ tự.
 
 **Hoặc chạy thủ công từng file** (nếu cần):
 
+> **Lưu ý — các cặp migration trùng số version, thứ tự dưới đây là BẮT BUỘC:**
+> - `V030__catalog_seed_internal_webapps.sql` phải chạy **trước** `V031__catalog_product_domain_fk.sql` (seed INSERT vào cột `domain`, V031 sẽ DROP cột đó sau khi migrate sang `domain_code`).
+> - `V041__test_documents.sql` phải chạy **trước** `V042__test_documents_updated_by.sql` (V042 ALTER bảng do V041 tạo).
+> - Không rename các file trùng version — số version đã được áp dụng trên DB hiện hữu.
+
 ```bash
 psql -h 127.0.0.1 -U devops -d devops_hub -f infra/init.sql
+psql -h 127.0.0.1 -U devops -d devops_hub -f infra/migrate_annual_plans_v2.sql
 psql -h 127.0.0.1 -U devops -d devops_hub -f migrations/V017__publish_jobs.sql
 psql -h 127.0.0.1 -U devops -d devops_hub -f migrations/V018__annual_plan_extended.sql
 psql -h 127.0.0.1 -U devops -d devops_hub -f migrations/V019__project_management_extended.sql
@@ -113,6 +119,9 @@ psql -h 127.0.0.1 -U devops -d devops_hub -f migrations/V042__request_attachment
 psql -h 127.0.0.1 -U devops -d devops_hub -f migrations/V042__test_documents_updated_by.sql
 psql -h 127.0.0.1 -U devops -d devops_hub -f migrations/V043__project_todos.sql
 psql -h 127.0.0.1 -U devops -d devops_hub -f migrations/V044__project_todos_status.sql
+psql -h 127.0.0.1 -U devops -d devops_hub -f migrations/V045__ba_documents_and_project_objects.sql
+psql -h 127.0.0.1 -U devops -d devops_hub -f migrations/V046__rename_pcr_to_cr.sql
+psql -h 127.0.0.1 -U devops -d devops_hub -f migrations/V047__master_doc_versioning.sql
 ```
 
 > **Lưu ý:** Một số migration dùng `IF NOT EXISTS` — chạy lại không bị lỗi. Nếu thấy lỗi `already exists` có thể bỏ qua.
@@ -242,7 +251,7 @@ ba_home/
 │   └── vite.config.ts
 ├── infra/
 │   └── init.sql              # Schema khởi tạo
-├── migrations/               # V017–V044 incremental migrations
+├── migrations/               # V017–V047 incremental migrations
 ├── docs/                     # ADRs, Architecture, BRD
 ├── uploads/                  # File uploads (tự tạo khi chạy)
 ├── install.bat               # Cài dependencies (chạy 1 lần)

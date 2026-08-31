@@ -12,11 +12,14 @@ timeout /t 3 /nobreak > nul
 
 start "Frontend :5173" cmd /k "cd frontend && npm run dev"
 
+start "Capture Studio :4700" cmd /k "cd automation-test && npm run studio"
+
 echo.
 echo All services starting...
 echo PPG:      http://localhost:8001/docs
 echo BA:       http://localhost:8002/docs
 echo Test:     http://localhost:8003/docs
 echo Frontend: http://localhost:5173
+echo Studio:   http://localhost:4700
 echo.
 echo Default login: admin / admin123

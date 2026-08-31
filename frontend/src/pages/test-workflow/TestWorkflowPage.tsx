@@ -5,7 +5,11 @@
  */
 
 import React, { useEffect, useState, useCallback } from 'react'
-import { RefreshCw, AlertTriangle } from 'lucide-react'
+import {
+  RefreshCw, AlertTriangle, Map, Play, SlidersHorizontal, FileText,
+  ClipboardList, CheckCircle2, XCircle, Bot, Hourglass, Check, X, BarChart3,
+  type LucideIcon,
+} from 'lucide-react'
 import { Btn, EmptyState, AppSelect, Modal } from '../../components/ui'
 import { getProjects, type Project } from '../../api/ppg'
 import { TestDocumentList } from '../../components/test-workflow/TestDocumentList'
@@ -37,9 +41,9 @@ import type { ProjectObject } from '../../lib/types/project-object'
 const C = {
   primary: 'var(--app-primary)',
   success: 'var(--app-success)',
-  warning: '#f59e0b',
+  warning: 'var(--app-warning)',
   danger:  'var(--app-danger)',
-  info:    '#0ea5e9',
+  info:    'var(--app-info)',
   n50:     'var(--app-neutral-50)',
   n100:    'var(--app-neutral-100)',
   n200:    'var(--app-neutral-200)',
@@ -49,21 +53,21 @@ const C = {
 }
 
 const RISK_COLOR: Record<string, string> = { high: C.danger,   medium: C.warning, low: C.success }
-const RISK_BG:    Record<string, string> = { high: '#fee2e2', medium: '#fef9c3', low: '#dcfce7' }
+const RISK_BG:    Record<string, string> = { high: '#FEF3F2', medium: '#FFFAEB', low: '#ECFDF3' }
 const RISK_LABEL: Record<string, string> = { high: 'HIGH',    medium: 'MED',     low: 'LOW'     }
-const SEV_COLOR:  Record<string, string> = { critical: '#7f1d1d', high: C.danger, medium: C.warning, low: '#6b7280' }
-const SEV_BG:     Record<string, string> = { critical: '#fde8e8', high: '#fee2e2', medium: '#fef9c3', low: '#f3f4f6' }
+const SEV_COLOR:  Record<string, string> = { critical: '#B42318', high: '#D92D20', medium: '#DC6803', low: '#667085' }
+const SEV_BG:     Record<string, string> = { critical: '#FEE4E2', high: '#FEF3F2', medium: '#FFFAEB', low: '#F2F4F7' }
 
 // ── Tab definitions ───────────────────────────────────────────────────────────
 type TabId = 'strategy' | 'execution' | 'control' | 'documents'
-const TAB_GROUPS = [
-  { label: 'Dashboard', color: C.primary, tabs: [
-    { id: 'strategy'  as TabId, icon: '🗺',  label: 'Strategy'  },
-    { id: 'execution' as TabId, icon: '▶',   label: 'Execution' },
-    { id: 'control'   as TabId, icon: '🎛',  label: 'Control'   },
+const TAB_GROUPS: { label: string; color: string; tabs: { id: TabId; icon: LucideIcon; label: string }[] }[] = [
+  { label: 'Dashboard', color: '#6941C6', tabs: [
+    { id: 'strategy',  icon: Map,               label: 'Strategy'  },
+    { id: 'execution', icon: Play,              label: 'Execution' },
+    { id: 'control',   icon: SlidersHorizontal, label: 'Control'   },
   ]},
-  { label: 'Tài liệu', color: '#7c3aed', tabs: [
-    { id: 'documents' as TabId, icon: '📄', label: 'Tài liệu Test' },
+  { label: 'Tài liệu', color: '#6941C6', tabs: [
+    { id: 'documents', icon: FileText, label: 'Tài liệu Test' },
   ]},
 ]
 
@@ -875,7 +879,7 @@ export default function TestWorkflowPage() {
                   borderBottom: isActive ? `3px solid ${group.color}` : '3px solid transparent',
                   marginBottom: -2, transition: 'all 0.15s',
                 }}>
-                  <span>{tab.icon}</span><span>{tab.label}</span>
+                  <tab.icon size={14} strokeWidth={1.5} /><span>{tab.label}</span>
                 </button>
               )
             })}

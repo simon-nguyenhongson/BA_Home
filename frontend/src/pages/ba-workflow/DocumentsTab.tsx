@@ -23,8 +23,8 @@ import { useStore } from '../../stores/auth'
 
 // ── Colors per doc type ──────────────────────────────────────────
 const DOC_COLORS: Record<string, string> = {
-  BRD: '#0066B3', BRS: '#1B7A3F', FSD: '#0891b2',
-  ERD: '#C97A00', API_SPEC: '#6B21A8', DATA_DICT: '#4f46e5',
+  BRD: 'var(--app-primary)', BRS: 'var(--app-success)', FSD: '#0891b2',
+  ERD: 'var(--app-warning)', API_SPEC: '#6B21A8', DATA_DICT: '#4f46e5',
   WIREFRAME: '#be185d', PROCESS_FLOW: '#059669', MASTER_DOC: '#b91c1c'
 }
 

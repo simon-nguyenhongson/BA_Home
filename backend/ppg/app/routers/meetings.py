@@ -2,6 +2,7 @@
 Meetings Router — Phase 3
 List meetings, generate/parse meeting notes
 """
+import json
 from uuid import UUID
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
@@ -31,7 +32,14 @@ async def list_meetings(
         "SELECT * FROM meeting_minutes WHERE project_id = $1 ORDER BY meeting_date DESC, created_at DESC",
         project_id,
     )
-    return [dict(r) for r in rows]
+    out: list[dict] = []
+    for r in rows:
+        d = dict(r)
+        # Bù dữ liệu legacy đã bị double-encode trước fix codec
+        if isinstance(d.get("generated_content"), str):
+            d["generated_content"] = json.loads(d["generated_content"])
+        out.append(d)
+    return out
 
 
 @router.post("/{project_id}/meetings/generate", status_code=201)
@@ -56,7 +64,7 @@ async def generate_meeting(
         """INSERT INTO meeting_minutes (project_id, title, meeting_date, raw_notes, generated_content, created_by)
            VALUES ($1, $2, $3, $4, $5::jsonb, $6) RETURNING *""",
         project_id, body.title, meeting_date, body.raw_notes,
-        __import__("json").dumps(parsed),
+        parsed,
         user.sub if user else "system",
     )
     return dict(row)

@@ -519,6 +519,12 @@ def _compute_sha256(content: bytes) -> str:
     return hashlib.sha256(content).hexdigest()
 
 
+def _safe_filename(name: str) -> str:
+    """Chặn path traversal: chỉ giữ tên file, bỏ mọi thành phần đường dẫn."""
+    cleaned = os.path.basename(name.replace("\\", "/").strip())
+    return cleaned or "upload"
+
+
 async def _save_file_to_storage(
     content: bytes,
     document_id: str,
@@ -526,6 +532,7 @@ async def _save_file_to_storage(
     filename: str,
 ) -> str:
     """Save to local filesystem. Returns relative path."""
+    filename = _safe_filename(filename)
     rel_path = os.path.join(document_id, str(version), filename)
     abs_path = os.path.join(STORAGE_BASE, rel_path)
     os.makedirs(os.path.dirname(abs_path), exist_ok=True)
@@ -573,7 +580,7 @@ async def upload_doc_file(
     version = (latest_version or 0) + 1
 
     checksum = _compute_sha256(content)
-    filename = file.filename or "upload"
+    filename = _safe_filename(file.filename or "upload")
 
     try:
         file_path = await _save_file_to_storage(content, doc_id, version, filename)
@@ -677,6 +684,41 @@ async def download_doc_file(
     )
 
 
+def _validate_outbound_url(url: str) -> None:
+    """Chặn SSRF: chỉ cho http/https và không cho trỏ vào dải IP nội bộ."""
+    import ipaddress
+    import socket
+    from urllib.parse import urlparse
+
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        raise HTTPException(
+            422,
+            detail={"code": "VALIDATION_ERROR", "message": "Only http/https URLs are allowed"},
+        )
+    host = parsed.hostname
+    if not host:
+        raise HTTPException(
+            422, detail={"code": "VALIDATION_ERROR", "message": "URL has no host"}
+        )
+    try:
+        infos = socket.getaddrinfo(host, parsed.port or (443 if parsed.scheme == "https" else 80))
+    except socket.gaierror:
+        raise HTTPException(
+            422, detail={"code": "VALIDATION_ERROR", "message": "Cannot resolve URL host"}
+        )
+    for info in infos:
+        ip = ipaddress.ip_address(info[4][0])
+        if (
+            ip.is_private or ip.is_loopback or ip.is_link_local
+            or ip.is_reserved or ip.is_multicast or ip.is_unspecified
+        ):
+            raise HTTPException(
+                422,
+                detail={"code": "VALIDATION_ERROR", "message": "URL resolves to a private address"},
+            )
+
+
 @router.post("/{doc_id}/files/copy-from-url")
 async def copy_file_from_url(
     doc_id: str,
@@ -686,10 +728,12 @@ async def copy_file_from_url(
 ) -> dict:
     """BR-007: Download URL and save a copy to internal storage."""
     url = body.get("url", "").strip()
-    file_name = body.get("file_name", "").strip() or "copied_file"
+    file_name = _safe_filename(body.get("file_name", "").strip() or "copied_file")
 
     if not url:
         raise HTTPException(422, detail={"code": "VALIDATION_ERROR", "message": "url is required"})
+
+    _validate_outbound_url(url)
 
     await _get_doc_or_404(db, doc_id)
 

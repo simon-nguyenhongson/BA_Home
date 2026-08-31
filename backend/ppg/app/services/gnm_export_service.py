@@ -26,7 +26,7 @@ from openpyxl.styles import Alignment, Border, Font
 # ── Template path ──────────────────────────────────────────────────────────────
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 _DEFAULT_TEMPLATE = os.path.normpath(
-    os.path.join(_THIS_DIR, "..", "..", "..", "..", "export-GNM", "GNM.xlsx")
+    os.path.join(_THIS_DIR, "..", "..", "..", "..", "docs", "brd", "export-GNM", "GNM.xlsx")
 )
 GNM_TEMPLATE_PATH: str = os.getenv("GNM_TEMPLATE_PATH", _DEFAULT_TEMPLATE)
 

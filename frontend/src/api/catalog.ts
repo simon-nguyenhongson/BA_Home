@@ -3,28 +3,12 @@
  * Proxied via Vite /api/ppg → :8001
  */
 
+import { apiRequest } from '../lib/http'
+
 const BASE = '/api/ppg'
 
-function authHeaders(): HeadersInit {
-  const token = sessionStorage.getItem('access_token')
-  return token
-    ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
-    : { 'Content-Type': 'application/json' }
-}
-
-async function req<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    method,
-    headers: authHeaders(),
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  })
-  if (res.status === 401) { sessionStorage.removeItem('access_token'); window.location.href = '/login' }
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: res.statusText }))
-    throw new Error(err.detail || 'Request failed')
-  }
-  return res.status === 204 ? (undefined as T) : res.json()
-}
+const req = <T,>(method: string, path: string, body?: unknown) =>
+  apiRequest<T>(BASE, method, path, body)
 
 // ── Enums / Union types ────────────────────────────────────────────────────
 

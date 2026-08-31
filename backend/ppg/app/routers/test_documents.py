@@ -179,7 +179,7 @@ async def create_test_document(
         body.project_id, body.doc_type, body.title, body.content,
         status,
         body.object_id or None, body.milestone_id or None,
-        meta_json, user.username if hasattr(user, "username") else None,
+        meta_json, user.sub,
     )
     return {"data": _row_to_dict(row)}
 

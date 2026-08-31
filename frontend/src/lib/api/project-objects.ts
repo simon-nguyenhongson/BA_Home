@@ -17,35 +17,12 @@ import type {
   ImportResult,
 } from '../types/project-object'
 
+import { apiRequest } from '../http'
+
 const BASE = '/api/ppg'
 
-function authHeaders(): HeadersInit {
-  const token = sessionStorage.getItem('access_token')
-  return token
-    ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
-    : { 'Content-Type': 'application/json' }
-}
-
-async function request<T>(
-  method: string,
-  path: string,
-  body?: unknown,
-): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    method,
-    headers: authHeaders(),
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  })
-  if (res.status === 401) {
-    sessionStorage.removeItem('access_token')
-    window.location.href = '/login'
-  }
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: res.statusText }))
-    throw new Error(err.detail || err.error?.message || 'Request failed')
-  }
-  return res.status === 204 ? (undefined as T) : res.json()
-}
+const request = <T,>(method: string, path: string, body?: unknown) =>
+  apiRequest<T>(BASE, method, path, body)
 
 export interface ObjectsFilter {
   object_type?: ProjectObjectType

@@ -1,6 +1,9 @@
 import os
 import asyncio
+import logging
 from typing import Dict, Any
+
+logger = logging.getLogger(__name__)
 
 # You can configure API keys via environment variables
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
@@ -62,15 +65,18 @@ LƯU Ý QUAN TRỌNG: BẮT BUỘC PHẢI TRẢ LỜI 100% BẰNG TIẾNG VIỆT
         
         import os
         api_key = os.getenv("GEMINI_API_KEY")
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+        url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
         payload = {
             "contents": [{"parts": [{"text": prompt}]}]
         }
         
         async with httpx.AsyncClient() as client:
-            resp = await client.post(url, json=payload, timeout=120.0)
+            resp = await client.post(
+                url, json=payload, timeout=120.0,
+                headers={"x-goog-api-key": api_key},
+            )
             if resp.status_code != 200:
-                print(f"Gemini API Error: {resp.text}")
+                logger.error("Gemini API error %s: %s", resp.status_code, resp.text)
                 return f"Error calling Gemini API: {resp.status_code}\n\n{resp.text}"
             
             data = resp.json()
@@ -131,11 +137,12 @@ QUY TẮC BẮT BUỘC:
 
         url = (
             "https://generativelanguage.googleapis.com/v1beta/models/"
-            f"gemini-2.5-flash:generateContent?key={api_key}"
+            "gemini-2.5-flash:generateContent"
         )
         async with httpx.AsyncClient() as client:
             resp = await client.post(
-                url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=180.0
+                url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=180.0,
+                headers={"x-goog-api-key": api_key},
             )
             if resp.status_code != 200:
                 raise RuntimeError(f"Gemini API lỗi {resp.status_code}: {resp.text[:300]}")

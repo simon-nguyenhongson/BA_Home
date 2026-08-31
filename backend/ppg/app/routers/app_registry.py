@@ -50,7 +50,7 @@ async def create_object(
                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *""",
             project_id, body.object_type, body.name, body.code,
             body.description, body.owner_team, body.status,
-            json.dumps(body.environment), json.dumps(body.extra), user.sub,
+            body.environment, body.extra, user.sub,
         )
     except asyncpg.UniqueViolationError:
         raise HTTPException(409, f"Code '{body.code}' already exists in this project")
@@ -84,10 +84,6 @@ async def update_object(
     updates = body.model_dump(exclude_none=True)
     if not updates:
         raise HTTPException(400, "No fields to update")
-    if "environment" in updates:
-        updates["environment"] = json.dumps(updates["environment"])
-    if "extra" in updates:
-        updates["extra"] = json.dumps(updates["extra"])
     set_parts = [f"{k} = ${i+3}" for i, k in enumerate(updates.keys())]
     row = await db.fetchrow(
         f"UPDATE ppg_app_registry SET {', '.join(set_parts)}, updated_at = NOW() "

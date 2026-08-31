@@ -2,7 +2,13 @@ import React, { useEffect, useState, useCallback, useRef } from 'react'
 import {
   Plus, RefreshCw, Calendar, Trash2, Edit,
   Zap, FileText, MessageSquare, ChevronRight, Download,
-  Upload, ExternalLink, Clock, Copy, CheckCircle, ChevronDown
+  Upload, ExternalLink, Clock, Copy, CheckCircle, ChevronDown,
+  ChevronLeft, Rocket, ClipboardList, PenTool, Code, Microscope,
+  Shield, Archive, Search, BarChart3, Ruler, Wrench, Handshake,
+  PenLine, Settings, FlaskConical, MapPin, Home, Users, FolderOpen,
+  ListChecks, Repeat, Radio, Folder, Link2, AlertTriangle, Lightbulb,
+  User, Check, Building2, Cloud, Lock, Scale, LayoutGrid, List,
+  type LucideIcon,
 } from 'lucide-react'
 import {
   getProjects, createProject, updateProject, archiveProject,
@@ -34,11 +40,23 @@ const MILESTONE_STATUS_COLOR: Record<string, string> = {
   completed:   'var(--app-success)',
   delayed:     'var(--app-danger)',
 }
-const MILESTONE_TYPE_ICON: Record<string, string> = {
-  kickoff: '🚀', requirements: '📋', design: '🏗️', development: '💻',
-  sit: '🔬', uat: '✅', golive: '🚀', hypercare: '🛡️', closure: '📦',
-  ba_kickoff: '🚀', ba_elicitation: '🔍', ba_analysis: '📊', ba_brd: '📄', ba_frs: '📐', ba_dev_support: '🔧', ba_uat_support: '🤝', ba_closure: '📦',
-  test_planning: '📅', test_design: '✍️', test_env_setup: '⚙️', test_sit_exec: '🧪', test_uat_exec: '✅', test_golive: '🚀', test_closure: '📦',
+const MILESTONE_TYPE_ICON: Record<string, LucideIcon> = {
+  kickoff: Rocket, requirements: ClipboardList, design: PenTool, development: Code,
+  sit: Microscope, uat: CheckCircle, golive: Rocket, hypercare: Shield, closure: Archive,
+  ba_kickoff: Rocket, ba_elicitation: Search, ba_analysis: BarChart3, ba_brd: FileText, ba_frs: Ruler, ba_dev_support: Wrench, ba_uat_support: Handshake, ba_closure: Archive,
+  test_planning: Calendar, test_design: PenLine, test_env_setup: Settings, test_sit_exec: FlaskConical, test_uat_exec: CheckCircle, test_golive: Rocket, test_closure: Archive,
+}
+// Badge màu theo DS cho status milestone (bg subtle + text đậm)
+const MILESTONE_STATUS_BADGE: Record<string, { bg: string; color: string }> = {
+  planned:     { bg: '#F2F4F7', color: '#344054' },
+  in_progress: { bg: '#EFF8FF', color: '#1570EF' },
+  completed:   { bg: '#ECFDF3', color: '#039855' },
+  delayed:     { bg: '#FEF3F2', color: '#D92D20' },
+}
+// Render icon milestone theo loại (MILESTONE_TYPE_ICON trả về component lucide)
+function MsIcon({ type, size = 16, fallback = null }: { type?: string | null; size?: number; fallback?: React.ReactNode }) {
+  const Icon = MILESTONE_TYPE_ICON[type || '']
+  return Icon ? <Icon size={size} strokeWidth={1.5} /> : <>{fallback}</>
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -308,7 +326,7 @@ function OverviewTab({ project, annualPlans, onNavigate }: {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {milestones.filter(m => m.track === 'project' || !m.track).slice(0, 6).map(ms => (
               <div key={ms.id} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                <span style={{ fontSize: 14 }}>{MILESTONE_TYPE_ICON[ms.milestone_type || ''] || '·'}</span>
+                <span style={{ display: 'inline-flex', color: 'var(--app-neutral-500)' }}><MsIcon type={ms.milestone_type} size={14} /></span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ms.name}</div>
                   <div style={{ fontSize: 11, color: 'var(--app-neutral-500)' }}>{ms.end_date?.slice(0, 10)}</div>
@@ -518,7 +536,7 @@ function MilestonesTab({ project }: { project: Project }) {
                               }}>
                                 {(ms.status === 'in_progress' || ms.status === 'delayed' || ms.status === 'completed') && (
                                   <div style={{ fontSize: 14, color: '#fff', display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.1)', padding: 2, borderRadius: '50%' }}>
-                                    {ms.status === 'completed' ? <CheckCircle size={14} color="#fff" /> : (MILESTONE_TYPE_ICON[ms.milestone_type || ''] || '📌')}
+                                    {ms.status === 'completed' ? <CheckCircle size={14} color="#fff" /> : <MsIcon type={ms.milestone_type} size={14} />}
                                   </div>
                                 )}
                               </div>
@@ -535,7 +553,11 @@ function MilestonesTab({ project }: { project: Project }) {
                             borderLeft: `4px solid ${MILESTONE_STATUS_COLOR[ms.status] || 'transparent'}`,
                           }}>
                             <div style={{ fontSize: 20, paddingTop: 2, width: 24, textAlign: 'center' }}>
-                              {ms.status === 'completed' ? <CheckCircle size={20} color="var(--app-success)" /> : (MILESTONE_TYPE_ICON[ms.milestone_type || ''] || String(idx + 1))}
+                              {ms.status === 'completed'
+                                ? <CheckCircle size={20} color="var(--app-success)" />
+                                : (MILESTONE_TYPE_ICON[ms.milestone_type || '']
+                                    ? <MsIcon type={ms.milestone_type} size={20} />
+                                    : String(idx + 1))}
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
@@ -623,8 +645,8 @@ function MembersTab({ project }: { project: Project }) {
 
   const ROLES = ['PM', 'BA', 'Dev Lead', 'Developer', 'QA Lead', 'QA', 'PO', 'Stakeholder', 'DevOps']
   const ROLE_COLORS: Record<string, string> = {
-    PM: '#0066B3', BA: '#1B7A3F', 'Dev Lead': '#6B21A8', Developer: '#6B21A8',
-    'QA Lead': '#C97A00', QA: '#C97A00', PO: '#0066B3', Stakeholder: '#64748b',
+    PM: 'var(--app-primary)', BA: 'var(--app-success)', 'Dev Lead': '#6B21A8', Developer: '#6B21A8',
+    'QA Lead': 'var(--app-warning)', QA: 'var(--app-warning)', PO: 'var(--app-primary)', Stakeholder: '#64748b',
   }
 
   return (
@@ -810,7 +832,7 @@ function FilesTab({ project }: { project: Project }) {
         <Btn variant={filterMs === '' ? 'primary' : 'ghost'} size="sm" onClick={() => setFilterMs('')}>Tất cả</Btn>
         {milestones.filter(ms => (ms.track || 'project') === filterTrack).map(ms => (
           <Btn key={ms.id} variant={filterMs === ms.id ? 'primary' : 'ghost'} size="sm" onClick={() => setFilterMs(ms.id)}>
-            {MILESTONE_TYPE_ICON[ms.milestone_type || ''] || ''} {ms.name}
+            <MsIcon type={ms.milestone_type} size={13} /> {ms.name}
           </Btn>
         ))}
       </div>

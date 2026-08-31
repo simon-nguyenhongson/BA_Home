@@ -165,14 +165,22 @@ async def list_annual_plans(
         *params, size, offset,
     )
 
+    # Batch 1 query cho toàn bộ trang thay vì 1 query / plan (N+1)
+    plan_ids = [r["id"] for r in rows]
+    dod_map: dict = {}
+    if plan_ids:
+        all_dod = await db.fetch(
+            "SELECT plan_id, weight, is_achieved FROM ppg_annual_plan_dod_items "
+            "WHERE plan_id = ANY($1::uuid[])",
+            plan_ids,
+        )
+        for item in all_dod:
+            dod_map.setdefault(item["plan_id"], []).append(item)
+
     result_data = []
     for r in rows:
         d = dict(r)
-        # Compute DoD pct
-        dod_items = await db.fetch(
-            "SELECT weight, is_achieved FROM ppg_annual_plan_dod_items WHERE plan_id = $1", d["id"]
-        )
-        d["dod_completion_pct"] = _calc_dod_pct(dod_items)
+        d["dod_completion_pct"] = _calc_dod_pct(dod_map.get(r["id"], []))
         result_data.append(d)
 
     return {"data": result_data, "meta": {"total": total, "page": page, "size": size}}
@@ -201,24 +209,27 @@ async def create_annual_plan(
             user.sub,
         )
 
-        for obj in body.objectives:
-            await db.execute(
+        if body.objectives:
+            await db.executemany(
                 """
                 INSERT INTO ppg_annual_plan_objectives
                     (id, plan_id, title, description, sort_order, created_by)
                 VALUES ($1,$2,$3,$4,$5,$6)
                 """,
-                str(uuid4()), plan_id, obj.title, obj.description, obj.sort_order, user.sub,
+                [
+                    (str(uuid4()), plan_id, obj.title, obj.description, obj.sort_order, user.sub)
+                    for obj in body.objectives
+                ],
             )
 
-        for item in body.dod_items:
-            await db.execute(
+        if body.dod_items:
+            await db.executemany(
                 """
                 INSERT INTO ppg_annual_plan_dod_items
                     (id, plan_id, criterion, weight)
                 VALUES ($1,$2,$3,$4)
                 """,
-                str(uuid4()), plan_id, item.criterion, item.weight,
+                [(str(uuid4()), plan_id, item.criterion, item.weight) for item in body.dod_items],
             )
 
     await log_audit(

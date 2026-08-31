@@ -530,13 +530,17 @@ def test_portfolio_summary_with_projects(ppg_client):
 
     async def fake_db():
         db = MagicMock()
-        db.fetch = AsyncMock(return_value=projects)
-        # fetchrow called per project: health + priority (2 projects × 2 calls)
-        db.fetchrow = AsyncMock(side_effect=[
-            {"overall_rag": "green", "assessed_date": "2026-04-01"},
-            {"wsjf_score": 7.5, "priority_rank": 1},
-            {"overall_rag": "amber", "assessed_date": "2026-04-01"},
-            {"wsjf_score": 4.2, "priority_rank": 2},
+        # fetch được gọi 3 lần: projects → health (batch) → priorities (batch)
+        db.fetch = AsyncMock(side_effect=[
+            projects,
+            [
+                {"project_id": pid1, "overall_rag": "green", "assessed_date": "2026-04-01"},
+                {"project_id": pid2, "overall_rag": "amber", "assessed_date": "2026-04-01"},
+            ],
+            [
+                {"project_id": pid1, "wsjf_score": 7.5, "priority_rank": 1},
+                {"project_id": pid2, "wsjf_score": 4.2, "priority_rank": 2},
+            ],
         ])
         yield db
 

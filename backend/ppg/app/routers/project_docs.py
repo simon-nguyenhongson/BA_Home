@@ -19,6 +19,10 @@ from fastapi.responses import FileResponse
 from app.auth import CurrentUser
 from app.database import get_db
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/projects", tags=["project-docs"])
 
 # ── Config ────────────────────────────────────────────────────────
@@ -317,12 +321,7 @@ async def upload_doc_file(
             "size":    len(content),
         }
     except Exception as exc:
-        import traceback
-
-        tb = traceback.format_exc()
-        # Log to stdout for developer debugging
-        print("[upload_doc_file] ERROR:\n", tb)
-        # Return a clearer HTTP error in JSON
+        logger.exception("upload_doc_file failed")
         raise HTTPException(500, f"Upload failed: {exc}")
 
 

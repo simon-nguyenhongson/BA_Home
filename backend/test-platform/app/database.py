@@ -8,7 +8,11 @@ _pool: asyncpg.Pool | None = None
 
 async def init_pool() -> None:
     global _pool
-    _pool = await asyncpg.create_pool(DATABASE_URL, min_size=2, max_size=10)
+    _pool = await asyncpg.create_pool(
+        DATABASE_URL,
+        min_size=int(os.getenv("DB_POOL_MIN_SIZE", "2")),
+        max_size=int(os.getenv("DB_POOL_MAX_SIZE", "20")),
+    )
 
 
 async def close_pool() -> None:

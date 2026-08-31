@@ -21,6 +21,14 @@ import { RequestAttachments } from '../../components/RequestAttachments'
 import { FileQueueSection } from '../../components/FileQueueSection'
 import { createTodo, type TodoType } from '../../api/todos'
 import { UserSelect } from '../../components/UserSelect'
+import {
+  CR_CHANGE_TYPE_LABELS as CHANGE_TYPE_LABELS,
+  CR_STATUS_LABELS as STATUS_LABELS,
+  CR_STATUS_TABS as STATUS_TABS,
+  CR_PRIORITY_LABELS as PRIORITY_LABELS,
+  CR_FLOW as FLOW,
+  TODO_TYPE_LABELS,
+} from '../../features/cr/constants'
 
 function addWorkingDays(days: number, from = new Date()): string {
   const d = new Date(from)
@@ -34,19 +42,6 @@ function addWorkingDays(days: number, from = new Date()): string {
 }
 
 // ── Label maps ────────────────────────────────────────────────────
-const CHANGE_TYPE_LABELS: Record<CRChangeType, string> = {
-  scope: 'Phạm vi', timeline: 'Timeline', resource: 'Nhân lực',
-  budget: 'Ngân sách', technical: 'Kỹ thuật', process: 'Quy trình', other: 'Khác',
-}
-const STATUS_LABELS: Record<CRStatus, string> = {
-  submitted:    'Khởi tạo',
-  reviewing:    'Đang review',
-  approved:     'Pending',
-  rejected:     'Từ chối',
-  implementing: 'Đang triển khai',
-  implemented:  'Đã triển khai',
-  cancelled:    'Hủy',
-}
 const STATUS_CSS: Record<CRStatus, string> = {
   submitted:    'bg-gray-100 text-gray-600',
   reviewing:    'bg-yellow-50 text-yellow-700',
@@ -55,9 +50,6 @@ const STATUS_CSS: Record<CRStatus, string> = {
   implementing: 'bg-orange-50 text-orange-700',
   implemented:  'bg-green-50 text-green-700',
   cancelled:    'bg-gray-100 text-gray-400',
-}
-const PRIORITY_LABELS: Record<Priority, string> = {
-  critical: 'Khẩn cấp', high: 'Cao', medium: 'Trung bình', low: 'Thấp',
 }
 const PRIORITY_CSS: Record<Priority, string> = {
   critical: 'bg-red-100 text-red-700',
@@ -68,22 +60,6 @@ const PRIORITY_CSS: Record<Priority, string> = {
 const PRIORITY_BORDER: Record<Priority, string> = {
   critical: '#ef4444', high: '#f97316', medium: '#eab308', low: '#9ca3af',
 }
-
-// Flow for progress bar (main path, excluding terminal states)
-const FLOW: CRStatus[] = ['submitted', 'reviewing', 'approved', 'implementing', 'implemented']
-
-// Status tabs — each tab may match multiple DB values
-interface StatusTab { label: string; values: CRStatus[] | null }
-const STATUS_TABS: StatusTab[] = [
-  { label: 'Tất cả',           values: null },
-  { label: 'Khởi tạo',         values: ['submitted'] },
-  { label: 'Đang review',      values: ['reviewing'] },
-  { label: 'Đang triển khai',  values: ['implementing'] },
-  { label: 'Đã triển khai',    values: ['implemented'] },
-  { label: 'Pending',          values: ['approved'] },
-  { label: 'Từ chối',          values: ['rejected'] },
-  { label: 'Hủy',              values: ['cancelled'] },
-]
 
 // ── Error banner ──────────────────────────────────────────────────
 function ErrorBanner({ message, onClose }: { message: string; onClose: () => void }) {
@@ -404,11 +380,6 @@ function CRFormModal({
 }
 
 // ── CreateTaskModal (inline, reuses project context) ─────────────
-const TODO_TYPE_LABELS: Record<TodoType, string> = {
-  feature: 'Tính năng', bug: 'Bug', review: 'Review',
-  meeting: 'Họp', documentation: 'Tài liệu', deployment: 'Triển khai', other: 'Khác',
-}
-
 function CreateTaskModal({
   cr, projectId, projectLabel, onClose,
 }: {

@@ -17,7 +17,9 @@ from app.services.milestone_generator import (
 router = APIRouter(prefix="/projects", tags=["milestones"])
 logger = logging.getLogger(__name__)
 
-UPLOAD_BASE = os.getenv("UPLOAD_DIR", os.path.join(os.path.dirname(__file__), "..", "..", "..", "uploads"))
+UPLOAD_BASE = os.getenv("UPLOADS_DIR", os.getenv(
+    "UPLOAD_DIR", os.path.join(os.path.dirname(__file__), "..", "..", "..", "uploads")
+))
 
 
 class MilestoneUpdate(BaseModel):
@@ -27,6 +29,14 @@ class MilestoneUpdate(BaseModel):
     end_date:      Optional[str] = None
     description:   Optional[str] = None
     done_criteria: Optional[str] = None
+
+
+def _parse_ms(row: asyncpg.Record) -> dict:
+    """dict(row) + bù dữ liệu preconditions legacy bị double-encode."""
+    d = dict(row)
+    if isinstance(d.get("preconditions"), str):
+        d["preconditions"] = json.loads(d["preconditions"])
+    return d
 
 
 @router.get("/{project_id}/milestones")
@@ -46,7 +56,7 @@ async def list_milestones(
             "SELECT * FROM project_milestones WHERE project_id=$1 ORDER BY track, sort_order",
             project_id,
         )
-    return [dict(r) for r in rows]
+    return [_parse_ms(r) for r in rows]
 
 
 @router.get("/{project_id}/milestones/{mid}")
@@ -62,7 +72,7 @@ async def get_milestone(
     )
     if not row:
         raise HTTPException(404, "Milestone not found")
-    return dict(row)
+    return _parse_ms(row)
 
 
 @router.put("/{project_id}/milestones/{mid}")
@@ -84,7 +94,7 @@ async def update_milestone(
     )
     if not row:
         raise HTTPException(404, "Milestone not found")
-    return dict(row)
+    return _parse_ms(row)
 
 
 @router.post("/{project_id}/milestones/generate", status_code=201)
@@ -158,7 +168,7 @@ async def regenerate_milestones(
                     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
                 """, ms_id, project_id, ms["name"], ms["milestone_type"], ms.get("description"),
                     ms["start_date"], ms["end_date"], ms["status"],
-                    ms["sort_order"], json.dumps(ms["preconditions"]), ms["done_criteria"], t)
+                    ms["sort_order"], ms["preconditions"], ms["done_criteria"], t)
 
                 for title, task_type in ba_tasks:
                     await db.execute("""
@@ -166,7 +176,7 @@ async def regenerate_milestones(
                             (id, project_id, milestone_id, task_type, title, preconditions, status, due_date)
                         VALUES ($1,$2,$3,$4,$5,$6,'pending',$7)
                     """, str(uuid4()), project_id, ms_id, task_type, title,
-                        json.dumps(ms["preconditions"]), ms["end_date"])
+                        ms["preconditions"], ms["end_date"])
 
                 for title, task_type in test_tasks:
                     await db.execute("""
@@ -174,7 +184,7 @@ async def regenerate_milestones(
                             (id, project_id, milestone_id, task_type, title, preconditions, status, due_date)
                         VALUES ($1,$2,$3,$4,$5,$6,'pending',$7)
                     """, str(uuid4()), project_id, ms_id, task_type, title,
-                        json.dumps(ms["preconditions"]), ms["end_date"])
+                        ms["preconditions"], ms["end_date"])
 
                 ms_type = ms["milestone_type"]
                 templates_for_type, file_track = file_template_map.get(ms_type, ([], t))
@@ -201,4 +211,4 @@ async def regenerate_milestones(
         "SELECT * FROM project_milestones WHERE project_id=$1 ORDER BY track, sort_order",
         project_id,
     )
-    return [dict(r) for r in rows]
+    return [_parse_ms(r) for r in rows]

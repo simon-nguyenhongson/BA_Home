@@ -8,7 +8,10 @@
  */
 
 import React, { useEffect, useState, useCallback } from 'react'
-import { Plus, RefreshCw, ChevronRight, X, Edit2, Trash2 } from 'lucide-react'
+import {
+  Plus, RefreshCw, ChevronRight, X, Edit2, Trash2,
+  ArrowLeft, LayoutGrid, List, Calendar, Link2, Info, AlertTriangle,
+} from 'lucide-react'
 import {
   Btn, Modal, Field, AppInput, AppSelect, AppTextarea,
   StatusBadge, EmptyState, Confirm,
@@ -188,7 +191,7 @@ function PlanForm({
         {form.related_systems.trim() && (
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
             {form.related_systems.split(',').map((s, i) => s.trim() && (
-              <span key={i} style={{ fontSize: 11, background: 'var(--app-primary)15', color: 'var(--app-primary)', padding: '2px 8px', borderRadius: 10 }}>
+              <span key={i} className="badge badge-info">
                 {s.trim()}
               </span>
             ))}
@@ -199,7 +202,7 @@ function PlanForm({
       {/* ── Objectives ── */}
       <div style={{ marginTop: 4 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <span className="txt_r_xxs" style={{ fontWeight: 700 }}>Mục tiêu (tối thiểu 1)</span>
+          <span className="eyebrow">Mục tiêu (tối thiểu 1)</span>
           <Btn size="sm" variant="ghost" onClick={addObjective}><Plus size={13} /> Thêm</Btn>
         </div>
         {form.objectives.map((obj, idx) => (
@@ -221,7 +224,7 @@ function PlanForm({
       {/* ── Definition of Done ── */}
       <div style={{ marginTop: 8 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <span className="txt_r_xxs" style={{ fontWeight: 700 }}>Definition of Done</span>
+          <span className="eyebrow">Definition of Done</span>
           <Btn size="sm" variant="ghost" onClick={addDod}><Plus size={13} /> Thêm tiêu chí</Btn>
         </div>
         {form.dod_items.length === 0 ? (
@@ -251,7 +254,9 @@ function PlanForm({
           <div className="txt_r_xxxs text-muted" style={{ marginTop: 2 }}>
             Tổng weight: <strong>{form.dod_items.reduce((s, d) => s + (d.weight || 0), 0)}</strong>
             {form.dod_items.reduce((s, d) => s + (d.weight || 0), 0) !== 100 && (
-              <span style={{ color: 'var(--app-warning)', marginLeft: 6 }}>⚠ Nên = 100%</span>
+              <span style={{ color: 'var(--app-warning)', marginLeft: 6, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <AlertTriangle size={12} strokeWidth={1.5} /> Nên = 100%
+              </span>
             )}
           </div>
         )}
@@ -260,7 +265,8 @@ function PlanForm({
       {/* ── Status (edit only) ── */}
       {isEdit && (
         <div className="state-banner state-banner-info" style={{ fontSize: 12, marginTop: 8 }}>
-          💡 Trạng thái thay đổi qua nút <strong>Kích hoạt / Đóng kế hoạch</strong> — không chỉnh sửa trực tiếp ở đây.
+          <Info size={16} strokeWidth={1.5} style={{ flexShrink: 0 }} />
+          <span>Trạng thái thay đổi qua nút <strong>Kích hoạt / Đóng kế hoạch</strong> — không chỉnh sửa trực tiếp ở đây.</span>
         </div>
       )}
     </>
@@ -316,12 +322,12 @@ function CreatePlanModal({
   return (
     <Modal title="Tạo Kế hoạch năm mới" open={open} onClose={onClose} width="760px">
       <PlanForm form={form} setForm={setForm} />
-      <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
-        <Btn onClick={submit} loading={saving} style={{ flex: 1, justifyContent: 'center' }}>
-          Tạo kế hoạch
-        </Btn>
-        <Btn variant="ghost" onClick={onClose} style={{ flex: 1, justifyContent: 'center' }}>
+      <div style={{ display: 'flex', gap: 8, marginTop: 20, justifyContent: 'flex-end' }}>
+        <Btn variant="secondary" onClick={onClose}>
           Hủy
+        </Btn>
+        <Btn onClick={submit} loading={saving}>
+          Tạo kế hoạch
         </Btn>
       </div>
     </Modal>
@@ -384,12 +390,12 @@ function EditPlanModal({
   return (
     <Modal title={`Chỉnh sửa: ${plan?.name ?? ''}`} open={open} onClose={onClose} width="760px">
       <PlanForm form={form} setForm={setForm} isEdit />
-      <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
-        <Btn onClick={submit} loading={saving} style={{ flex: 1, justifyContent: 'center' }}>
-          Lưu thay đổi
-        </Btn>
-        <Btn variant="ghost" onClick={onClose} style={{ flex: 1, justifyContent: 'center' }}>
+      <div style={{ display: 'flex', gap: 8, marginTop: 20, justifyContent: 'flex-end' }}>
+        <Btn variant="secondary" onClick={onClose}>
           Hủy
+        </Btn>
+        <Btn onClick={submit} loading={saving}>
+          Lưu thay đổi
         </Btn>
       </div>
     </Modal>
@@ -504,13 +510,6 @@ export default function AnnualPlansPage() {
     if (selectedPlan) await refreshDetail(selectedPlan.id)
   }
 
-  // Status color helper
-  const statusBg: Record<string, string> = {
-    draft: 'var(--app-neutral-100)',
-    active: 'var(--app-success)15',
-    closed: 'var(--app-neutral-200)',
-  }
-
   return (
     <div>
       {/* ── Filter bar ── */}
@@ -528,44 +527,35 @@ export default function AnnualPlansPage() {
         </AppSelect>
 
         {/* Status filter buttons with counts */}
-        {([
-          { key: '',       label: 'Tất cả trạng thái', count: counts.all    },
-          { key: 'draft',  label: 'Draft',              count: counts.draft  },
-          { key: 'active', label: 'Active',             count: counts.active },
-          { key: 'closed', label: 'Closed',             count: counts.closed },
-        ] as { key: string; label: string; count: number }[]).map(({ key, label, count }) => (
-          <button
-            key={key}
-            onClick={() => setStatusFilter(key)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '5px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
-              fontFamily: 'var(--font)', fontSize: 13, fontWeight: statusFilter === key ? 700 : 400,
-              background: statusFilter === key ? 'var(--app-primary)' : 'var(--app-neutral-100)',
-              color: statusFilter === key ? '#fff' : 'var(--app-neutral-600)',
-              transition: 'all 0.15s',
-            }}
-          >
-            {label}
-            <span style={{
-              fontSize: 11, fontWeight: 700, minWidth: 18, textAlign: 'center',
-              padding: '1px 5px', borderRadius: 10,
-              background: statusFilter === key ? 'rgba(255,255,255,0.25)' : 'var(--app-neutral-200)',
-              color: statusFilter === key ? '#fff' : 'var(--app-neutral-500)',
-            }}>
-              {count}
-            </span>
-          </button>
-        ))}
+        <div className="ds-seg">
+          {([
+            { key: '',       label: 'Tất cả trạng thái', count: counts.all    },
+            { key: 'draft',  label: 'Draft',              count: counts.draft  },
+            { key: 'active', label: 'Active',             count: counts.active },
+            { key: 'closed', label: 'Closed',             count: counts.closed },
+          ] as { key: string; label: string; count: number }[]).map(({ key, label, count }) => (
+            <button
+              key={key}
+              onClick={() => setStatusFilter(key)}
+              className={`ds-seg__item${statusFilter === key ? ' active' : ''}`}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            >
+              {label}
+              <span className="badge badge-neutral" style={{ padding: '0 6px', minWidth: 18, justifyContent: 'center' }}>
+                {count}
+              </span>
+            </button>
+          ))}
+        </div>
 
-        <Btn variant="ghost" size="sm" onClick={load} title="Refresh"><RefreshCw size={13} /></Btn>
+        <Btn variant="ghost" size="sm" onClick={load} title="Refresh"><RefreshCw size={16} strokeWidth={1.5} /></Btn>
 
         <div style={{ flex: 1 }} />
 
         {/* Back to list (detail mode) */}
         {viewMode === 'detail' && (
           <Btn variant="ghost" size="sm" onClick={() => setViewMode('list')}>
-            ← Quay lại danh sách
+            <ArrowLeft size={16} strokeWidth={1.5} /> Quay lại danh sách
           </Btn>
         )}
 
@@ -573,21 +563,17 @@ export default function AnnualPlansPage() {
         {viewMode === 'list' && (
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
             <Btn size="sm" onClick={() => setShowCreate(true)}>
-              <Plus size={14} /> Tạo kế hoạch
+              <Plus size={16} strokeWidth={1.5} /> Tạo kế hoạch
             </Btn>
-            <div style={{ display: 'flex', gap: 2, background: 'var(--app-neutral-100)', padding: '3px 4px', borderRadius: 8 }}>
+            <div className="ds-seg" style={{ padding: 2, gap: 2 }}>
               {(['grid', 'list'] as const).map((mode) => (
                 <button key={mode} onClick={() => setCardMode(mode)}
                   title={mode === 'grid' ? 'Dạng thẻ' : 'Dạng bảng'}
-                  style={{
-                    padding: '4px 10px', border: 'none', cursor: 'pointer', borderRadius: 6,
-                    fontSize: 15, fontFamily: 'var(--font)',
-                    background: cardMode === mode ? '#fff' : 'transparent',
-                    color: cardMode === mode ? 'var(--app-primary)' : 'var(--app-neutral-500)',
-                    boxShadow: cardMode === mode ? '0 1px 3px rgba(0,0,0,0.12)' : 'none',
-                    transition: 'all 0.15s',
-                  }}>
-                  {mode === 'grid' ? '⊞' : '☰'}
+                  className={`ds-seg__item${cardMode === mode ? ' active' : ''}`}
+                  style={{ height: 26, padding: '0 8px', display: 'inline-flex', alignItems: 'center' }}>
+                  {mode === 'grid'
+                    ? <LayoutGrid size={16} strokeWidth={1.5} />
+                    : <List size={16} strokeWidth={1.5} />}
                 </button>
               ))}
             </div>
@@ -619,7 +605,7 @@ export default function AnnualPlansPage() {
                 style={{
                   borderRadius: 10,
                   border: '1px solid var(--app-neutral-200)',
-                  background: statusBg[plan.status] ?? '#fff',
+                  background: '#fff',
                   overflow: 'hidden',
                 }}
               >

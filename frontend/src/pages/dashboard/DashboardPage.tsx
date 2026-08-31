@@ -7,6 +7,11 @@
  *  Sheet 5 (Resource):     Headcount per project + plan allocation
  */
 import React, { useEffect, useState } from 'react'
+import {
+  LayoutDashboard, FolderKanban, Wallet, AlertTriangle, Users,
+  RefreshCw, Building2, CheckCircle, Flag, TrendingUp, Banknote, Gauge,
+  ChevronUp, ChevronDown,
+} from 'lucide-react'
 import { Badge, StatusBadge } from '../../components/ui'
 import {
   getDashboardSummary, getDashboardProjects, getDashboardFinancial,
@@ -29,25 +34,26 @@ function fmtDate(d: string | null): string {
   return new Date(d).toLocaleDateString('vi-VN')
 }
 
+// DS categorical palette — map 1-1 theo thứ tự chuỗi cũ
 const STATUS_COLORS: Record<string, string> = {
-  active:      '#22c55e',
-  completed:   '#3b82f6',
-  on_hold:     '#f59e0b',
-  archived:    '#9ca3af',
-  cancelled:   '#ef4444',
-  planning:    '#a855f7',
+  active:      '#155EEF',
+  completed:   '#7F56D9',
+  on_hold:     '#039855',
+  archived:    '#DC6803',
+  cancelled:   '#D92D20',
+  planning:    '#1570EF',
 }
 
 function statusColor(s: string): string {
-  return STATUS_COLORS[s] ?? '#9ca3af'
+  return STATUS_COLORS[s] ?? '#667085'
 }
 
 function riskColor(score: number | null): string {
-  if (!score) return '#9ca3af'
-  if (score >= 15) return '#ef4444'
-  if (score >= 9)  return '#f59e0b'
-  if (score >= 4)  return '#eab308'
-  return '#22c55e'
+  if (!score) return '#98A2B3'
+  if (score >= 15) return '#D92D20'
+  if (score >= 9)  return '#DC6803'
+  if (score >= 4)  return '#FAAD14'
+  return '#039855'
 }
 
 function riskLabel(score: number | null): string {
@@ -64,7 +70,7 @@ interface PieSlice { label: string; value: number; color: string }
 
 function PieChart({ slices, size = 180 }: { slices: PieSlice[]; size?: number }) {
   const total = slices.reduce((s, sl) => s + sl.value, 0)
-  if (total === 0) return <p style={{ color: 'var(--app-neutral-400)', fontSize: 13 }}>Chưa có dữ liệu</p>
+  if (total === 0) return <p style={{ color: 'var(--app-neutral-400)', fontSize: 14 }}>Chưa có dữ liệu</p>
 
   const cx = size / 2
   const cy = size / 2
@@ -92,15 +98,15 @@ function PieChart({ slices, size = 180 }: { slices: PieSlice[]; size?: number })
         {paths}
         {/* center hole */}
         <circle cx={cx} cy={cy} r={r * 0.42} fill="#fff" />
-        <text x={cx} y={cy - 6} textAnchor="middle" fontSize={13} fontWeight={700} fill="#374151">{total}</text>
-        <text x={cx} y={cy + 10} textAnchor="middle" fontSize={10} fill="#6b7280">projects</text>
+        <text x={cx} y={cy - 6} textAnchor="middle" fontSize={13} fontWeight={600} fill="#344054">{total}</text>
+        <text x={cx} y={cy + 10} textAnchor="middle" fontSize={10} fill="#667085">projects</text>
       </svg>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {slices.filter(sl => sl.value > 0).map((sl, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
             <span style={{ width: 10, height: 10, borderRadius: 2, background: sl.color, flexShrink: 0 }} />
             <span style={{ color: 'var(--app-neutral-700)' }}>{sl.label}</span>
-            <span style={{ fontWeight: 700, color: 'var(--app-neutral-900)', marginLeft: 4 }}>{sl.value}</span>
+            <span style={{ fontWeight: 600, color: 'var(--app-neutral-900)', marginLeft: 4 }}>{sl.value}</span>
             <span style={{ color: 'var(--app-neutral-400)', fontSize: 11 }}>
               ({((sl.value / total) * 100).toFixed(0)}%)
             </span>
@@ -116,7 +122,7 @@ function PieChart({ slices, size = 180 }: { slices: PieSlice[]; size?: number })
 interface BarGroup { label: string; planned: number; actual: number }
 
 function BarChart({ groups, height = 180 }: { groups: BarGroup[]; height?: number }) {
-  if (groups.length === 0) return <p style={{ color: 'var(--app-neutral-400)', fontSize: 13 }}>Chưa có dữ liệu</p>
+  if (groups.length === 0) return <p style={{ color: 'var(--app-neutral-400)', fontSize: 14 }}>Chưa có dữ liệu</p>
 
   const maxVal = Math.max(...groups.flatMap(g => [g.planned, g.actual]), 1)
   const barW    = 22
@@ -134,8 +140,8 @@ function BarChart({ groups, height = 180 }: { groups: BarGroup[]; height?: numbe
           const y = 10 + chartH * (1 - frac)
           return (
             <g key={frac}>
-              <line x1={padLeft} y1={y} x2={svgW - 10} y2={y} stroke="#e5e7eb" strokeDasharray="3,3" />
-              <text x={padLeft - 6} y={y + 4} fontSize={9} fill="#9ca3af" textAnchor="end">
+              <line x1={padLeft} y1={y} x2={svgW - 10} y2={y} stroke="#EAECF0" strokeDasharray="3,3" />
+              <text x={padLeft - 6} y={y + 4} fontSize={9} fill="#98A2B3" textAnchor="end">
                 {fmtVND(maxVal * frac)}
               </text>
             </g>
@@ -150,24 +156,24 @@ function BarChart({ groups, height = 180 }: { groups: BarGroup[]; height?: numbe
           return (
             <g key={i}>
               {/* Planned */}
-              <rect x={x} y={y0 - pH} width={barW} height={pH} fill="#3b82f6" rx={2}>
+              <rect x={x} y={y0 - pH} width={barW} height={pH} fill="#155EEF" rx={2}>
                 <title>Planned: {fmtVND(g.planned)}</title>
               </rect>
               {/* Actual */}
-              <rect x={x + barW + gap} y={y0 - aH} width={barW} height={aH} fill="#22c55e" rx={2}>
+              <rect x={x + barW + gap} y={y0 - aH} width={barW} height={aH} fill="#7F56D9" rx={2}>
                 <title>Actual: {fmtVND(g.actual)}</title>
               </rect>
               {/* Label */}
-              <text x={x + barW} y={y0 + 14} fontSize={10} fill="#6b7280" textAnchor="middle">{g.label}</text>
+              <text x={x + barW} y={y0 + 14} fontSize={10} fill="#667085" textAnchor="middle">{g.label}</text>
             </g>
           )
         })}
         {/* Legend */}
         <g>
-          <rect x={padLeft} y={height - 14} width={10} height={10} fill="#3b82f6" rx={2} />
-          <text x={padLeft + 13} y={height - 5} fontSize={10} fill="#374151">Planned</text>
-          <rect x={padLeft + 70} y={height - 14} width={10} height={10} fill="#22c55e" rx={2} />
-          <text x={padLeft + 83} y={height - 5} fontSize={10} fill="#374151">Actual</text>
+          <rect x={padLeft} y={height - 14} width={10} height={10} fill="#155EEF" rx={2} />
+          <text x={padLeft + 13} y={height - 5} fontSize={10} fill="#344054">Planned</text>
+          <rect x={padLeft + 70} y={height - 14} width={10} height={10} fill="#7F56D9" rx={2} />
+          <text x={padLeft + 83} y={height - 5} fontSize={10} fill="#344054">Actual</text>
         </g>
       </svg>
     </div>
@@ -178,31 +184,29 @@ function BarChart({ groups, height = 180 }: { groups: BarGroup[]; height?: numbe
 
 function KpiCard({
   label, value, sub, color, icon,
-}: { label: string; value: string | number; sub?: string; color?: string; icon?: string }) {
+}: { label: string; value: string | number; sub?: string; color?: string; icon?: React.ReactNode }) {
   return (
-    <div style={{
-      background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10,
-      padding: '16px 20px', minWidth: 160, flex: 1,
-      borderLeft: `4px solid ${color ?? 'var(--app-primary)'}`,
-    }}>
+    <div className="kpi-card" style={{ minWidth: 160, flex: 1 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <span style={{ fontSize: 12, color: 'var(--app-neutral-500)', fontWeight: 500 }}>{label}</span>
-        {icon && <span style={{ fontSize: 20 }}>{icon}</span>}
+        <span className="kpi-card__label">{label}</span>
+        {icon && (
+          <span style={{ display: 'inline-flex', color: color ?? 'var(--app-primary)' }}>{icon}</span>
+        )}
       </div>
-      <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--app-neutral-900)', marginTop: 6 }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: 'var(--app-neutral-400)', marginTop: 4 }}>{sub}</div>}
+      <div className="kpi-card__value">{value}</div>
+      {sub && <div className="kpi-card__change" style={{ color: 'var(--app-neutral-400)' }}>{sub}</div>}
     </div>
   )
 }
 
 // ── Tab Bar ────────────────────────────────────────────────────────────────
 
-const TABS = [
-  { key: 'dashboard',   label: 'Dashboard',     icon: '📊' },
-  { key: 'projects',    label: 'Project List',  icon: '🗂️' },
-  { key: 'financial',   label: 'Financial',     icon: '💰' },
-  { key: 'risks',       label: 'Risk',          icon: '⚠️' },
-  { key: 'resources',   label: 'Resource',      icon: '👥' },
+const TABS: { key: string; label: string; icon: React.ReactNode }[] = [
+  { key: 'dashboard',   label: 'Dashboard',     icon: <LayoutDashboard size={16} strokeWidth={1.5} /> },
+  { key: 'projects',    label: 'Project List',  icon: <FolderKanban size={16} strokeWidth={1.5} /> },
+  { key: 'financial',   label: 'Financial',     icon: <Wallet size={16} strokeWidth={1.5} /> },
+  { key: 'risks',       label: 'Risk',          icon: <AlertTriangle size={16} strokeWidth={1.5} /> },
+  { key: 'resources',   label: 'Resource',      icon: <Users size={16} strokeWidth={1.5} /> },
 ]
 
 // ── Sheet 1: Dashboard ─────────────────────────────────────────────────────
@@ -228,60 +232,58 @@ function Sheet1({ data }: { data: DashboardSummary }) {
     actual:  b.actual,
   }))
 
-  const utilColor = kpi.budget_utilization_pct > 100 ? '#ef4444'
-    : kpi.budget_utilization_pct > 80 ? '#f59e0b' : '#22c55e'
+  const utilColor = kpi.budget_utilization_pct > 100 ? '#D92D20'
+    : kpi.budget_utilization_pct > 80 ? '#DC6803' : '#039855'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* KPI Cards */}
-      <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-        <KpiCard label="Total Projects"     value={kpi.total_projects}     icon="🏗️" color="#3b82f6" />
-        <KpiCard label="Active"             value={kpi.active_projects}    icon="✅" color="#22c55e" />
-        <KpiCard label="Completed"          value={kpi.completed_projects} icon="🏁" color="#6366f1" />
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+        <KpiCard label="Total Projects"     value={kpi.total_projects}
+          icon={<Building2 size={16} strokeWidth={1.5} />}     color="#155EEF" />
+        <KpiCard label="Active"             value={kpi.active_projects}
+          icon={<CheckCircle size={16} strokeWidth={1.5} />}   color="#039855" />
+        <KpiCard label="Completed"          value={kpi.completed_projects}
+          icon={<Flag size={16} strokeWidth={1.5} />}          color="#444CE7" />
         <KpiCard label="Open Risks"         value={kpi.open_risks}
-          sub={`Avg score: ${kpi.avg_risk_score}`}                         icon="⚠️" color="#ef4444" />
+          sub={`Avg score: ${kpi.avg_risk_score}`}
+          icon={<AlertTriangle size={16} strokeWidth={1.5} />} color="#D92D20" />
         <KpiCard label="Budget Planned"     value={fmtVND(kpi.total_budget_planned)}
-          sub="VND"                                                         icon="📈" color="#8b5cf6" />
+          sub="VND"
+          icon={<TrendingUp size={16} strokeWidth={1.5} />}    color="#7F56D9" />
         <KpiCard label="Budget Actual"      value={fmtVND(kpi.total_budget_actual)}
-          sub="VND"                                                         icon="💸" color="#f59e0b" />
+          sub="VND"
+          icon={<Banknote size={16} strokeWidth={1.5} />}      color="#DC6803" />
         <KpiCard label="Budget Utilization" value={`${kpi.budget_utilization_pct}%`}
-          sub="Actual / Planned"                                            icon="📉" color={utilColor} />
+          sub="Actual / Planned"
+          icon={<Gauge size={16} strokeWidth={1.5} />}         color={utilColor} />
       </div>
 
       {/* Charts row */}
       <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
         {/* Pie chart */}
-        <div style={{
-          background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10,
-          padding: '16px 20px', flex: '1 1 300px',
-        }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: 'var(--app-neutral-800)' }}>
+        <div className="card" style={{ padding: '16px 20px', flex: '1 1 300px' }}>
+          <h3 className="card__title" style={{ margin: '0 0 16px' }}>
             Project Status Distribution
           </h3>
           <PieChart slices={pieSlices} size={200} />
         </div>
 
         {/* Budget by quarter bar chart */}
-        <div style={{
-          background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10,
-          padding: '16px 20px', flex: '1 1 380px',
-        }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: 'var(--app-neutral-800)' }}>
+        <div className="card" style={{ padding: '16px 20px', flex: '1 1 380px' }}>
+          <h3 className="card__title" style={{ margin: '0 0 16px' }}>
             Budget vs Actual — by Quarter (VND)
           </h3>
           {barGroups.length > 0
             ? <BarChart groups={barGroups} height={200} />
-            : <p style={{ color: 'var(--app-neutral-400)', fontSize: 13 }}>Chưa có dữ liệu ngân sách</p>
+            : <p style={{ color: 'var(--app-neutral-400)', fontSize: 14 }}>Chưa có dữ liệu ngân sách</p>
           }
         </div>
 
         {/* Budget by type */}
         {typeBarGroups.length > 0 && (
-          <div style={{
-            background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10,
-            padding: '16px 20px', flex: '1 1 240px',
-          }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: 'var(--app-neutral-800)' }}>
+          <div className="card" style={{ padding: '16px 20px', flex: '1 1 240px' }}>
+            <h3 className="card__title" style={{ margin: '0 0 16px' }}>
               Capex vs Opex (VND)
             </h3>
             <BarChart groups={typeBarGroups} height={200} />
@@ -315,17 +317,13 @@ function Sheet2({ projects }: { projects: DashboardProject[] }) {
         <input
           value={search} onChange={e => setSearch(e.target.value)}
           placeholder="Tìm project, code, owner..."
-          style={{
-            padding: '7px 12px', borderRadius: 6, border: '1px solid #d1d5db',
-            fontSize: 13, minWidth: 220, outline: 'none',
-          }}
+          className="app-input"
+          style={{ width: 220 }}
         />
         <select
           value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-          style={{
-            padding: '7px 10px', borderRadius: 6, border: '1px solid #d1d5db',
-            fontSize: 13, background: '#fff', cursor: 'pointer',
-          }}
+          className="app-input"
+          style={{ width: 'auto', cursor: 'pointer' }}
         >
           <option value="all">All Status</option>
           {statuses.map(s => <option key={s} value={s}>{s}</option>)}
@@ -336,13 +334,12 @@ function Sheet2({ projects }: { projects: DashboardProject[] }) {
       </div>
 
       {/* Table */}
-      <div style={{ overflowX: 'auto', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10 }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+      <div className="card" style={{ overflowX: 'auto' }}>
+        <table className="ds-table">
           <thead>
-            <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+            <tr>
               {['Code', 'Project Name', 'Status', 'Domain', 'Owner', 'Start', 'End', 'Members'].map(h => (
-                <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 600,
-                  color: 'var(--app-neutral-600)', fontSize: 12, whiteSpace: 'nowrap' }}>{h}</th>
+                <th key={h}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -352,32 +349,30 @@ function Sheet2({ projects }: { projects: DashboardProject[] }) {
                 Không tìm thấy project
               </td></tr>
             ) : filtered.map(p => (
-              <tr key={p.id} style={{ borderBottom: '1px solid #f3f4f6' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = '#f9fafb')}
-                  onMouseLeave={e => (e.currentTarget.style.background = '')}>
-                <td style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--app-primary)', whiteSpace: 'nowrap' }}>
+              <tr key={p.id}>
+                <td style={{ fontWeight: 600, color: 'var(--app-primary)', whiteSpace: 'nowrap' }}>
                   {p.code}
                 </td>
-                <td style={{ padding: '10px 14px', fontWeight: 500, color: 'var(--app-neutral-800)', maxWidth: 260 }}>
+                <td style={{ fontWeight: 500, color: 'var(--app-neutral-800)', maxWidth: 260 }}>
                   {p.name}
                 </td>
-                <td style={{ padding: '10px 14px' }}><StatusBadge status={p.status} /></td>
-                <td style={{ padding: '10px 14px', color: 'var(--app-neutral-600)', fontSize: 12 }}>
+                <td><StatusBadge status={p.status} /></td>
+                <td style={{ fontSize: 12 }}>
                   {p.domain_label ?? p.domain_code ?? '—'}
                 </td>
-                <td style={{ padding: '10px 14px', color: 'var(--app-neutral-600)' }}>{p.owner ?? '—'}</td>
-                <td style={{ padding: '10px 14px', color: 'var(--app-neutral-500)', whiteSpace: 'nowrap', fontSize: 12 }}>
+                <td>{p.owner ?? '—'}</td>
+                <td style={{ color: 'var(--app-neutral-500)', whiteSpace: 'nowrap', fontSize: 12 }}>
                   {fmtDate(p.start_date)}
                 </td>
-                <td style={{ padding: '10px 14px', color: 'var(--app-neutral-500)', whiteSpace: 'nowrap', fontSize: 12 }}>
+                <td style={{ color: 'var(--app-neutral-500)', whiteSpace: 'nowrap', fontSize: 12 }}>
                   {fmtDate(p.end_date)}
                 </td>
-                <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                <td style={{ textAlign: 'center' }}>
                   <span style={{
                     display: 'inline-block', minWidth: 24, padding: '2px 8px',
-                    background: p.member_count > 0 ? '#eff6ff' : '#f9fafb',
-                    color: p.member_count > 0 ? '#3b82f6' : '#9ca3af',
-                    borderRadius: 12, fontWeight: 700, fontSize: 12,
+                    background: p.member_count > 0 ? '#EFF8FF' : '#F2F4F7',
+                    color: p.member_count > 0 ? '#1570EF' : '#98A2B3',
+                    borderRadius: 16, fontWeight: 600, fontSize: 12,
                   }}>{p.member_count}</span>
                 </td>
               </tr>
@@ -395,27 +390,22 @@ function Sheet3({ data }: { data: FinancialData }) {
   const { plan_summary, quarterly_detail } = data
   const [activeTab, setActiveTab] = useState<'plan' | 'quarterly'>('plan')
 
-  const tabStyle = (active: boolean): React.CSSProperties => ({
-    padding: '6px 16px', borderRadius: 6, border: 'none', cursor: 'pointer',
-    fontSize: 13, fontWeight: 600, background: active ? 'var(--app-primary)' : 'transparent',
-    color: active ? '#fff' : 'var(--app-neutral-600)',
-  })
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div style={{ display: 'flex', gap: 4 }}>
-        <button style={tabStyle(activeTab === 'plan')}      onClick={() => setActiveTab('plan')}>Per Plan</button>
-        <button style={tabStyle(activeTab === 'quarterly')} onClick={() => setActiveTab('quarterly')}>Quarterly Detail</button>
+      <div className="ds-seg" style={{ alignSelf: 'flex-start' }}>
+        <button className={activeTab === 'plan' ? 'ds-seg__item active' : 'ds-seg__item'}
+          onClick={() => setActiveTab('plan')}>Per Plan</button>
+        <button className={activeTab === 'quarterly' ? 'ds-seg__item active' : 'ds-seg__item'}
+          onClick={() => setActiveTab('quarterly')}>Quarterly Detail</button>
       </div>
 
       {activeTab === 'plan' && (
-        <div style={{ overflowX: 'auto', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10 }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <div className="card" style={{ overflowX: 'auto' }}>
+          <table className="ds-table">
             <thead>
-              <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+              <tr>
                 {['Plan', 'Year', 'Status', 'Planned (VND)', 'Actual (VND)', 'Variance', 'Utilization', 'Lines'].map(h => (
-                  <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 600,
-                    color: 'var(--app-neutral-600)', fontSize: 12, whiteSpace: 'nowrap' }}>{h}</th>
+                  <th key={h}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -425,25 +415,25 @@ function Sheet3({ data }: { data: FinancialData }) {
                   Chưa có dữ liệu ngân sách
                 </td></tr>
               ) : plan_summary.map(p => (
-                <tr key={p.plan_id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                  <td style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--app-neutral-800)' }}>{p.plan_name}</td>
-                  <td style={{ padding: '10px 14px', color: 'var(--app-neutral-600)' }}>{p.year}</td>
-                  <td style={{ padding: '10px 14px' }}><StatusBadge status={p.plan_status} /></td>
-                  <td style={{ padding: '10px 14px', fontFamily: 'monospace', textAlign: 'right' }}>{fmtVND(p.total_planned)}</td>
-                  <td style={{ padding: '10px 14px', fontFamily: 'monospace', textAlign: 'right' }}>{fmtVND(p.total_actual)}</td>
+                <tr key={p.plan_id}>
+                  <td style={{ fontWeight: 600, color: 'var(--app-neutral-800)' }}>{p.plan_name}</td>
+                  <td>{p.year}</td>
+                  <td><StatusBadge status={p.plan_status} /></td>
+                  <td style={{ fontFamily: 'monospace', textAlign: 'right' }}>{fmtVND(p.total_planned)}</td>
+                  <td style={{ fontFamily: 'monospace', textAlign: 'right' }}>{fmtVND(p.total_actual)}</td>
                   <td style={{
-                    padding: '10px 14px', fontFamily: 'monospace', textAlign: 'right',
-                    color: p.variance > 0 ? '#ef4444' : '#22c55e',
+                    fontFamily: 'monospace', textAlign: 'right',
+                    color: p.variance > 0 ? 'var(--app-danger)' : 'var(--app-success)',
                   }}>
                     {p.variance > 0 ? '+' : ''}{fmtVND(p.variance)}
                   </td>
-                  <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                  <td style={{ textAlign: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <div style={{ flex: 1, height: 6, background: '#e5e7eb', borderRadius: 3, overflow: 'hidden', minWidth: 60 }}>
+                      <div style={{ flex: 1, height: 6, background: 'var(--app-neutral-200)', borderRadius: 3, overflow: 'hidden', minWidth: 60 }}>
                         <div style={{
                           height: '100%', borderRadius: 3,
                           width: `${Math.min(p.utilization_pct, 100)}%`,
-                          background: p.utilization_pct > 100 ? '#ef4444' : p.utilization_pct > 80 ? '#f59e0b' : '#22c55e',
+                          background: p.utilization_pct > 100 ? 'var(--app-danger)' : p.utilization_pct > 80 ? 'var(--app-warning)' : 'var(--app-success)',
                         }} />
                       </div>
                       <span style={{ fontSize: 11, fontWeight: 600, minWidth: 36, color: 'var(--app-neutral-700)' }}>
@@ -451,7 +441,7 @@ function Sheet3({ data }: { data: FinancialData }) {
                       </span>
                     </div>
                   </td>
-                  <td style={{ padding: '10px 14px', textAlign: 'center', color: 'var(--app-neutral-500)' }}>{p.line_count}</td>
+                  <td style={{ textAlign: 'center', color: 'var(--app-neutral-500)' }}>{p.line_count}</td>
                 </tr>
               ))}
             </tbody>
@@ -460,13 +450,12 @@ function Sheet3({ data }: { data: FinancialData }) {
       )}
 
       {activeTab === 'quarterly' && (
-        <div style={{ overflowX: 'auto', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10 }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <div className="card" style={{ overflowX: 'auto' }}>
+          <table className="ds-table">
             <thead>
-              <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+              <tr>
                 {['Plan', 'Year', 'Quarter', 'Type', 'Planned', 'Actual', 'Variance', 'Currency'].map(h => (
-                  <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 600,
-                    color: 'var(--app-neutral-600)', fontSize: 12, whiteSpace: 'nowrap' }}>{h}</th>
+                  <th key={h}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -476,26 +465,26 @@ function Sheet3({ data }: { data: FinancialData }) {
                   Chưa có dữ liệu chi tiết
                 </td></tr>
               ) : quarterly_detail.map((q, i) => (
-                <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                  <td style={{ padding: '10px 14px', fontWeight: 500, color: 'var(--app-neutral-700)' }}>{q.plan_name}</td>
-                  <td style={{ padding: '10px 14px', color: 'var(--app-neutral-500)' }}>{q.year}</td>
-                  <td style={{ padding: '10px 14px' }}>
+                <tr key={i}>
+                  <td style={{ fontWeight: 500, color: 'var(--app-neutral-700)' }}>{q.plan_name}</td>
+                  <td style={{ color: 'var(--app-neutral-500)' }}>{q.year}</td>
+                  <td>
                     <Badge variant="info">{q.quarter}</Badge>
                   </td>
-                  <td style={{ padding: '10px 14px' }}>
+                  <td>
                     <Badge variant={q.budget_type === 'capex' ? 'primary' : 'warning'}>
                       {q.budget_type.toUpperCase()}
                     </Badge>
                   </td>
-                  <td style={{ padding: '10px 14px', fontFamily: 'monospace', textAlign: 'right' }}>{fmtVND(q.planned)}</td>
-                  <td style={{ padding: '10px 14px', fontFamily: 'monospace', textAlign: 'right' }}>{fmtVND(q.actual)}</td>
+                  <td style={{ fontFamily: 'monospace', textAlign: 'right' }}>{fmtVND(q.planned)}</td>
+                  <td style={{ fontFamily: 'monospace', textAlign: 'right' }}>{fmtVND(q.actual)}</td>
                   <td style={{
-                    padding: '10px 14px', fontFamily: 'monospace', textAlign: 'right',
-                    color: q.variance > 0 ? '#ef4444' : '#22c55e',
+                    fontFamily: 'monospace', textAlign: 'right',
+                    color: q.variance > 0 ? 'var(--app-danger)' : 'var(--app-success)',
                   }}>
                     {q.variance > 0 ? '+' : ''}{fmtVND(q.variance)}
                   </td>
-                  <td style={{ padding: '10px 14px', color: 'var(--app-neutral-500)', fontSize: 11 }}>{q.currency}</td>
+                  <td style={{ color: 'var(--app-neutral-500)', fontSize: 11 }}>{q.currency}</td>
                 </tr>
               ))}
             </tbody>
@@ -524,12 +513,12 @@ function Sheet4({ risks }: { risks: RiskItem[] }) {
       {/* Filters */}
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
         <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
-          style={{ padding: '7px 10px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 13, background: '#fff' }}>
+          className="app-input" style={{ width: 'auto', cursor: 'pointer' }}>
           <option value="all">All Categories</option>
           {categories.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-          style={{ padding: '7px 10px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 13, background: '#fff' }}>
+          className="app-input" style={{ width: 'auto', cursor: 'pointer' }}>
           <option value="all">All Status</option>
           <option value="open">Open</option>
           <option value="mitigated">Mitigated</option>
@@ -540,13 +529,12 @@ function Sheet4({ risks }: { risks: RiskItem[] }) {
       </div>
 
       {/* Table */}
-      <div style={{ overflowX: 'auto', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10 }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+      <div className="card" style={{ overflowX: 'auto' }}>
+        <table className="ds-table">
           <thead>
-            <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+            <tr>
               {['Score', 'Title', 'Category', 'P', 'I', 'Level', 'Owner', 'Status', 'Plan', 'Quarter'].map(h => (
-                <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 600,
-                  color: 'var(--app-neutral-600)', fontSize: 12, whiteSpace: 'nowrap' }}>{h}</th>
+                <th key={h}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -556,16 +544,16 @@ function Sheet4({ risks }: { risks: RiskItem[] }) {
                 Không có risks
               </td></tr>
             ) : filtered.map(r => (
-              <tr key={r.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                <td style={{ padding: '10px 14px' }}>
+              <tr key={r.id}>
+                <td>
                   <span style={{
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    width: 32, height: 32, borderRadius: 6,
+                    width: 32, height: 32, borderRadius: 8,
                     background: riskColor(r.risk_score),
-                    color: '#fff', fontWeight: 800, fontSize: 14,
+                    color: '#fff', fontWeight: 700, fontSize: 14,
                   }}>{r.risk_score ?? '—'}</span>
                 </td>
-                <td style={{ padding: '10px 14px', fontWeight: 500, color: 'var(--app-neutral-800)', maxWidth: 260 }}>
+                <td style={{ fontWeight: 500, color: 'var(--app-neutral-800)', maxWidth: 260 }}>
                   <div>{r.title}</div>
                   {r.mitigation && (
                     <div style={{ fontSize: 11, color: 'var(--app-neutral-400)', marginTop: 2 }}>
@@ -573,26 +561,26 @@ function Sheet4({ risks }: { risks: RiskItem[] }) {
                     </div>
                   )}
                 </td>
-                <td style={{ padding: '10px 14px' }}>
+                <td>
                   {r.category
                     ? <Badge variant="neutral">{r.category}</Badge>
                     : <span style={{ color: 'var(--app-neutral-300)' }}>—</span>}
                 </td>
-                <td style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 700 }}>{r.probability ?? '—'}</td>
-                <td style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 700 }}>{r.impact ?? '—'}</td>
-                <td style={{ padding: '10px 14px' }}>
+                <td style={{ textAlign: 'center', fontWeight: 600 }}>{r.probability ?? '—'}</td>
+                <td style={{ textAlign: 'center', fontWeight: 600 }}>{r.impact ?? '—'}</td>
+                <td>
                   <span style={{
-                    padding: '2px 10px', borderRadius: 12, fontSize: 11, fontWeight: 700,
+                    padding: '2px 10px', borderRadius: 16, fontSize: 12, fontWeight: 500,
                     background: riskColor(r.risk_score) + '22',
                     color: riskColor(r.risk_score),
                   }}>{riskLabel(r.risk_score)}</span>
                 </td>
-                <td style={{ padding: '10px 14px', color: 'var(--app-neutral-600)' }}>{r.owner ?? '—'}</td>
-                <td style={{ padding: '10px 14px' }}><StatusBadge status={r.status} /></td>
-                <td style={{ padding: '10px 14px', color: 'var(--app-neutral-500)', fontSize: 12 }}>
+                <td>{r.owner ?? '—'}</td>
+                <td><StatusBadge status={r.status} /></td>
+                <td style={{ color: 'var(--app-neutral-500)', fontSize: 12 }}>
                   {r.plan_name} ({r.plan_year})
                 </td>
-                <td style={{ padding: '10px 14px' }}>
+                <td>
                   {r.quarter ? <Badge variant="info">{r.quarter}</Badge> : '—'}
                 </td>
               </tr>
@@ -611,21 +599,17 @@ function Sheet5({ data }: { data: ResourceData }) {
   const [activeTab, setActiveTab] = useState<'project' | 'plan'>('project')
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
-  const tabStyle = (active: boolean): React.CSSProperties => ({
-    padding: '6px 16px', borderRadius: 6, border: 'none', cursor: 'pointer',
-    fontSize: 13, fontWeight: 600, background: active ? 'var(--app-primary)' : 'transparent',
-    color: active ? '#fff' : 'var(--app-neutral-600)',
-  })
-
   const maxHC = Math.max(...project_headcount.map(p => p.headcount), 1)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div style={{ display: 'flex', gap: 4 }}>
-        <button style={tabStyle(activeTab === 'project')} onClick={() => setActiveTab('project')}>
+      <div className="ds-seg" style={{ alignSelf: 'flex-start' }}>
+        <button className={activeTab === 'project' ? 'ds-seg__item active' : 'ds-seg__item'}
+          onClick={() => setActiveTab('project')}>
           Headcount per Project
         </button>
-        <button style={tabStyle(activeTab === 'plan')}    onClick={() => setActiveTab('plan')}>
+        <button className={activeTab === 'plan' ? 'ds-seg__item active' : 'ds-seg__item'}
+          onClick={() => setActiveTab('plan')}>
           Plan Resource Allocation
         </button>
       </div>
@@ -636,12 +620,12 @@ function Sheet5({ data }: { data: ResourceData }) {
             {project_headcount.length} projects · click để xem thành viên
           </div>
           {project_headcount.length === 0 ? (
-            <div style={{ padding: 32, textAlign: 'center', color: 'var(--app-neutral-400)', fontSize: 13 }}>
+            <div style={{ padding: 32, textAlign: 'center', color: 'var(--app-neutral-400)', fontSize: 14 }}>
               Chưa có dữ liệu thành viên
             </div>
           ) : project_headcount.map(p => (
             <div key={p.project_id} style={{
-              background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8,
+              background: '#fff', border: '1px solid var(--app-neutral-200)', borderRadius: 8,
               overflow: 'hidden',
             }}>
               <div
@@ -650,14 +634,14 @@ function Sheet5({ data }: { data: ResourceData }) {
                   display: 'flex', alignItems: 'center', gap: 12,
                   padding: '12px 16px', cursor: 'pointer',
                 }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#f9fafb')}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--app-neutral-100)')}
                 onMouseLeave={e => (e.currentTarget.style.background = '')}
               >
                 {/* Project info */}
-                <span style={{ fontWeight: 700, fontSize: 12, color: 'var(--app-primary)', minWidth: 80 }}>
+                <span style={{ fontWeight: 600, fontSize: 12, color: 'var(--app-primary)', minWidth: 80 }}>
                   {p.code}
                 </span>
-                <span style={{ flex: 1, fontWeight: 500, fontSize: 13, color: 'var(--app-neutral-800)' }}>
+                <span style={{ flex: 1, fontWeight: 500, fontSize: 14, color: 'var(--app-neutral-800)' }}>
                   {p.project_name}
                 </span>
                 <StatusBadge status={p.project_status} />
@@ -668,31 +652,33 @@ function Sheet5({ data }: { data: ResourceData }) {
                 )}
                 {/* Headcount bar */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 160 }}>
-                  <div style={{ flex: 1, height: 8, background: '#e5e7eb', borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{ flex: 1, height: 8, background: 'var(--app-neutral-200)', borderRadius: 4, overflow: 'hidden' }}>
                     <div style={{
                       height: '100%', borderRadius: 4,
                       width: `${(p.headcount / maxHC) * 100}%`,
-                      background: p.headcount === 0 ? '#e5e7eb' : 'var(--app-primary)',
+                      background: p.headcount === 0 ? 'var(--app-neutral-200)' : 'var(--app-primary)',
                     }} />
                   </div>
-                  <span style={{ fontWeight: 700, fontSize: 13, minWidth: 24, color: 'var(--app-neutral-800)' }}>
+                  <span style={{ fontWeight: 600, fontSize: 14, minWidth: 24, color: 'var(--app-neutral-800)' }}>
                     {p.headcount}
                   </span>
                 </div>
-                <span style={{ fontSize: 12, color: 'var(--app-neutral-400)', marginLeft: 4 }}>
-                  {expandedId === p.project_id ? '▲' : '▼'}
+                <span style={{ display: 'inline-flex', color: 'var(--app-neutral-400)', marginLeft: 4 }}>
+                  {expandedId === p.project_id
+                    ? <ChevronUp size={16} strokeWidth={1.5} />
+                    : <ChevronDown size={16} strokeWidth={1.5} />}
                 </span>
               </div>
 
               {/* Expanded members */}
               {expandedId === p.project_id && p.members.length > 0 && (
                 <div style={{
-                  borderTop: '1px solid #f3f4f6', padding: '10px 16px 14px',
-                  background: '#fafafa', display: 'flex', flexWrap: 'wrap', gap: 8,
+                  borderTop: '1px solid #F2F4F7', padding: '10px 16px 14px',
+                  background: 'var(--app-neutral-50)', display: 'flex', flexWrap: 'wrap', gap: 8,
                 }}>
                   {p.members.map((m, i) => (
                     <div key={i} style={{
-                      background: '#fff', border: '1px solid #e5e7eb', borderRadius: 6,
+                      background: '#fff', border: '1px solid var(--app-neutral-200)', borderRadius: 6,
                       padding: '6px 12px', fontSize: 12,
                     }}>
                       <span style={{ fontWeight: 600, color: 'var(--app-neutral-800)' }}>{m.name}</span>
@@ -707,7 +693,7 @@ function Sheet5({ data }: { data: ResourceData }) {
                 </div>
               )}
               {expandedId === p.project_id && p.members.length === 0 && (
-                <div style={{ borderTop: '1px solid #f3f4f6', padding: '12px 16px', color: 'var(--app-neutral-400)', fontSize: 12 }}>
+                <div style={{ borderTop: '1px solid #F2F4F7', padding: '12px 16px', color: 'var(--app-neutral-400)', fontSize: 12 }}>
                   Chưa có thành viên
                 </div>
               )}
@@ -717,13 +703,12 @@ function Sheet5({ data }: { data: ResourceData }) {
       )}
 
       {activeTab === 'plan' && (
-        <div style={{ overflowX: 'auto', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10 }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <div className="card" style={{ overflowX: 'auto' }}>
+          <table className="ds-table">
             <thead>
-              <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+              <tr>
                 {['Plan', 'Year', 'Quarter', 'Team', 'Role', 'Members', 'Avg Allocation'].map(h => (
-                  <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 600,
-                    color: 'var(--app-neutral-600)', fontSize: 12, whiteSpace: 'nowrap' }}>{h}</th>
+                  <th key={h}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -733,22 +718,22 @@ function Sheet5({ data }: { data: ResourceData }) {
                   Chưa có dữ liệu phân bổ nguồn lực
                 </td></tr>
               ) : plan_resources.map((r, i) => (
-                <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                  <td style={{ padding: '10px 14px', fontWeight: 500 }}>{r.plan_name}</td>
-                  <td style={{ padding: '10px 14px', color: 'var(--app-neutral-500)' }}>{r.year}</td>
-                  <td style={{ padding: '10px 14px' }}>
+                <tr key={i}>
+                  <td style={{ fontWeight: 500 }}>{r.plan_name}</td>
+                  <td style={{ color: 'var(--app-neutral-500)' }}>{r.year}</td>
+                  <td>
                     <Badge variant="info">{r.quarter}</Badge>
                   </td>
-                  <td style={{ padding: '10px 14px', color: 'var(--app-neutral-700)' }}>{r.team ?? '—'}</td>
-                  <td style={{ padding: '10px 14px', color: 'var(--app-neutral-600)' }}>{r.role ?? '—'}</td>
-                  <td style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 700 }}>{r.unique_members}</td>
-                  <td style={{ padding: '10px 14px' }}>
+                  <td style={{ color: 'var(--app-neutral-700)' }}>{r.team ?? '—'}</td>
+                  <td>{r.role ?? '—'}</td>
+                  <td style={{ textAlign: 'center', fontWeight: 600 }}>{r.unique_members}</td>
+                  <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <div style={{ flex: 1, height: 6, background: '#e5e7eb', borderRadius: 3, overflow: 'hidden', minWidth: 60 }}>
+                      <div style={{ flex: 1, height: 6, background: 'var(--app-neutral-200)', borderRadius: 3, overflow: 'hidden', minWidth: 60 }}>
                         <div style={{
                           height: '100%', borderRadius: 3,
                           width: `${r.avg_allocation_pct}%`,
-                          background: r.avg_allocation_pct >= 80 ? '#ef4444' : r.avg_allocation_pct >= 60 ? '#f59e0b' : '#22c55e',
+                          background: r.avg_allocation_pct >= 80 ? 'var(--app-danger)' : r.avg_allocation_pct >= 60 ? 'var(--app-warning)' : 'var(--app-success)',
                         }} />
                       </div>
                       <span style={{ fontSize: 11, fontWeight: 600, minWidth: 36 }}>{r.avg_allocation_pct}%</span>
@@ -819,40 +804,27 @@ export default function DashboardPage() {
         marginBottom: 16,
       }}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--app-neutral-900)', margin: 0 }}>
+          <h1 style={{ fontSize: 20, lineHeight: '30px', fontWeight: 600, color: 'var(--app-neutral-900)', margin: 0 }}>
             Portfolio Dashboard
           </h1>
-          <p style={{ fontSize: 13, color: 'var(--app-neutral-500)', margin: '4px 0 0' }}>
+          <p style={{ fontSize: 14, color: 'var(--app-neutral-500)', margin: '4px 0 0' }}>
             Tổng quan dự án, ngân sách, rủi ro và nguồn lực
           </p>
         </div>
         <button
           onClick={() => { setSummary(null); setProjects([]); setFinancial(null); setRisks([]); setResources(null); fetchTab(activeTab) }}
-          style={{
-            padding: '7px 16px', borderRadius: 6, border: '1px solid #d1d5db',
-            background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600,
-            color: 'var(--app-neutral-600)',
-          }}
+          className="btn btn-secondary"
         >
-          ↻ Refresh
+          <RefreshCw size={16} strokeWidth={1.5} /> Refresh
         </button>
       </div>
 
       {/* Tab bar */}
-      <div style={{
-        display: 'flex', gap: 2, background: 'var(--app-neutral-100)',
-        padding: '4px 6px', borderRadius: 10, marginBottom: 18,
-        flexWrap: 'wrap',
-      }}>
+      <div className="ds-tabs" style={{ marginBottom: 16, flexWrap: 'wrap' }}>
         {TABS.map(t => (
-          <button key={t.key} onClick={() => handleTabChange(t.key)} style={{
-            padding: '7px 18px', borderRadius: 7, border: 'none', cursor: 'pointer',
-            fontSize: 13, fontWeight: 600, fontFamily: 'var(--font)',
-            background: activeTab === t.key ? '#fff' : 'transparent',
-            color: activeTab === t.key ? 'var(--app-neutral-900)' : 'var(--app-neutral-500)',
-            boxShadow: activeTab === t.key ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-            transition: 'all 0.15s',
-          }}>
+          <button key={t.key} onClick={() => handleTabChange(t.key)}
+            className={activeTab === t.key ? 'ds-tab active' : 'ds-tab'}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             {t.icon} {t.label}
           </button>
         ))}
@@ -860,16 +832,13 @@ export default function DashboardPage() {
 
       {/* Content */}
       {loading && (
-        <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--app-neutral-400)' }}>
-          ⟳ Loading...
+        <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--app-neutral-400)', fontSize: 14 }}>
+          Loading...
         </div>
       )}
       {error && (
-        <div style={{
-          padding: '12px 16px', background: '#fef2f2', border: '1px solid #fecaca',
-          borderRadius: 8, color: '#dc2626', fontSize: 13,
-        }}>
-          ⚠️ {error}
+        <div className="state-banner state-banner-err">
+          <AlertTriangle size={16} strokeWidth={1.5} /> {error}
         </div>
       )}
       {!loading && !error && (

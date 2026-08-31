@@ -14,7 +14,9 @@ from app.database import get_db
 router = APIRouter(prefix="/projects", tags=["projects"])
 logger = logging.getLogger(__name__)
 
-UPLOAD_BASE = os.getenv("UPLOAD_DIR", os.path.join(os.path.dirname(__file__), "..", "..", "..", "uploads"))
+UPLOAD_BASE = os.getenv("UPLOADS_DIR", os.getenv(
+    "UPLOAD_DIR", os.path.join(os.path.dirname(__file__), "..", "..", "..", "uploads")
+))
 
 
 class ProjectInitOptions(BaseModel):
@@ -77,6 +79,7 @@ class ProjectBriefUpsert(BaseModel):
 
 @router.get("/domains")
 async def list_domains(
+    user: CurrentUser,
     db: asyncpg.Connection = Depends(get_db),
 ):
     """LOV — active project domains ordered by sort_order."""
@@ -188,21 +191,21 @@ async def create_project(
                         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
                     """, ms_id, project_id, ms["name"], ms["milestone_type"], ms.get("description"),
                         ms["start_date"], ms["end_date"], ms["status"],
-                        ms["sort_order"], json.dumps(ms["preconditions"]), ms["done_criteria"], track)
+                        ms["sort_order"], ms["preconditions"], ms["done_criteria"], track)
 
                     for title, task_type in ba_tasks:
                         await db.execute("""
                             INSERT INTO ba_tasks (id, project_id, milestone_id, task_type, title, preconditions, status, due_date)
                             VALUES ($1,$2,$3,$4,$5,$6,'pending',$7)
                         """, str(uuid4()), project_id, ms_id, task_type, title,
-                            json.dumps(ms["preconditions"]), ms["end_date"])
+                            ms["preconditions"], ms["end_date"])
 
                     for title, task_type in test_tasks:
                         await db.execute("""
                             INSERT INTO test_tasks (id, project_id, milestone_id, task_type, title, preconditions, status, due_date)
                             VALUES ($1,$2,$3,$4,$5,$6,'pending',$7)
                         """, str(uuid4()), project_id, ms_id, task_type, title,
-                            json.dumps(ms["preconditions"]), ms["end_date"])
+                            ms["preconditions"], ms["end_date"])
 
                     ms_type = ms["milestone_type"]
                     templates_for_type, file_track = file_template_map.get(ms_type, ([], track))
@@ -353,10 +356,6 @@ async def upsert_project_brief(
         raise HTTPException(404, "Project not found")
 
     data = body.model_dump(exclude_none=False)
-    # Serialize list fields to JSON strings for asyncpg
-    for col in _BRIEF_JSONB_COLS:
-        if data.get(col) is not None:
-            data[col] = json.dumps(data[col])
 
     existing = await db.fetchrow("SELECT id FROM project_briefs WHERE project_id=$1", project_id)
     if existing:
@@ -375,18 +374,18 @@ async def upsert_project_brief(
             WHERE project_id=$1 RETURNING *
         """, project_id,
             data["purpose"], data["general_info"],
-            data["success_metrics"] or "[]", data["enduser_value"],
+            data["success_metrics"] or [], data["enduser_value"],
             data["primary_users"], data["pain_points"],
-            data["user_role_matrix"] or "[]",
-            data["must_have_features"] or "[]", data["nice_to_have_features"] or "[]",
-            data["system_integrations"] or "[]",
+            data["user_role_matrix"] or [],
+            data["must_have_features"] or [], data["nice_to_have_features"] or [],
+            data["system_integrations"] or [],
             data["performance_scalability"], data["compliance_security"],
             data["availability_reliability"],
             data["data_needs"], data["reporting_needs"],
             data["time_constraints"],
-            data["dependencies"] or "[]", data["potential_risks"] or "[]",
-            data["key_milestones_notes"] or "[]", data["methodology"],
-            data["decision_makers"] or "[]",
+            data["dependencies"] or [], data["potential_risks"] or [],
+            data["key_milestones_notes"] or [], data["methodology"],
+            data["decision_makers"] or [],
         )
     else:
         row = await db.fetchrow("""
@@ -410,18 +409,18 @@ async def upsert_project_brief(
             ) RETURNING *
         """, str(uuid4()), project_id,
             data["purpose"], data["general_info"],
-            data["success_metrics"] or "[]", data["enduser_value"],
+            data["success_metrics"] or [], data["enduser_value"],
             data["primary_users"], data["pain_points"],
-            data["user_role_matrix"] or "[]",
-            data["must_have_features"] or "[]", data["nice_to_have_features"] or "[]",
-            data["system_integrations"] or "[]",
+            data["user_role_matrix"] or [],
+            data["must_have_features"] or [], data["nice_to_have_features"] or [],
+            data["system_integrations"] or [],
             data["performance_scalability"], data["compliance_security"],
             data["availability_reliability"],
             data["data_needs"], data["reporting_needs"],
             data["time_constraints"],
-            data["dependencies"] or "[]", data["potential_risks"] or "[]",
-            data["key_milestones_notes"] or "[]", data["methodology"],
-            data["decision_makers"] or "[]",
+            data["dependencies"] or [], data["potential_risks"] or [],
+            data["key_milestones_notes"] or [], data["methodology"],
+            data["decision_makers"] or [],
         )
 
     result = dict(row)

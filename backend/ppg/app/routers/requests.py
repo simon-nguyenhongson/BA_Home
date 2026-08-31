@@ -5,6 +5,7 @@ POST/GET/PATCH/DELETE /requests/service           (service_requests)
 """
 import io
 from datetime import datetime, date
+import os
 from pathlib import Path
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File as UpFile
@@ -19,7 +20,8 @@ from app.database import get_db
 
 router = APIRouter(prefix="/requests", tags=["requests"])
 
-UPLOAD_DIR = Path("uploads")
+_default_uploads = Path(__file__).resolve().parent.parent.parent.parent / "uploads"
+UPLOAD_DIR = Path(os.getenv("UPLOADS_DIR", str(_default_uploads))).resolve()
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 

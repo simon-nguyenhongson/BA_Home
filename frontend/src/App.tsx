@@ -1,5 +1,9 @@
 import React, { useState } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
+import {
+  LayoutDashboard, CalendarRange, Building2, FileText, FlaskConical, Bot,
+  BookOpen, Layers, Ticket, CheckSquare, Settings, LogOut, Search, Menu,
+} from 'lucide-react'
 import { useStore } from './stores/auth'
 import { ToastContainer } from './components/ui'
 import LoginPage from './pages/LoginPage'
@@ -14,18 +18,20 @@ import CatalogPage from './pages/catalog/CatalogPage'
 import DashboardPage from './pages/dashboard/DashboardPage'
 import RequestsPage from './pages/requests/RequestsPage'
 import TodoPage from './pages/todos/TodoPage'
+import AutomationPage from './pages/automation/AutomationPage'
 import './styles.css'
 
 const APPS = [
-  { key: 'dashboard'     as const, icon: '📊', label: 'Dashboard',    sub: 'Portfolio Overview',            path: '/dashboard',      desc: '' },
-  { key: 'annual-plans'  as const, icon: '📅', label: 'Kế hoạch năm', sub: 'Annual Plan Management',        path: '/annual-plans',   desc: 'Quản lý mục tiêu, Definition of Done và danh mục dự án theo năm' },
-  { key: 'ppg'           as const, icon: '🏗️', label: 'PPG System',   sub: 'Project Governance',            path: '/ppg',            desc: 'Single Source of Truth · IT Project Portfolio' },
-  { key: 'ba-workflow'   as const, icon: '📝', label: 'BA',           sub: 'BA Document Hub',               path: '/ba-workflow',    desc: 'Transform Raw Requirements → BRD / BRS / ERD / API Spec' },
-  { key: 'test-workflow' as const, icon: '🧪', label: 'Test',         sub: 'Test Dashboard',                path: '/test-workflow',  desc: 'Strategy · Execution · Control · Tài liệu' },
-  { key: 'docs'          as const, icon: '📚', label: 'Tài liệu',     sub: 'Dự án / BA / Test',             path: '/docs',           desc: '' },
-  { key: 'catalog'       as const, icon: '🗂️', label: 'Danh mục',     sub: 'Product & User Catalog',        path: '/catalog',        desc: 'Sản phẩm · Nhân sự · Vai trò & Phân quyền' },
-  { key: 'requests'      as const, icon: '🎫', label: 'Requests',     sub: 'Change Request · Service Request', path: '/requests',    desc: 'Quản lý yêu cầu thay đổi dự án và yêu cầu dịch vụ vận hành' },
-  { key: 'todos'         as const, icon: '✅', label: 'To-do',         sub: 'Task Tracking · Kanban · Workload', path: '/todos',      desc: '' },
+  { key: 'dashboard'     as const, icon: LayoutDashboard, label: 'Dashboard',    sub: 'Portfolio Overview',            path: '/dashboard',      desc: '' },
+  { key: 'annual-plans'  as const, icon: CalendarRange,   label: 'Kế hoạch năm', sub: 'Annual Plan Management',        path: '/annual-plans',   desc: 'Quản lý mục tiêu, Definition of Done và danh mục dự án theo năm' },
+  { key: 'ppg'           as const, icon: Building2,       label: 'PPG System',   sub: 'Project Governance',            path: '/ppg',            desc: 'Single Source of Truth · IT Project Portfolio' },
+  { key: 'ba-workflow'   as const, icon: FileText,        label: 'BA',           sub: 'BA Document Hub',               path: '/ba-workflow',    desc: 'Transform Raw Requirements → BRD / BRS / ERD / API Spec' },
+  { key: 'test-workflow' as const, icon: FlaskConical,    label: 'Test',         sub: 'Test Dashboard',                path: '/test-workflow',  desc: 'Strategy · Execution · Control · Tài liệu' },
+  { key: 'automation'    as const, icon: Bot,             label: 'Automation',   sub: 'Capture Studio · Playwright',   path: '/automation',     desc: 'Ghi thao tác thành test case, chạy kèm evidence, xuất Playwright spec' },
+  { key: 'docs'          as const, icon: BookOpen,        label: 'Tài liệu',     sub: 'Dự án / BA / Test',             path: '/docs',           desc: '' },
+  { key: 'catalog'       as const, icon: Layers,          label: 'Danh mục',     sub: 'Product & User Catalog',        path: '/catalog',        desc: 'Sản phẩm · Nhân sự · Vai trò & Phân quyền' },
+  { key: 'requests'      as const, icon: Ticket,          label: 'Requests',     sub: 'Change Request · Service Request', path: '/requests',    desc: 'Quản lý yêu cầu thay đổi dự án và yêu cầu dịch vụ vận hành' },
+  { key: 'todos'         as const, icon: CheckSquare,     label: 'To-do',         sub: 'Task Tracking · Kanban · Workload', path: '/todos',      desc: '' },
 ]
 
 function Shell() {
@@ -42,36 +48,36 @@ function Shell() {
       <nav className={`sidebar ${sidebarExpanded ? 'expanded' : ''}`}>
         <div className="sidebar__header">
           <button className="sidebar__toggle" onClick={() => setSidebarExpanded(e => !e)} aria-label="Toggle navigation">
-            ☰
+            <Menu size={16} strokeWidth={1.5} />
           </button>
-          <span className="sidebar__brand">BA_Home</span>
+          <span className="sidebar__brand">BA_HOME</span>
         </div>
         <div className="sidebar-nav">
           {APPS.map(app => (
             <div key={app.key}
               className={`sidebar-item${currentApp.key === app.key ? ' active' : ''}`}
               onClick={() => navigate(app.path)}>
-              <div className="sidebar-item__icon">{app.icon}</div>
+              <div className="sidebar-item__icon"><app.icon size={16} strokeWidth={1.5} /></div>
               <span className="sidebar-item__label">{app.label}</span>
             </div>
           ))}
           <div className="sidebar-divider" />
           <div className="sidebar-item" onClick={() => window.open('http://localhost:8001/docs', '_blank')}>
-            <div className="sidebar-item__icon">⚙️</div>
+            <div className="sidebar-item__icon"><Settings size={16} strokeWidth={1.5} /></div>
             <span className="sidebar-item__label">API — PPG</span>
           </div>
           <div className="sidebar-item" onClick={() => window.open('http://localhost:8002/docs', '_blank')}>
-            <div className="sidebar-item__icon">⚙️</div>
+            <div className="sidebar-item__icon"><Settings size={16} strokeWidth={1.5} /></div>
             <span className="sidebar-item__label">API — BA</span>
           </div>
           <div className="sidebar-item" onClick={() => window.open('http://localhost:8003/docs', '_blank')}>
-            <div className="sidebar-item__icon">⚙️</div>
+            <div className="sidebar-item__icon"><Settings size={16} strokeWidth={1.5} /></div>
             <span className="sidebar-item__label">API — Test</span>
           </div>
         </div>
         <div className="sidebar-bottom">
           <div className="sidebar-item" onClick={logout}>
-            <div className="sidebar-item__icon">🚪</div>
+            <div className="sidebar-item__icon"><LogOut size={16} strokeWidth={1.5} /></div>
             <span className="sidebar-item__label">Đăng xuất</span>
           </div>
         </div>
@@ -82,23 +88,17 @@ function Shell() {
         {/* Topbar */}
         <header className="topbar">
           <div className="topbar__search-wrap">
-            <span className="topbar__search-icon">🔍</span>
-            <input className="topbar__search" type="text" placeholder="Tìm project, document, test case..." />
+            <span className="topbar__search-icon"><Search size={14} strokeWidth={1.5} /></span>
+            <input className="topbar__search" type="text" placeholder="Tìm project, document, test case" />
           </div>
           <div className="topbar__spacer" />
           <div className="topbar__actions">
-            <div style={{ display: 'flex', gap: 4, background: 'var(--app-neutral-100)', padding: '4px 6px', borderRadius: 20 }}>
+            <div className="ds-seg">
               {APPS.map(a => (
                 <button key={a.key}
+                  className={`ds-seg__item${currentApp.key === a.key ? ' active' : ''}`}
                   onClick={() => navigate(a.path)}
-                  style={{
-                    padding: '4px 12px', borderRadius: 16, border: 'none', cursor: 'pointer',
-                    fontSize: 12, fontWeight: 600, fontFamily: 'var(--font)',
-                    background: currentApp.key === a.key ? 'var(--app-primary)' : 'transparent',
-                    color: currentApp.key === a.key ? '#fff' : 'var(--app-neutral-600)',
-                    transition: 'all 0.15s',
-                  }}
-                >{a.icon} {a.label}</button>
+                >{a.label}</button>
               ))}
             </div>
             <div className="topbar__avatar">{(username || 'U').slice(0, 2).toUpperCase()}</div>
@@ -130,6 +130,7 @@ function Shell() {
                 <Route path="/catalog"       element={<CatalogPage />} />
                 <Route path="/ba-workflow"   element={<BAWorkflowPage />} />
                 <Route path="/test-workflow" element={<TestWorkflowPage />} />
+                <Route path="/automation"    element={<AutomationPage />} />
                 <Route path="/docs"          element={<DocsPage />} />
                 <Route path="/requests"     element={<RequestsPage />} />
                 <Route path="/todos"        element={<TodoPage />} />

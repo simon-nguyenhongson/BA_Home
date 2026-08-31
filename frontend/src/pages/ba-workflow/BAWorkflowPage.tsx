@@ -6,7 +6,9 @@
  */
 
 import React, { useEffect, useState, useCallback, useRef } from 'react'
-import { RefreshCw } from 'lucide-react'
+import {
+  RefreshCw, ClipboardList, FileText, Briefcase, Wrench, Rocket, User, PenLine, Bug,
+} from 'lucide-react'
 import { Btn } from '../../components/ui'
 import {
   getProjects, getProjectDomains, getMilestones, getMembers, getActivityTasks,
@@ -29,14 +31,14 @@ const DOMAIN_BV: Record<string, 'High' | 'Medium' | 'Low'> = {
   DATA: 'Low', COMPLIANCE: 'Low',
 }
 const BV_COLOR: Record<string, string> = {
-  High:   '#dc2626',
-  Medium: '#d97706',
-  Low:    '#16a34a',
+  High:   '#D92D20',
+  Medium: '#DC6803',
+  Low:    '#039855',
 }
 const BV_BG: Record<string, string> = {
-  High:   '#fef2f2',
-  Medium: '#fffbeb',
-  Low:    '#f0fdf4',
+  High:   '#FEF3F2',
+  Medium: '#FFFAEB',
+  Low:    '#ECFDF3',
 }
 
 // ─── milestone status priority ────────────────────────────────────
@@ -51,7 +53,7 @@ function projectPriority(milestones: Milestone[]): 'Critical' | 'High' | 'Normal
   return 'Normal'
 }
 const PRIO_COLOR: Record<string, string> = {
-  Critical: '#dc2626', High: '#d97706', Normal: '#6b7280',
+  Critical: '#D92D20', High: '#DC6803', Normal: '#667085',
 }
 
 // ─── complexity score (heuristic) ────────────────────────────────
@@ -78,7 +80,7 @@ function ProgressBar({ pct, color = 'var(--app-primary)' }: { pct: number; color
 
 function Pill({ label, color, bg }: { label: string; color: string; bg: string }) {
   return (
-    <span style={{ fontSize: 11, fontWeight: 700, color, background: bg, padding: '2px 8px', borderRadius: 10, whiteSpace: 'nowrap' }}>
+    <span style={{ fontSize: 12, lineHeight: '18px', fontWeight: 500, color, background: bg, padding: '2px 8px', borderRadius: 16, whiteSpace: 'nowrap' }}>
       {label}
     </span>
   )
@@ -90,13 +92,13 @@ function DocStatusDots({ docs, types }: { docs: BADocument[]; types: string[] })
   const counts: Record<string, number> = {}
   filtered.forEach(d => { counts[d.status] = (counts[d.status] ?? 0) + 1 })
   const statusColor: Record<string, string> = {
-    draft: '#9ca3af', review: '#d97706', approved: '#16a34a', archived: '#6b7280',
+    draft: '#98A2B3', review: '#DC6803', approved: '#039855', archived: '#667085',
   }
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
       {Object.entries(counts).map(([st, n]) => (
         <span key={st} style={{
-          fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 8,
+          fontSize: 11, fontWeight: 600, padding: '1px 8px', borderRadius: 16,
           background: statusColor[st] + '20', color: statusColor[st], border: `1px solid ${statusColor[st]}40`,
         }}>
           {st} ×{n}
@@ -159,18 +161,17 @@ function BusinessTab({ projects, domains, loading }: {
               key={code}
               onClick={() => setDomainFilter(code === domainFilter && code !== '' ? '' : code)}
               style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '5px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                fontFamily: 'var(--font)', fontSize: 13, fontWeight: isActive ? 700 : 400,
-                background: isActive ? 'var(--app-primary)' : 'var(--app-neutral-100)',
-                color: isActive ? '#fff' : 'var(--app-neutral-600)',
-                transition: 'all 0.15s',
+                display: 'flex', alignItems: 'center', gap: 6, height: 28,
+                padding: '0 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                fontFamily: 'var(--font)', fontSize: 13, lineHeight: '18px', fontWeight: isActive ? 600 : 500,
+                background: isActive ? 'var(--app-primary)' : '#F2F4F7',
+                color: isActive ? '#fff' : 'var(--app-neutral-700)',
               }}
             >
               {label}
               <span style={{
-                fontSize: 11, fontWeight: 700, minWidth: 18, textAlign: 'center',
-                padding: '1px 5px', borderRadius: 10,
+                fontSize: 11, fontWeight: 600, minWidth: 18, textAlign: 'center',
+                padding: '1px 5px', borderRadius: 16,
                 background: isActive ? 'rgba(255,255,255,0.25)' : 'var(--app-neutral-200)',
                 color: isActive ? '#fff' : 'var(--app-neutral-500)',
               }}>{count}</span>
@@ -183,12 +184,12 @@ function BusinessTab({ projects, domains, loading }: {
       </div>
 
       {/* Table */}
-      <div style={{ overflowX: 'auto', border: '1px solid var(--app-neutral-200)', borderRadius: 10 }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+      <div style={{ overflowX: 'auto', border: '1px solid var(--app-neutral-200)', borderRadius: 12 }}>
+        <table className="ds-table" style={{ fontSize: 13 }}>
           <thead>
-            <tr style={{ background: 'var(--app-neutral-50)', borderBottom: '2px solid var(--app-neutral-200)' }}>
+            <tr>
               {['#', 'Project', 'Domain', 'Business Value', 'Stakeholders', 'Priority', 'Status', 'Timeline'].map(h => (
-                <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 700, fontSize: 12, color: 'var(--app-neutral-600)', whiteSpace: 'nowrap' }}>{h}</th>
+                <th key={h}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -199,56 +200,64 @@ function BusinessTab({ projects, domains, loading }: {
               const pm = members.find(m => m.role === 'PM')
               const baLead = members.find(m => m.role === 'BA Lead')
               const stakeholders = [pm?.full_name, baLead?.full_name].filter(Boolean)
-              const statusColor = p.status === 'active' ? '#16a34a' : p.status === 'completed' ? '#2563eb' : '#9ca3af'
+              const statusColor = p.status === 'active' ? '#039855' : p.status === 'completed' ? '#1570EF' : '#98A2B3'
 
               return (
-                <tr key={p.id} style={{ borderBottom: '1px solid var(--app-neutral-100)' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--app-neutral-50)')}
+                <tr key={p.id}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--app-neutral-100)')}
                   onMouseLeave={e => (e.currentTarget.style.background = '')}
                 >
-                  <td style={{ padding: '10px 12px', color: 'var(--app-neutral-400)', fontSize: 12 }}>{i + 1}</td>
-                  <td style={{ padding: '10px 12px' }}>
-                    <div style={{ fontWeight: 700, color: 'var(--app-neutral-800)' }}>{p.code}</div>
+                  <td style={{ color: 'var(--app-neutral-400)', fontSize: 12 }}>{i + 1}</td>
+                  <td>
+                    <div style={{ fontWeight: 600, color: 'var(--app-neutral-900)' }}>{p.code}</div>
                     <div style={{ fontSize: 11, color: 'var(--app-neutral-500)', marginTop: 2 }}>{p.name}</div>
                   </td>
-                  <td style={{ padding: '10px 12px' }}>
-                    <span style={{ fontSize: 12, fontWeight: 600, background: 'var(--app-neutral-100)', padding: '2px 8px', borderRadius: 6 }}>
+                  <td>
+                    <span style={{ fontSize: 12, fontWeight: 500, background: '#F2F4F7', color: 'var(--app-neutral-700)', padding: '2px 8px', borderRadius: 16 }}>
                       {p.domain_code ?? '—'}
                     </span>
                   </td>
-                  <td style={{ padding: '10px 12px' }}>
+                  <td>
                     <Pill label={bv} color={BV_COLOR[bv]} bg={BV_BG[bv]} />
                   </td>
-                  <td style={{ padding: '10px 12px' }}>
+                  <td>
                     {loadingMembers ? (
                       <span style={{ fontSize: 11, color: 'var(--app-neutral-300)' }}>...</span>
                     ) : stakeholders.length ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        {pm && <span style={{ fontSize: 11, color: 'var(--app-neutral-700)' }}>👤 {pm.full_name}</span>}
-                        {baLead && <span style={{ fontSize: 11, color: '#7c3aed' }}>📝 {baLead.full_name}</span>}
+                        {pm && (
+                          <span style={{ fontSize: 11, color: 'var(--app-neutral-700)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <User size={12} strokeWidth={1.5} /> {pm.full_name}
+                          </span>
+                        )}
+                        {baLead && (
+                          <span style={{ fontSize: 11, color: 'var(--app-accent)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <PenLine size={12} strokeWidth={1.5} /> {baLead.full_name}
+                          </span>
+                        )}
                       </div>
                     ) : (
                       <span style={{ fontSize: 11, color: 'var(--app-neutral-300)' }}>Chưa gán</span>
                     )}
                   </td>
-                  <td style={{ padding: '10px 12px' }}>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: PRIO_COLOR[bv === 'High' ? 'Critical' : bv === 'Medium' ? 'High' : 'Normal'] }}>
+                  <td>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: PRIO_COLOR[bv === 'High' ? 'Critical' : bv === 'Medium' ? 'High' : 'Normal'] }}>
                       {bv === 'High' ? 'P1' : bv === 'Medium' ? 'P2' : 'P3'}
                     </span>
                   </td>
-                  <td style={{ padding: '10px 12px' }}>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: statusColor }}>
+                  <td>
+                    <span style={{ fontSize: 12, fontWeight: 500, color: statusColor }}>
                       {p.status === 'active' ? '▶ Active' : p.status === 'completed' ? '✓ Done' : p.status}
                     </span>
                   </td>
-                  <td style={{ padding: '10px 12px', whiteSpace: 'nowrap', fontSize: 11, color: 'var(--app-neutral-500)' }}>
+                  <td style={{ whiteSpace: 'nowrap', fontSize: 11, color: 'var(--app-neutral-500)' }}>
                     {p.start_date?.slice(0, 7)} → {p.end_date?.slice(0, 7) ?? '—'}
                   </td>
                 </tr>
               )
             })}
             {!loading && displayed.length === 0 && (
-              <tr><td colSpan={8} style={{ padding: '32px', textAlign: 'center', color: 'var(--app-neutral-400)' }}>Không có dự án</td></tr>
+              <tr><td colSpan={8} style={{ padding: '32px', textAlign: 'center', color: 'var(--app-neutral-500)' }}>Không có dự án</td></tr>
             )}
           </tbody>
         </table>
@@ -309,16 +318,16 @@ function SolutionTab({ projects, loading }: { projects: Project[]; loading: bool
       )}
 
       {/* Solution matrix */}
-      <div style={{ overflowX: 'auto', border: '1px solid var(--app-neutral-200)', borderRadius: 10 }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+      <div style={{ overflowX: 'auto', border: '1px solid var(--app-neutral-200)', borderRadius: 12 }}>
+        <table className="ds-table" style={{ fontSize: 12 }}>
           <thead>
-            <tr style={{ background: 'var(--app-neutral-50)', borderBottom: '2px solid var(--app-neutral-200)' }}>
-              <th style={thStyle}>Project</th>
-              <th style={thStyle}>Requirement Status</th>
-              <th style={thStyle}>Data Mapping</th>
-              <th style={thStyle}>API / Integration</th>
-              <th style={thStyle}>Complexity</th>
-              <th style={thStyle}>Total Docs</th>
+            <tr>
+              <th>Project</th>
+              <th>Requirement Status</th>
+              <th>Data Mapping</th>
+              <th>API / Integration</th>
+              <th>Complexity</th>
+              <th>Total Docs</th>
             </tr>
           </thead>
           <tbody>
@@ -327,42 +336,42 @@ function SolutionTab({ projects, loading }: { projects: Project[]; loading: bool
               const miles = milesMap[p.id] ?? []
               const score = complexityScore(docs, miles)
               const clabel = complexityLabel(score)
-              const cColor = clabel === 'High' ? '#dc2626' : clabel === 'Medium' ? '#d97706' : '#16a34a'
+              const cColor = clabel === 'High' ? '#D92D20' : clabel === 'Medium' ? '#DC6803' : '#039855'
               return (
-                <tr key={p.id} style={{ borderBottom: '1px solid var(--app-neutral-100)' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--app-neutral-50)')}
+                <tr key={p.id}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--app-neutral-100)')}
                   onMouseLeave={e => (e.currentTarget.style.background = '')}
                 >
-                  <td style={{ padding: '10px 12px' }}>
-                    <div style={{ fontWeight: 700, color: 'var(--app-neutral-800)', fontSize: 12 }}>{p.code}</div>
+                  <td>
+                    <div style={{ fontWeight: 600, color: 'var(--app-neutral-900)', fontSize: 12 }}>{p.code}</div>
                     <div style={{ fontSize: 10, color: 'var(--app-neutral-400)' }}>{p.domain_code}</div>
                   </td>
-                  <td style={{ padding: '10px 12px' }}>
+                  <td>
                     <DocStatusDots docs={docs} types={['BRD', 'BRS', 'FSD']} />
                   </td>
-                  <td style={{ padding: '10px 12px' }}>
+                  <td>
                     <DocStatusDots docs={docs} types={['ERD', 'DATA_DICT']} />
                   </td>
-                  <td style={{ padding: '10px 12px' }}>
+                  <td>
                     <DocStatusDots docs={docs} types={['API_SPEC', 'PROCESS_FLOW']} />
                   </td>
-                  <td style={{ padding: '10px 12px' }}>
+                  <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <ProgressBar pct={score} color={cColor} />
-                      <span style={{ fontSize: 11, fontWeight: 700, color: cColor, minWidth: 40 }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: cColor, minWidth: 40 }}>
                         {clabel}
                       </span>
                     </div>
                     <div style={{ fontSize: 10, color: 'var(--app-neutral-400)', marginTop: 2 }}>{score}/100</div>
                   </td>
-                  <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700, color: 'var(--app-neutral-700)' }}>
+                  <td style={{ textAlign: 'center', fontWeight: 600, color: 'var(--app-neutral-700)' }}>
                     {docs.length}
                   </td>
                 </tr>
               )
             })}
             {!loading && !loadingData && projects.length === 0 && (
-              <tr><td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: 'var(--app-neutral-400)' }}>Không có dữ liệu</td></tr>
+              <tr><td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: 'var(--app-neutral-500)' }}>Không có dữ liệu</td></tr>
             )}
           </tbody>
         </table>

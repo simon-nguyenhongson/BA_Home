@@ -7,7 +7,7 @@ project_id:    "ba_home"
 name:          "BA_Home"
 product_type:  internal_tool       # web_app | mobile_app | api_service | data_pipeline | internal_tool | hybrid
 tech_stack:
-  frontend:    nextjs              # next.js 15 + TypeScript (ADR-001)
+  frontend:    react_vite          # React 18 + Vite 5 + TypeScript (ADR-001)
   backend:     python              # python 3.11(ADR-001)
   database:    postgres              # Oracle Phase 1 → PostgreSQL Aurora Phase 2 (ADR-001)
 #  infra:       aws_eks             # AWS EKS (existing  cluster)

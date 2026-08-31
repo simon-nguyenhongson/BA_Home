@@ -13,6 +13,11 @@
  *  - Licence      : license records
  */
 import React, { useEffect, useState, useCallback } from 'react'
+import {
+  LayoutGrid, List, Globe, Smartphone, Timer, RefreshCw, Link2, Package,
+  Users, Tag, Lock, Trash2, Pencil, Check, Star, User,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { Badge, Btn, Modal, StatusBadge } from '../../components/ui'
 import { FilterBar, applyTextFilter, applyDateFilter } from '../../components/FilterBar'
 import {
@@ -41,13 +46,13 @@ import {
 
 // ── Shared constants ───────────────────────────────────────────────────────
 
-const PRODUCT_TYPES: { key: ProductType | 'all'; label: string; icon: string }[] = [
-  { key: 'all',     label: 'Tất cả',       icon: '🗂️' },
-  { key: 'web_app', label: 'Web App',      icon: '🌐' },
-  { key: 'mobile',  label: 'Mobile App',   icon: '📱' },
-  { key: 'job',     label: 'Job/Scheduler',icon: '⏱️' },
-  { key: 'etl',     label: 'ETL Pipeline', icon: '🔄' },
-  { key: 'api',     label: 'API Service',  icon: '🔗' },
+const PRODUCT_TYPES: { key: ProductType | 'all'; label: string; icon: LucideIcon }[] = [
+  { key: 'all',     label: 'Tất cả',       icon: LayoutGrid },
+  { key: 'web_app', label: 'Web App',      icon: Globe },
+  { key: 'mobile',  label: 'Mobile App',   icon: Smartphone },
+  { key: 'job',     label: 'Job/Scheduler',icon: Timer },
+  { key: 'etl',     label: 'ETL Pipeline', icon: RefreshCw },
+  { key: 'api',     label: 'API Service',  icon: Link2 },
 ]
 
 const USER_TYPES: { key: UserType | 'all'; label: string }[] = [
@@ -80,7 +85,10 @@ const CICD_TOOLS = ['Azure DevOps', 'Jenkins', 'GitHub Actions', 'GitLab CI', 'A
 const INFRA_TYPES = ['VM', 'K8s', 'Serverless', 'Bare Metal', 'PaaS']
 const CRITICAL_LEVELS = ['Tier 1 (Critical)', 'Tier 2 (High)', 'Tier 3 (Medium)', 'Tier 4 (Low)']
 
-function typeIcon(t: string) { return PRODUCT_TYPES.find(p => p.key === t)?.icon ?? '📦' }
+function TypeIcon({ type, size = 16 }: { type: string; size?: number }) {
+  const Icon = PRODUCT_TYPES.find(p => p.key === type)?.icon ?? Package
+  return <Icon size={size} strokeWidth={1.5} style={{ flexShrink: 0 }} />
+}
 function typeLabel(t: string) { return PRODUCT_TYPES.find(p => p.key === t)?.label ?? t }
 
 function statusVariant(s: string): 'success' | 'neutral' | 'warning' | 'danger' | 'info' {
@@ -95,7 +103,7 @@ function statusVariant(s: string): 'success' | 'neutral' | 'warning' | 'danger' 
 
 function SectionTitle({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
-    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--app-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10, marginTop: 4, borderBottom: '1px solid var(--app-neutral-100)', paddingBottom: 6, ...style }}>
+    <div className="eyebrow" style={{ marginBottom: 10, marginTop: 4, borderBottom: '1px solid #F2F4F7', paddingBottom: 6, ...style }}>
       {children}
     </div>
   )
@@ -103,9 +111,9 @@ function SectionTitle({ children, style }: { children: React.ReactNode; style?: 
 
 function InfoRow({ label, value }: { label: string; value?: string | null | React.ReactNode }) {
   return (
-    <div style={{ padding: '5px 0', borderBottom: '1px solid var(--app-neutral-100)' }}>
-      <div style={{ fontSize: 11, color: 'var(--app-neutral-500)', marginBottom: 1 }}>{label}</div>
-      <div style={{ fontSize: 13 }}>{value || <span style={{ color: 'var(--app-neutral-400)' }}>—</span>}</div>
+    <div style={{ padding: '6px 0', borderBottom: '1px solid #F2F4F7' }}>
+      <div style={{ fontSize: 12, lineHeight: '18px', color: 'var(--app-neutral-500)', marginBottom: 1 }}>{label}</div>
+      <div style={{ fontSize: 14, lineHeight: '20px', color: 'var(--app-neutral-900)' }}>{value || <span style={{ color: 'var(--app-neutral-400)' }}>—</span>}</div>
     </div>
   )
 }
@@ -115,14 +123,14 @@ function TagList({ items }: { items: string[] }) {
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
       {items.map((s, i) => (
-        <span key={i} style={{ fontSize: 11, background: 'var(--app-neutral-100)', color: 'var(--app-neutral-700)', padding: '2px 8px', borderRadius: 10 }}>{s}</span>
+        <span key={i} style={{ fontSize: 12, lineHeight: '18px', background: 'var(--app-neutral-100)', color: 'var(--app-neutral-600)', border: '1px solid var(--app-neutral-200)', padding: '2px 8px', borderRadius: 6 }}>{s}</span>
       ))}
     </div>
   )
 }
 
 function Lbl({ children, required }: { children: React.ReactNode; required?: boolean }) {
-  return <label style={{ fontSize: 11, color: 'var(--app-neutral-600)', display: 'block', marginBottom: 3 }}>{children}{required && <span style={{ color: 'var(--app-danger)', marginLeft: 2 }}>*</span>}</label>
+  return <label style={{ fontSize: 12, lineHeight: '18px', fontWeight: 500, color: 'var(--app-neutral-700)', display: 'block', marginBottom: 4 }}>{children}{required && <span style={{ color: '#F04438', marginLeft: 2 }}>*</span>}</label>
 }
 
 function F({ children, full }: { children: React.ReactNode; full?: boolean }) {
@@ -149,14 +157,14 @@ type DetailTab = 'overview' | 'architecture' | 'environments' | 'deployment'
   | 'security' | 'operations' | 'type_details' | 'license'
 
 const DETAIL_TABS: { key: DetailTab; label: string }[] = [
-  { key: 'overview',      label: '📋 Tổng quan' },
-  { key: 'architecture',  label: '🏗️ Kiến trúc' },
-  { key: 'environments',  label: '🌐 Môi trường' },
-  { key: 'deployment',    label: '🚀 Deployment' },
-  { key: 'security',      label: '🔐 Bảo mật' },
-  { key: 'operations',    label: '📊 Vận hành' },
-  { key: 'type_details',  label: '⚙️ Chi tiết' },
-  { key: 'license',       label: '📦 Licence' },
+  { key: 'overview',      label: 'Tổng quan' },
+  { key: 'architecture',  label: 'Kiến trúc' },
+  { key: 'environments',  label: 'Môi trường' },
+  { key: 'deployment',    label: 'Deployment' },
+  { key: 'security',      label: 'Bảo mật' },
+  { key: 'operations',    label: 'Vận hành' },
+  { key: 'type_details',  label: 'Chi tiết' },
+  { key: 'license',       label: 'Licence' },
 ]
 
 function ProductDetailModal({
@@ -253,25 +261,19 @@ function ProductDetailModal({
     catch (e: unknown) { alert((e as Error).message) }
   }
 
-  const grid2 = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 16px' } as const
+  const grid2 = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' } as const
 
   return (
     <Modal
-      title={`${typeIcon(product.product_type)} ${product.product_name} · ${product.product_code}`}
+      title={`${product.product_name} · ${product.product_code}`}
       open onClose={onClose} width="860px"
     >
       {/* Sub-tabs */}
-      <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid var(--app-neutral-100)', marginBottom: 16, flexWrap: 'wrap' }}>
+      <div className="ds-tabs" style={{ marginBottom: 16, flexWrap: 'wrap' }}>
         {DETAIL_TABS.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
-            style={{
-              padding: '6px 12px', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
-              fontSize: 12, fontWeight: tab === t.key ? 700 : 400, fontFamily: 'var(--font)',
-              background: 'transparent',
-              color: tab === t.key ? 'var(--app-primary)' : 'var(--app-neutral-600)',
-              borderBottom: tab === t.key ? '2px solid var(--app-primary)' : '2px solid transparent',
-              marginBottom: -2,
-            }}>
+            className={`ds-tab${tab === t.key ? ' active' : ''}`}
+            style={{ whiteSpace: 'nowrap' }}>
             {t.label}
           </button>
         ))}
@@ -280,10 +282,10 @@ function ProductDetailModal({
       {/* ── Tab: Tổng quan ────────────────────────────────── */}
       {tab === 'overview' && (
         <div>
-          <SectionTitle>🧾 Identification</SectionTitle>
+          <SectionTitle>Identification</SectionTitle>
           <div style={grid2}>
             <InfoRow label="Mã sản phẩm" value={<Badge variant="neutral">{product.product_code}</Badge>} />
-            <InfoRow label="Loại" value={`${typeIcon(product.product_type)} ${typeLabel(product.product_type)}`} />
+            <InfoRow label="Loại" value={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><TypeIcon type={product.product_type} /> {typeLabel(product.product_type)}</span>} />
             <InfoRow label="Domain" value={product.domain_name || product.domain_code} />
             <InfoRow label="Trạng thái" value={<Badge variant={statusVariant(product.status)}>{product.status}</Badge>} />
             <InfoRow label="Business Owner (PO)" value={product.business_owner} />
@@ -315,7 +317,7 @@ function ProductDetailModal({
       {/* ── Tab: Kiến trúc ────────────────────────────────── */}
       {tab === 'architecture' && (
         <div>
-          <SectionTitle>🏗️ Architecture</SectionTitle>
+          <SectionTitle>Architecture</SectionTitle>
           <div style={grid2}>
             <div>
               <Lbl>Kiến trúc</Lbl>
@@ -369,7 +371,7 @@ function ProductDetailModal({
       {tab === 'environments' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-            <SectionTitle style={{ margin: 0 }}>🌐 Danh sách môi trường</SectionTitle>
+            <SectionTitle style={{ margin: 0 }}>Danh sách môi trường</SectionTitle>
             <Btn size="sm" onClick={() => setShowEnvForm(v => !v)}>+ Thêm</Btn>
           </div>
 
@@ -461,7 +463,7 @@ function ProductDetailModal({
       {/* ── Tab: Deployment ───────────────────────────────── */}
       {tab === 'deployment' && (
         <div>
-          <SectionTitle>🚀 Deployment Info</SectionTitle>
+          <SectionTitle>Deployment Info</SectionTitle>
           <div style={grid2}>
             <F full>
               <Lbl>Git Repository URL</Lbl>
@@ -504,7 +506,7 @@ function ProductDetailModal({
       {/* ── Tab: Bảo mật ─────────────────────────────────── */}
       {tab === 'security' && (
         <div>
-          <SectionTitle>🔐 Security</SectionTitle>
+          <SectionTitle>Security</SectionTitle>
           <div style={grid2}>
             <div>
               <Lbl>Authentication Method</Lbl>
@@ -536,7 +538,7 @@ function ProductDetailModal({
       {/* ── Tab: Vận hành ─────────────────────────────────── */}
       {tab === 'operations' && (
         <div>
-          <SectionTitle>📊 Monitoring & Logging</SectionTitle>
+          <SectionTitle>Monitoring & Logging</SectionTitle>
           <div style={grid2}>
             <div>
               <Lbl>Logging Tool</Lbl>
@@ -569,7 +571,7 @@ function ProductDetailModal({
           </div>
 
           <div style={{ marginTop: 20 }}>
-            <SectionTitle>📦 Resource & Scaling</SectionTitle>
+            <SectionTitle>Resource & Scaling</SectionTitle>
             <div style={grid2}>
               <div>
                 <Lbl>CPU Config</Lbl>
@@ -598,7 +600,7 @@ function ProductDetailModal({
           </div>
 
           <div style={{ marginTop: 20 }}>
-            <SectionTitle>🧾 Business Metadata</SectionTitle>
+            <SectionTitle>Business Metadata</SectionTitle>
             <div style={grid2}>
               <div>
                 <Lbl>SLA Business</Lbl>
@@ -630,7 +632,7 @@ function ProductDetailModal({
       {/* ── Tab: Chi tiết (type-specific) ─────────────────── */}
       {tab === 'type_details' && (
         <div>
-          <SectionTitle>⚙️ Chi tiết kỹ thuật — {typeIcon(product.product_type)} {typeLabel(product.product_type)}</SectionTitle>
+          <SectionTitle>Chi tiết kỹ thuật — {typeLabel(product.product_type)}</SectionTitle>
 
           {/* Web App */}
           {product.product_type === 'web_app' && (
@@ -795,7 +797,7 @@ function ProductDetailModal({
       {tab === 'license' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-            <SectionTitle style={{ margin: 0 }}>📦 Licence liên quan</SectionTitle>
+            <SectionTitle style={{ margin: 0 }}>Licence liên quan</SectionTitle>
             <Btn size="sm" onClick={() => setShowLicForm(v => !v)}>+ Thêm</Btn>
           </div>
 
@@ -946,7 +948,7 @@ function ProductForm({
             <select className="app-input" value={form.product_type}
               onChange={e => setForm(f => ({ ...f, product_type: e.target.value as ProductType }))}>
               {PRODUCT_TYPES.filter(t => t.key !== 'all').map(t => (
-                <option key={t.key} value={t.key}>{t.icon} {t.label}</option>
+                <option key={t.key} value={t.key}>{t.label}</option>
               ))}
             </select>
           </div>
@@ -1273,8 +1275,9 @@ function ProductsTab({ domains }: { domains: CatalogDomain[] }) {
                 fontSize: 12, fontWeight: 600, fontFamily: 'var(--font)',
                 background: typeFilter === t.key ? 'var(--app-primary)' : 'transparent',
                 color: typeFilter === t.key ? '#fff' : 'var(--app-neutral-600)',
+                display: 'inline-flex', alignItems: 'center', gap: 6,
               }}>
-              {t.icon} {t.label}
+              <t.icon size={13} strokeWidth={1.5} /> {t.label}
             </button>
           ))}
         </div>
@@ -1341,7 +1344,7 @@ function ProductsTab({ domains }: { domains: CatalogDomain[] }) {
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
                       <div>
-                        <span style={{ fontSize: 16 }}>{typeIcon(p.product_type)}</span>{' '}
+                        <span style={{ display: 'inline-flex', verticalAlign: '-3px' }}><TypeIcon type={p.product_type} /></span>{' '}
                         <span style={{ fontWeight: 700, fontSize: 14 }}>{p.product_name}</span>
                       </div>
                       <Badge variant={statusVariant(p.status)}>{p.status}</Badge>
@@ -1416,7 +1419,7 @@ function ProductsTab({ domains }: { domains: CatalogDomain[] }) {
                         <Badge variant="neutral">{p.product_code}</Badge>
                       </td>
                       <td style={{ padding: '9px 12px', fontWeight: 600, minWidth: 180 }}>
-                        <span style={{ marginRight: 6 }}>{typeIcon(p.product_type)}</span>{p.product_name}
+                        <span style={{ marginRight: 6, display: 'inline-flex', verticalAlign: '-3px' }}><TypeIcon type={p.product_type} /></span>{p.product_name}
                         {p.description && (
                           <div style={{ fontSize: 11, fontWeight: 400, color: 'var(--app-neutral-500)', marginTop: 2,
                             overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical' }}>

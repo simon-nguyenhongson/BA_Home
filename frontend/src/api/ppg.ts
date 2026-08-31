@@ -2,31 +2,12 @@
  * PPG API client — proxy via Vite /api/ppg → :8001
  */
 
+import { apiRequest, authHeaders } from '../lib/http'
+
 const BASE = '/api/ppg'
 
-function authHeaders(): HeadersInit {
-  const token = sessionStorage.getItem('access_token')
-  return token
-    ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
-    : { 'Content-Type': 'application/json' }
-}
-
-async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    method,
-    headers: authHeaders(),
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  })
-  if (res.status === 401) {
-    sessionStorage.removeItem('access_token')
-    window.location.href = '/login'
-  }
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: res.statusText }))
-    throw new Error(err.detail || 'Request failed')
-  }
-  return res.status === 204 ? (undefined as T) : res.json()
-}
+const request = <T,>(method: string, path: string, body?: unknown) =>
+  apiRequest<T>(BASE, method, path, body)
 
 // ── Auth ──────────────────────────────────────────────────────────────────
 export const login = (username: string, password: string) =>
@@ -203,21 +184,6 @@ export const getAnnualPlans = (year?: number) =>
   request<{ data: AnnualPlan[]; meta: { total: number } }>(
     'GET', `/annual-plans${year ? `?year=${year}` : ''}`
   ).then((r) => r.data)
-export const createAnnualPlan = (data: AnnualPlanCreate) =>
-  request<AnnualPlan>('POST', '/annual-plans', data)
-export const updateAnnualPlan = (id: string, data: Partial<AnnualPlanCreate>) =>
-  request<AnnualPlan>('PUT', `/annual-plans/${id}`, data)
-export const deleteAnnualPlan = (id: string) => request<void>('DELETE', `/annual-plans/${id}`)
-
-export const getPlanItems = (planId: string) =>
-  request<PlanItem[]>('GET', `/annual-plans/${planId}/items`)
-export const createPlanItem = (planId: string, data: PlanItemCreate) =>
-  request<PlanItem>('POST', `/annual-plans/${planId}/items`, data)
-export const updatePlanItem = (planId: string, itemId: string, data: Partial<PlanItemCreate>) =>
-  request<PlanItem>('PUT', `/annual-plans/${planId}/items/${itemId}`, data)
-export const deletePlanItem = (planId: string, itemId: string) =>
-  request<void>('DELETE', `/annual-plans/${planId}/items/${itemId}`)
-
 // ── Activity Tasks (5-domain governance checklist) ───────────────────────
 export const getActivityTasks = (projectId: string, domain?: string) =>
   request<ActivityTask[]>('GET', `/projects/${projectId}/activity-tasks${domain ? `?domain=${domain}` : ''}`)
@@ -392,19 +358,6 @@ export interface AnnualPlan {
   id: string; year: number; code: string; name: string
   description?: string; status: string
   created_by?: string; created_at: string; updated_at: string
-}
-export interface AnnualPlanCreate {
-  year: number; code: string; name: string
-  description?: string; status?: string
-}
-export interface PlanItem {
-  id: string; plan_id: string; title: string; description?: string
-  priority: number; target_q?: string; done_criteria?: string
-  status: string; created_at: string; updated_at: string
-}
-export interface PlanItemCreate {
-  title: string; description?: string; priority?: number
-  target_q?: string; done_criteria?: string; status?: string
 }
 export interface PublishJob {
   status: 'never_published' | 'pending' | 'building' | 'success' | 'failed'

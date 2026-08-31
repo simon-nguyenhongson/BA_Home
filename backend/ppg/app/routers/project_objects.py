@@ -8,7 +8,7 @@ from __future__ import annotations
 import io
 import json
 import re
-from typing import Annotated, Literal, Optional
+from typing import Literal, Optional
 from uuid import UUID, uuid4
 
 import asyncpg
@@ -74,11 +74,6 @@ class EltInfo(BaseModel):
     sla_minutes: Optional[int] = None
     notes: Optional[str] = None
 
-
-ObjectInfo = Annotated[
-    WebAppInfo | MobileAppInfo | ApiInfo | EltInfo,
-    Field(discriminator="object_type"),
-]
 
 OBJECT_TYPES = {"web_app", "mobile_app", "api", "elt"}
 CODE_PATTERN = re.compile(r"^[A-Z0-9_]+$")
@@ -153,7 +148,6 @@ def _parse_obj(row: asyncpg.Record) -> dict:
 
 
 async def _get_object_or_404(
-    user: CurrentUser,
     db: asyncpg.Connection,
     project_id: str,
     object_id: str,
@@ -173,6 +167,7 @@ async def _get_object_or_404(
 
 @router.get("/{project_id}/objects")
 async def list_objects(
+    user: CurrentUser,
     project_id: UUID,
     object_type: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
@@ -239,7 +234,7 @@ async def create_object(
             body.code,
             body.description,
             body.owner,
-            json.dumps(body.standard_info),
+            body.standard_info,
             user.sub,
         )
     except asyncpg.UniqueViolationError:
@@ -459,7 +454,7 @@ async def import_objects(
                 WHERE project_id=$1 AND code=$2
                 """,
                 str(project_id), code, name, description, owner, status,
-                json.dumps(validated.model_dump(exclude={"object_type"})),
+                validated.model_dump(exclude={"object_type"}),
                 user.sub if user else "import",
             )
             updated += 1
@@ -475,7 +470,7 @@ async def import_objects(
                     """,
                     obj_id, str(project_id), object_type, name, code,
                     description, owner, status,
-                    json.dumps(validated.model_dump(exclude={"object_type"})),
+                    validated.model_dump(exclude={"object_type"}),
                     user.sub if user else "import",
                 )
                 created += 1
@@ -544,7 +539,7 @@ async def update_object(
         }
         model_cls = type_map[otype]
         model_cls.model_validate({"object_type": otype, **body.standard_info})
-        updates["standard_info"] = json.dumps(body.standard_info)
+        updates["standard_info"] = body.standard_info
 
     if not updates:
         raise HTTPException(400, detail={"code": "VALIDATION_ERROR", "message": "No fields to update"})

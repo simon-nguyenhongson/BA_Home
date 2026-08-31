@@ -16,7 +16,7 @@ import {
 } from '../../components/ui'
 
 const DOC_COLORS: Record<string, string> = {
-  BRD: '#0066B3', BRS: '#1B7A3F', ERD: '#C97A00', API: '#6B21A8'
+  BRD: 'var(--app-primary)', BRS: 'var(--app-success)', ERD: 'var(--app-warning)', API: '#6B21A8'
 }
 
 const TASK_STATUS_COLOR: Record<string, string> = {
