@@ -3,7 +3,8 @@
  * CRs created in the global Requests module (same project_id) appear here automatically.
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { X } from 'lucide-react'
+import {
+  X } from 'lucide-react'
 import {
   crApi,
   type ChangeRequest,
@@ -17,6 +18,7 @@ import { useStore } from '../../stores/auth'
 import { FilterBar, applyTextFilter, applyDateFilter } from '../../components/FilterBar'
 import { CommentModal } from '../../components/CommentModal'
 import { RequestHistoryTimeline } from '../../components/RequestHistoryTimeline'
+import { BrsPanel } from '../../features/cr/BrsPanel'
 import { RequestAttachments } from '../../components/RequestAttachments'
 import { FileQueueSection } from '../../components/FileQueueSection'
 import { createTodo, type TodoType } from '../../api/todos'
@@ -876,6 +878,17 @@ export default function ProjectCRTab({
                   <div style={{ fontSize: 13, whiteSpace: 'pre-wrap' }}>{selected.notes}</div>
                 </div>
               )}
+
+              {/* Tài liệu BRS — sinh bằng AI, duyệt, golive, merge Master Doc */}
+              <div style={{
+                borderTop: '1px solid var(--app-neutral-200)',
+                paddingTop: 12, marginTop: 4, marginBottom: 12,
+              }}>
+                <div style={{ fontSize: 11, color: 'var(--app-neutral-500)', marginBottom: 8 }}>
+                  Tài liệu BRS
+                </div>
+                <BrsPanel crId={selected.id} crStatus={selected.status} crCode={selected.request_code} />
+              </div>
 
               {/* Status update */}
               <div style={{

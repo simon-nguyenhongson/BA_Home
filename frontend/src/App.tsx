@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, CalendarRange, Building2, FileText, FlaskConical, Bot,
-  BookOpen, Layers, Ticket, CheckSquare, Settings, LogOut, Search, Menu,
+  BookOpen, Layers, Ticket, CheckSquare, Settings, LogOut, Search, Menu, SlidersHorizontal,
 } from 'lucide-react'
 import { useStore } from './stores/auth'
 import { ToastContainer } from './components/ui'
@@ -19,6 +19,7 @@ import DashboardPage from './pages/dashboard/DashboardPage'
 import RequestsPage from './pages/requests/RequestsPage'
 import TodoPage from './pages/todos/TodoPage'
 import AutomationPage from './pages/automation/AutomationPage'
+import SettingsPage from './pages/settings/SettingsPage'
 import './styles.css'
 
 const APPS = [
@@ -32,6 +33,7 @@ const APPS = [
   { key: 'catalog'       as const, icon: Layers,          label: 'Danh mục',     sub: 'Product & User Catalog',        path: '/catalog',        desc: 'Sản phẩm · Nhân sự · Vai trò & Phân quyền' },
   { key: 'requests'      as const, icon: Ticket,          label: 'Requests',     sub: 'Change Request · Service Request', path: '/requests',    desc: 'Quản lý yêu cầu thay đổi dự án và yêu cầu dịch vụ vận hành' },
   { key: 'todos'         as const, icon: CheckSquare,     label: 'To-do',         sub: 'Task Tracking · Kanban · Workload', path: '/todos',      desc: '' },
+  { key: 'settings'      as const, icon: SlidersHorizontal, label: 'Cài đặt',      sub: 'AI Agent · Kho skill',          path: '/settings',       desc: 'Cấu hình Claude API và bộ skill chuẩn dùng cho sinh tài liệu, test case, báo cáo' },
 ]
 
 function Shell() {
@@ -131,6 +133,7 @@ function Shell() {
                 <Route path="/ba-workflow"   element={<BAWorkflowPage />} />
                 <Route path="/test-workflow" element={<TestWorkflowPage />} />
                 <Route path="/automation"    element={<AutomationPage />} />
+                <Route path="/settings"      element={<SettingsPage />} />
                 <Route path="/docs"          element={<DocsPage />} />
                 <Route path="/requests"     element={<RequestsPage />} />
                 <Route path="/todos"        element={<TodoPage />} />
