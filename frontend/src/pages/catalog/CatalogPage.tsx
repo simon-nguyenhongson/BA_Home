@@ -637,7 +637,7 @@ function ProductDetailModal({
             <div style={grid2}>
               <div><Lbl>Domain / DNS</Lbl>
                 <input className="app-input" value={(typeDetailsEdit.domain_dns as string) || ''}
-                  placeholder="app.ecosys.local" onChange={e => setTypeDetailsEdit(d => ({ ...d, domain_dns: e.target.value }))} /></div>
+                  placeholder="app.example.local" onChange={e => setTypeDetailsEdit(d => ({ ...d, domain_dns: e.target.value }))} /></div>
               <div><Lbl>CDN</Lbl>
                 <input className="app-input" value={(typeDetailsEdit.cdn as string) || ''}
                   placeholder="Cloudflare, AWS CloudFront…" onChange={e => setTypeDetailsEdit(d => ({ ...d, cdn: e.target.value }))} /></div>
@@ -694,7 +694,7 @@ function ProductDetailModal({
             <div style={grid2}>
               <F full><Lbl>API Spec URL (OpenAPI/Swagger)</Lbl>
                 <input className="app-input" value={(typeDetailsEdit.spec_url as string) || ''}
-                  placeholder="https://api.ecosys.local/docs" onChange={e => setTypeDetailsEdit(d => ({ ...d, spec_url: e.target.value }))} /></F>
+                  placeholder="https://api.example.local/docs" onChange={e => setTypeDetailsEdit(d => ({ ...d, spec_url: e.target.value }))} /></F>
               <F full><Lbl>Endpoints</Lbl>
                 <TagInput value={(typeDetailsEdit.endpoints as string[]) || []}
                   onChange={v => setTypeDetailsEdit(d => ({ ...d, endpoints: v }))}

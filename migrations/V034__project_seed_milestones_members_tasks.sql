@@ -81,7 +81,7 @@ SELECT
     p.id,
     'Nhữ Tuấn Anh',
     'anh.nhutuan',
-    'anh.nhutuan@ecosys.local',
+    'anh.nhutuan@example.local',
     'PM',
     true
 FROM projects p
@@ -104,7 +104,7 @@ SELECT
     p.id,
     'Trương Hoàng Nam Cường',
     'cuong.truonghoang',
-    'cuong.truonghoang@ecosys.local',
+    'cuong.truonghoang@example.local',
     'PM',
     true
 FROM projects p
@@ -132,7 +132,7 @@ ON CONFLICT DO NOTHING;
 -- Đặng Vũ Hiệp — Tech Lead: BOS, COMPLIANCE, IT
 INSERT INTO project_members (id, project_id, full_name, alias, email, role, is_active)
 SELECT gen_random_uuid(), p.id,
-       'Đặng Vũ Hiệp', 'hiep.dangvu', 'hiep.dangvu@ecosys.local',
+       'Đặng Vũ Hiệp', 'hiep.dangvu', 'hiep.dangvu@example.local',
        'Tech Lead', true
 FROM projects p
 WHERE p.code = ANY(ARRAY[
@@ -146,7 +146,7 @@ ON CONFLICT DO NOTHING;
 -- Dương Danh Phương — BA Lead: FS, DATA, RETAIL
 INSERT INTO project_members (id, project_id, full_name, alias, email, role, is_active)
 SELECT gen_random_uuid(), p.id,
-       'Dương Danh Phương', 'phuong.duongdanh', 'phuong.duongdanh@ecosys.local',
+       'Dương Danh Phương', 'phuong.duongdanh', 'phuong.duongdanh@example.local',
        'BA Lead', true
 FROM projects p
 WHERE p.code = ANY(ARRAY[
@@ -160,7 +160,7 @@ ON CONFLICT DO NOTHING;
 -- Kim Sơn Quang — Tech Lead: HR (EHR1, EHR2, ECONTRACT-HR, COACHING, CORNERSTONE)
 INSERT INTO project_members (id, project_id, full_name, alias, email, role, is_active)
 SELECT gen_random_uuid(), p.id,
-       'Kim Sơn Quang', 'quang.kimson', 'quang.kimson@ecosys.local',
+       'Kim Sơn Quang', 'quang.kimson', 'quang.kimson@example.local',
        'Tech Lead', true
 FROM projects p
 WHERE p.code = ANY(ARRAY[
@@ -175,7 +175,7 @@ ON CONFLICT DO NOTHING;
 -- Lê Đức Tin — BA Lead: ESD + HR (EINVOICE, -GIFT, ORACLE-FIN)
 INSERT INTO project_members (id, project_id, full_name, alias, email, role, is_active)
 SELECT gen_random_uuid(), p.id,
-       'Lê Đức Tin', 'tin.leduc', 'tin.leduc@ecosys.local',
+       'Lê Đức Tin', 'tin.leduc', 'tin.leduc@example.local',
        'BA Lead', true
 FROM projects p
 WHERE p.code = ANY(ARRAY[
@@ -197,7 +197,7 @@ ON CONFLICT DO NOTHING;
 -- Chu Việt Hồng — Developer: FS, BOS
 INSERT INTO project_members (id, project_id, full_name, alias, email, role, is_active)
 SELECT gen_random_uuid(), p.id,
-       'Chu Việt Hồng', 'hong.chuviet', 'hong.chuviet@ecosys.local',
+       'Chu Việt Hồng', 'hong.chuviet', 'hong.chuviet@example.local',
        'Developer', true
 FROM projects p
 WHERE p.code = ANY(ARRAY[
@@ -210,7 +210,7 @@ ON CONFLICT DO NOTHING;
 -- Hoàng Thế Vinh — Developer: IT, COMPLIANCE, DATA
 INSERT INTO project_members (id, project_id, full_name, alias, email, role, is_active)
 SELECT gen_random_uuid(), p.id,
-       'Hoàng Thế Vinh', 'vinh.hoangthe', 'vinh.hoangthe@ecosys.local',
+       'Hoàng Thế Vinh', 'vinh.hoangthe', 'vinh.hoangthe@example.local',
        'Developer', true
 FROM projects p
 WHERE p.code = ANY(ARRAY[
@@ -224,7 +224,7 @@ ON CONFLICT DO NOTHING;
 -- Hoàng Thị Hòa — BA: ESD projects
 INSERT INTO project_members (id, project_id, full_name, alias, email, role, is_active)
 SELECT gen_random_uuid(), p.id,
-       'Hoàng Thị Hòa', 'hoa.hoang1', 'hoa.hoang1@ecosys.local',
+       'Hoàng Thị Hòa', 'hoa.hoang1', 'hoa.hoang1@example.local',
        'BA', true
 FROM projects p
 WHERE p.code = ANY(ARRAY[
@@ -238,7 +238,7 @@ ON CONFLICT DO NOTHING;
 -- Lê Đình Dũng — Developer: HR (COACHING, CORNERSTONE, EINVOICE)
 INSERT INTO project_members (id, project_id, full_name, alias, email, role, is_active)
 SELECT gen_random_uuid(), p.id,
-       'Lê Đình Dũng', 'dung.ledinh4', 'dung.ledinh4@ecosys.local',
+       'Lê Đình Dũng', 'dung.ledinh4', 'dung.ledinh4@example.local',
        'Developer', true
 FROM projects p
 WHERE p.code = ANY(ARRAY[
@@ -251,7 +251,7 @@ ON CONFLICT DO NOTHING;
 -- Man Ngọc Lam — QA: ESD, FS
 INSERT INTO project_members (id, project_id, full_name, alias, email, role, is_active)
 SELECT gen_random_uuid(), p.id,
-       'Man Ngọc Lam', 'lam.manngoc', 'lam.manngoc@ecosys.local',
+       'Man Ngọc Lam', 'lam.manngoc', 'lam.manngoc@example.local',
        'QA', true
 FROM projects p
 WHERE p.code = ANY(ARRAY[
@@ -267,7 +267,7 @@ ON CONFLICT DO NOTHING;
 -- Ngô Thị Thúy Nga — BA: HR (EHR1, EHR2, ECONTRACT-HR, -GIFT)
 INSERT INTO project_members (id, project_id, full_name, alias, email, role, is_active)
 SELECT gen_random_uuid(), p.id,
-       'Ngô Thị Thúy Nga', 'nga.ngothuy', 'nga.ngothuy@ecosys.local',
+       'Ngô Thị Thúy Nga', 'nga.ngothuy', 'nga.ngothuy@example.local',
        'BA', true
 FROM projects p
 WHERE p.code = ANY(ARRAY[
@@ -281,7 +281,7 @@ ON CONFLICT DO NOTHING;
 -- Nguyễn Hồng Sơn — Developer: HR (EHR1, EHR2, ORACLE-FIN)
 INSERT INTO project_members (id, project_id, full_name, alias, email, role, is_active)
 SELECT gen_random_uuid(), p.id,
-       'Nguyễn Hồng Sơn', 'son.nguyenhong13', 'son.nguyenhong13@ecosys.local',
+       'Nguyễn Hồng Sơn', 'son.nguyenhong13', 'son.nguyenhong13@example.local',
        'Developer', true
 FROM projects p
 WHERE p.code = ANY(ARRAY[
@@ -294,7 +294,7 @@ ON CONFLICT DO NOTHING;
 -- Nguyễn Văn Quỳnh — QA: HR (COACHING, CORNERSTONE, EHR2), RETAIL
 INSERT INTO project_members (id, project_id, full_name, alias, email, role, is_active)
 SELECT gen_random_uuid(), p.id,
-       'Nguyễn Văn Quỳnh', 'quynh.nguyenvan1', 'quynh.nguyenvan1@ecosys.local',
+       'Nguyễn Văn Quỳnh', 'quynh.nguyenvan1', 'quynh.nguyenvan1@example.local',
        'QA', true
 FROM projects p
 WHERE p.code = ANY(ARRAY[

@@ -1,5 +1,5 @@
--- DevOps Ecosystem Platform — Database Init Script
--- Schema aligns with devops-ecosystem reference project
+-- BA_Home — Database Init Script
+-- Schema aligns with ba-home reference project
 -- PPG-specific additions: ppg_users (auth) + ppg_app_registry (ADR-002)
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
@@ -342,6 +342,6 @@ CREATE INDEX IF NOT EXISTS idx_ppg_app_registry_type   ON ppg_app_registry(objec
 -- SEED: default admin user (password: admin123)
 -- ============================================================
 INSERT INTO ppg_users (username, full_name, email, password_hash)
-VALUES ('admin', 'System Admin', 'admin@ecosys.local',
+VALUES ('admin', 'System Admin', 'admin@example.local',
         '$2b$12$8C92m.jhLDdHzDkO39TK0e/LH9/SAlgZA0lYHbssRsvg5/BDHtiGe')
 ON CONFLICT (username) DO NOTHING;

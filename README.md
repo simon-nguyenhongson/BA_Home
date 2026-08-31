@@ -44,7 +44,7 @@ React Frontend (Vite)
 
 ### Bước 1 — Giải nén source code
 
-Giải nén file zip vào thư mục bất kỳ, ví dụ `C:\projects\ecosys`. Toàn bộ hướng dẫn dưới đây sẽ gọi thư mục này là **`<project_root>`**.
+Giải nén file zip vào thư mục bất kỳ, ví dụ `C:\projects\ba_home`. Toàn bộ hướng dẫn dưới đây sẽ gọi thư mục này là **`<project_root>`**.
 
 ---
 
@@ -217,7 +217,7 @@ Mở trình duyệt, vào: **http://localhost:5173**
 ## Cấu trúc thư mục
 
 ```
-ecosys/
+ba_home/
 ├── backend/
 │   ├── ppg/                  # PPG System — Auth, Project Governance, Catalog
 │   │   ├── app/

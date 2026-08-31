@@ -235,7 +235,7 @@ CREATE TABLE IF NOT EXISTS project_job_standard_info (
                               'skip_and_continue','manual_intervention'
                           )),
     error_notification    JSONB NOT NULL DEFAULT '{}',
-    -- {channels:["email","teams"], recipients:["ops@ecosys.local"], escalation_after_min:30}
+    -- {channels:["email","teams"], recipients:["ops@example.local"], escalation_after_min:30}
 
     -- Điều kiện thành công
     success_criteria      TEXT,           -- tiêu chí hoàn thành thành công

@@ -1,6 +1,6 @@
 @echo off
 echo ============================================
-echo  DevOps Ecosystem — Run All Migrations
+echo  BA_Home — Run All Migrations
 echo ============================================
 echo.
 

@@ -1,4 +1,4 @@
-# Architecture — DevOps Ecosystem Platform
+# Architecture — BA_Home
 **ARCH-ID:** ARCH-001
 **Version:** 2.0
 **Date:** 2026-04-10
@@ -83,7 +83,7 @@
 ## 2. Project Structure
 
 ```
-ecosys/
+ba_home/
 ├── backend/
 │   ├── ppg/                          ← PPG System :8001
 │   │   ├── app/
@@ -463,4 +463,4 @@ Phase 8 — Polish v1.1:
 
 ---
 
-*ARCH-001 v2.0 — DevOps Ecosystem Platform | Solutions Architect | 2026-04-10*
+*ARCH-001 v2.0 — BA_Home | Solutions Architect | 2026-04-10*

@@ -16,7 +16,7 @@ Tất cả ADR và architecture docs đã sẵn sàng. Đọc trước khi code:
 | docs/adr/ADR-001-tech-stack.md | Tech stack, service ports, DB naming | Tất cả |
 | docs/adr/ADR-002-application-registry-schema.md | Schema Application Registry, DB table `ppg_app_registry` | Backend + DBA |
 | docs/adr/ADR-003-authentication.md | JWT auth, DB table `ppg_users`, auth flow | Backend |
-| docs/arch/architecture-001-devops-ecosystem.md | Project structure, full DB schema, API contracts, implementation order | Tất cả |
+| docs/arch/architecture-001-ba-home.md | Project structure, full DB schema, API contracts, implementation order | Tất cả |
 
 ## Implementation Order bắt buộc
 

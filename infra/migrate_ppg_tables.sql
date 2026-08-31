@@ -1,5 +1,5 @@
--- Migration: Add PPG-specific tables to the devops-ecosystem base schema
--- Run this after init.sql if the DB was initialized from devops-ecosystem
+-- Migration: Add PPG-specific tables to the ba-home base schema
+-- Run this after init.sql if the DB was initialized from ba-home
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
@@ -39,6 +39,6 @@ CREATE INDEX IF NOT EXISTS idx_ppg_app_registry_type ON ppg_app_registry(object_
 
 -- ── Seed: default admin user (password: admin123) ────────────────────────
 INSERT INTO ppg_users (username, full_name, email, password_hash)
-VALUES ('admin', 'System Admin', 'admin@ecosys.local',
+VALUES ('admin', 'System Admin', 'admin@example.local',
         '$2b$12$8C92m.jhLDdHzDkO39TK0e/LH9/SAlgZA0lYHbssRsvg5/BDHtiGe')
 ON CONFLICT (username) DO NOTHING;

@@ -54,8 +54,8 @@ SAMPLE_WEB_APP = {
     "standard_info": {
         "tech_stack": "React+TS",
         "version": "2.0.0",
-        "url_prod": "https://portal.ecosys.local",
-        "url_uat": "https://uat-portal.ecosys.local",
+        "url_prod": "https://portal.example.local",
+        "url_uat": "https://uat-portal.example.local",
         "deployment_type": "on-premise",
         "sso_enabled": True,
     },
@@ -88,9 +88,9 @@ SAMPLE_API = {
         "auth_method": "JWT",
         "version": "v1",
         "protocol": "REST",
-        "url_dev": "https://dev-api.ecosys.local/auth",
-        "url_uat": "https://uat-api.ecosys.local/auth",
-        "swagger_url": "https://dev-api.ecosys.local/auth/docs",
+        "url_dev": "https://dev-api.example.local/auth",
+        "url_uat": "https://uat-api.example.local/auth",
+        "swagger_url": "https://dev-api.example.local/auth/docs",
     },
 }
 

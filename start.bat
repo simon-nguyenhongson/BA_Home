@@ -1,5 +1,5 @@
 @echo off
-echo Starting DevOps Ecosystem Platform...
+echo Starting BA_Home...
 
 start "PPG System :8001" cmd /k "cd backend\ppg && python -m uvicorn app.main:app --port 8001 --reload"
 timeout /t 5 /nobreak > nul

@@ -13,7 +13,7 @@ export function Sidebar() {
   return (
     <aside className="w-56 bg-app-blue min-h-screen flex flex-col">
       <div className="px-4 py-5 border-b border-blue-800">
-        <p className="text-white font-bold text-sm">DevOps Ecosystem</p>
+        <p className="text-white font-bold text-sm">BA_Home</p>
         <p className="text-blue-300 text-xs mt-0.5"> Platform</p>
       </div>
       <nav className="flex-1 py-4 space-y-0.5 px-2">

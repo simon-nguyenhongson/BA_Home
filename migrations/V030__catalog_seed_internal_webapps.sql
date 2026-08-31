@@ -1,7 +1,7 @@
 -- ============================================================
 -- V030 — Catalog Seed: Internal Web Apps (ESD, HR, Finance, Ops)
 -- 16 sản phẩm web app nội bộ  từ các khối ESD, HR, Finance, RB
--- Nguồn: danh sách sản phẩm  internal ecosystem
+-- Nguồn: danh sách sản phẩm  internal ba_hometem
 -- ============================================================
 
 -- ── 1. catalog_products ──────────────────────────────────────
@@ -340,38 +340,38 @@ ON CONFLICT (product_code) DO NOTHING;
 -- ── 2. Environments (PROD URL private) ───────────────────────
 
 INSERT INTO catalog_product_environments (product_id, env_name, url, infra_type, region, status, notes)
--- ESD Portal — module URLs exposed as single PROD entry (main URL = fam.ecosys.local as asset management)
-SELECT id, 'PROD', 'https://fam.ecosys.local',               'VM', 'HCM-DC1', 'active', 'ESD Portal — main access via fam.ecosys.local (Asset Mgmt)'   FROM catalog_products WHERE product_code = 'ESD-PORTAL'
+-- ESD Portal — module URLs exposed as single PROD entry (main URL = fam.example.local as asset management)
+SELECT id, 'PROD', 'https://fam.example.local',               'VM', 'HCM-DC1', 'active', 'ESD Portal — main access via fam.example.local (Asset Mgmt)'   FROM catalog_products WHERE product_code = 'ESD-PORTAL'
 UNION ALL
 -- Digital Signature
-SELECT id, 'PROD', 'https://esignservice.ecosys.local/',      'VM', 'HCM-DC1', 'active', 'E-Sign HSM'                                           FROM catalog_products WHERE product_code = 'DIGITAL-SIGN'
+SELECT id, 'PROD', 'https://esignservice.example.local/',      'VM', 'HCM-DC1', 'active', 'E-Sign HSM'                                           FROM catalog_products WHERE product_code = 'DIGITAL-SIGN'
 UNION ALL
 -- e-Contract
-SELECT id, 'PROD', 'https://econtract.ecosys.local/',         'VM', 'HCM-DC1', 'active', 'e-Contract for ESD'                                   FROM catalog_products WHERE product_code = 'E-CONTRACT'
+SELECT id, 'PROD', 'https://econtract.example.local/',         'VM', 'HCM-DC1', 'active', 'e-Contract for ESD'                                   FROM catalog_products WHERE product_code = 'E-CONTRACT'
 UNION ALL
 -- e-HR (main portal)
-SELECT id, 'PROD', 'http://ehr.ecosys.local',                 'VM', 'HCM-DC1', 'active', 'e-HR portal chính — đăng ký nghỉ phép'               FROM catalog_products WHERE product_code = 'E-HR'
+SELECT id, 'PROD', 'http://ehr.example.local',                 'VM', 'HCM-DC1', 'active', 'e-HR portal chính — đăng ký nghỉ phép'               FROM catalog_products WHERE product_code = 'E-HR'
 UNION ALL
 -- e-Hiring
-SELECT id, 'PROD', 'https://ehiring.ehr.ecosys.local/',        'VM', 'HCM-DC1', 'active', NULL                                                  FROM catalog_products WHERE product_code = 'E-HIRING'
+SELECT id, 'PROD', 'https://ehiring.ehr.example.local/',        'VM', 'HCM-DC1', 'active', NULL                                                  FROM catalog_products WHERE product_code = 'E-HIRING'
 UNION ALL
 -- e-Learning (SaaS — external)
 SELECT id, 'PROD', 'https://applearning.csod.com/',  'SaaS', 'Cloud (vendor)', 'active', 'Cornerstone OnDemand SaaS'                   FROM catalog_products WHERE product_code = 'E-LEARNING'
 UNION ALL
 -- e-Invoice
-SELECT id, 'PROD', 'https://einvoice.ecosys.local/',          'VM', 'HCM-DC1', 'active', NULL                                                   FROM catalog_products WHERE product_code = 'E-INVOICE'
+SELECT id, 'PROD', 'https://einvoice.example.local/',          'VM', 'HCM-DC1', 'active', NULL                                                   FROM catalog_products WHERE product_code = 'E-INVOICE'
 UNION ALL
 -- Oracle Finance
-SELECT id, 'PROD', 'https://finance.ecosys.local:6868',       'VM', 'HCM-DC1', 'active', 'Oracle ERP — port 6868'                              FROM catalog_products WHERE product_code = 'ORACLE-FINANCE'
+SELECT id, 'PROD', 'https://finance.example.local:6868',       'VM', 'HCM-DC1', 'active', 'Oracle ERP — port 6868'                              FROM catalog_products WHERE product_code = 'ORACLE-FINANCE'
 UNION ALL
 -- EMS 2.0
-SELECT id, 'PROD', 'https://ems2.ecosys.local',               'VM', 'HCM-DC1', 'active', NULL                                                   FROM catalog_products WHERE product_code = 'EMS2'
+SELECT id, 'PROD', 'https://ems2.example.local',               'VM', 'HCM-DC1', 'active', NULL                                                   FROM catalog_products WHERE product_code = 'EMS2'
 UNION ALL
 -- Internal Audit 1.0
 SELECT id, 'PROD', 'https://app.decisions.com/',     'Cloud', 'Vendor', 'active', 'Decisions platform — vendor hosted'                FROM catalog_products WHERE product_code = 'INTERNAL-AUDIT-1'
 UNION ALL
 -- Internal Audit 2.0
-SELECT id, 'PROD', 'https://ia.ecosys.local/',                'VM', 'HCM-DC1', 'active', NULL                                                   FROM catalog_products WHERE product_code = 'INTERNAL-AUDIT-2'
+SELECT id, 'PROD', 'https://ia.example.local/',                'VM', 'HCM-DC1', 'active', NULL                                                   FROM catalog_products WHERE product_code = 'INTERNAL-AUDIT-2'
 UNION ALL
 -- Smart Shareholder — no public URL
 SELECT id, 'PROD', NULL,                             'VM', 'HCM-DC1', 'active', 'URL nội bộ — chưa xác nhận'                         FROM catalog_products WHERE product_code = 'SMART-SHAREHOLDER'
@@ -380,10 +380,10 @@ UNION ALL
 SELECT id, 'PROD', NULL,                             'VM', 'HCM-DC1', 'active', 'URL nội bộ — chưa xác nhận'                         FROM catalog_products WHERE product_code = 'SHAREHOLDER-MGT2'
 UNION ALL
 -- OSS RB 1.0
-SELECT id, 'PROD', 'https://ops.ecosys.local',                'VM', 'HCM-DC1', 'active', 'OSS RB 1.0 — portal chính'                          FROM catalog_products WHERE product_code = 'OSS-RB-1'
+SELECT id, 'PROD', 'https://ops.example.local',                'VM', 'HCM-DC1', 'active', 'OSS RB 1.0 — portal chính'                          FROM catalog_products WHERE product_code = 'OSS-RB-1'
 UNION ALL
 -- OSS RB 2.0
-SELECT id, 'PROD', 'https://ops.ecosys.local',                'VM', 'HCM-DC1', 'active', 'OSS RB 2.0 — cùng domain ops.ecosys.local, routing riêng'    FROM catalog_products WHERE product_code = 'OSS-RB-2'
+SELECT id, 'PROD', 'https://ops.example.local',                'VM', 'HCM-DC1', 'active', 'OSS RB 2.0 — cùng domain ops.example.local, routing riêng'    FROM catalog_products WHERE product_code = 'OSS-RB-2'
 UNION ALL
 -- AI Knowledge Assistant — no public URL yet
 SELECT id, 'PROD', NULL,                             'K8s', 'HCM-DC1', 'active', 'URL chưa xác nhận'                                 FROM catalog_products WHERE product_code = 'AI-KA'
@@ -396,18 +396,18 @@ ON CONFLICT (product_id, env_name) DO NOTHING;
 -- ESD Portal
 INSERT INTO catalog_product_details (product_id, details)
 SELECT id, '{
-  "domain_dns": "fam.ecosys.local / taskflow.esd.ecosys.local / ops.ecosys.local",
+  "domain_dns": "fam.example.local / taskflow.esd.example.local / ops.example.local",
   "cdn": null,
   "browser_support": ["Chrome", "Edge"],
   "seo_config": "Internal tool — no SEO",
   "static_assets_storage": null,
   "session_management": " SSO session",
   "modules": [
-    {"code": "M1", "name": "Asset Management",  "description": "Hệ thống quản lý tài sản",                  "url": "https://fam.ecosys.local"},
-    {"code": "M2", "name": "ESD Taskflow",       "description": "Hệ thống quản lý công việc",               "url": "https://taskflow.esd.ecosys.local/"},
-    {"code": "M4", "name": "Branch Tools",       "description": "Hệ thống đăng ký Công cụ dụng cụ",        "url": "https://ops.ecosys.local/ccdc"},
-    {"code": "M5", "name": "Traveldesk",         "description": "Hệ thống đăng ký đi công tác",            "url": "https://ops.ecosys.local/travelDesk"},
-    {"code": "M6", "name": "Stationery",         "description": "Hệ thống đăng ký Văn phòng phẩm",         "url": "https://ops.ecosys.local/vpp"}
+    {"code": "M1", "name": "Asset Management",  "description": "Hệ thống quản lý tài sản",                  "url": "https://fam.example.local"},
+    {"code": "M2", "name": "ESD Taskflow",       "description": "Hệ thống quản lý công việc",               "url": "https://taskflow.esd.example.local/"},
+    {"code": "M4", "name": "Branch Tools",       "description": "Hệ thống đăng ký Công cụ dụng cụ",        "url": "https://ops.example.local/ccdc"},
+    {"code": "M5", "name": "Traveldesk",         "description": "Hệ thống đăng ký đi công tác",            "url": "https://ops.example.local/travelDesk"},
+    {"code": "M6", "name": "Stationery",         "description": "Hệ thống đăng ký Văn phòng phẩm",         "url": "https://ops.example.local/vpp"}
   ]
 }'::jsonb FROM catalog_products WHERE product_code = 'ESD-PORTAL'
 ON CONFLICT (product_id) DO NOTHING;
@@ -415,18 +415,18 @@ ON CONFLICT (product_id) DO NOTHING;
 -- Digital Signature
 INSERT INTO catalog_product_details (product_id, details)
 SELECT id, '{
-  "domain_dns": "esignservice.ecosys.local / esignportal.ecosys.local / verify.esign.ecosys.local",
+  "domain_dns": "esignservice.example.local / esignportal.example.local / verify.esign.example.local",
   "cdn": null,
   "browser_support": ["Chrome", "Edge"],
   "seo_config": "Internal tool — no SEO",
   "static_assets_storage": null,
   "session_management": " SSO + Certificate session",
   "modules": [
-    {"code": "M1", "name": "E-Sign (HSM)",                    "description": "Hệ thống ký số sử dụng HSM",           "url": "https://esignservice.ecosys.local/"},
+    {"code": "M1", "name": "E-Sign (HSM)",                    "description": "Hệ thống ký số sử dụng HSM",           "url": "https://esignservice.example.local/"},
     {"code": "M2", "name": "E-Sign (USB Token)",              "description": "Tool ký số sử dụng USB Token",         "url": null},
-    {"code": "M3", "name": "E-Sign (Remote Signing)",         "description": "Hệ thống ký số từ xa",                 "url": "https://remotehub.esignportal.ecosys.local/"},
-    {"code": "M4", "name": "E-Sign Verify",                   "description": "Verify chữ ký số",                     "url": "https://verify.esign.ecosys.local"},
-    {"code": "M5", "name": "Digital Certificate Management",  "description": "Hệ thống đăng ký mua chứng thư số",   "url": "https://esignportal.ecosys.local/"}
+    {"code": "M3", "name": "E-Sign (Remote Signing)",         "description": "Hệ thống ký số từ xa",                 "url": "https://remotehub.esignportal.example.local/"},
+    {"code": "M4", "name": "E-Sign Verify",                   "description": "Verify chữ ký số",                     "url": "https://verify.esign.example.local"},
+    {"code": "M5", "name": "Digital Certificate Management",  "description": "Hệ thống đăng ký mua chứng thư số",   "url": "https://esignportal.example.local/"}
   ]
 }'::jsonb FROM catalog_products WHERE product_code = 'DIGITAL-SIGN'
 ON CONFLICT (product_id) DO NOTHING;
@@ -434,14 +434,14 @@ ON CONFLICT (product_id) DO NOTHING;
 -- e-Contract
 INSERT INTO catalog_product_details (product_id, details)
 SELECT id, '{
-  "domain_dns": "econtract.ecosys.local",
+  "domain_dns": "econtract.example.local",
   "cdn": null,
   "browser_support": ["Chrome", "Edge"],
   "seo_config": "Internal tool — no SEO",
   "static_assets_storage": null,
   "session_management": " SSO session",
   "modules": [
-    {"code": "M1", "name": "e-Contract for ESD", "description": "Hợp đồng điện tử cho khối ESD", "url": "https://econtract.ecosys.local/"},
+    {"code": "M1", "name": "e-Contract for ESD", "description": "Hợp đồng điện tử cho khối ESD", "url": "https://econtract.example.local/"},
     {"code": "M2", "name": "e-Contract for HR",  "description": "Hợp đồng điện tử cho khối HR",  "url": null}
   ]
 }'::jsonb FROM catalog_products WHERE product_code = 'E-CONTRACT'
@@ -450,36 +450,36 @@ ON CONFLICT (product_id) DO NOTHING;
 -- e-HR
 INSERT INTO catalog_product_details (product_id, details)
 SELECT id, '{
-  "domain_dns": "ehr.ecosys.local",
+  "domain_dns": "ehr.example.local",
   "cdn": null,
   "browser_support": ["Chrome", "Edge", "IE11 (legacy WinForms)"],
   "seo_config": "Internal tool — no SEO",
   "static_assets_storage": null,
   "session_management": "IdentityServer4 +  SSO",
   "modules": [
-    {"code": "M1",  "name": "ehr.ecosys.local",                    "description": "Website đăng ký nghỉ phép",                                                          "url": "http://ehr.ecosys.local"},
-    {"code": "M2",  "name": "employeeinfo.ehr.ecosys.local",       "description": "Tra cứu lương của nhân sự",                                                          "url": "https://employeeinfo.ehr.ecosys.local/"},
-    {"code": "M3",  "name": "histaff.ehr.ecosys.local",            "description": "Phần mềm core HR - dùng winform",                                                    "url": "https://histaff.ehr.ecosys.local"},
-    {"code": "M4",  "name": "histaff-rest.ehr.ecosys.local",       "description": "REST API HiStaff - public thông tin nhân sự, tạo employee từ OfferManagement",       "url": "https://histaff-rest.ehr.ecosys.local"},
-    {"code": "M5",  "name": "oms.ehr.ecosys.local",                "description": "Website quản lý cơ cấu tổ chức",                                                     "url": "https://oms.ehr.ecosys.local"},
-    {"code": "M6",  "name": "oms-rest.ehr.ecosys.local",           "description": "REST API OMS - public thông tin cơ cấu tổ chức",                                     "url": "https://oms-rest.ehr.ecosys.local"},
-    {"code": "M7",  "name": "pms.ehr.ecosys.local",                "description": "Website đánh giá KPI cuối năm",                                                      "url": "https://pms.ehr.ecosys.local"},
-    {"code": "M8",  "name": "keypersonel-info.ecosys.local",       "description": "Website nhập thông tin cho nhân sự chủ chốt",                                        "url": "https://hrportal.ehr.ecosys.local/keypersonel"},
-    {"code": "M9",  "name": "hronboard.ehr.ecosys.local",          "description": "Website quản lý Onboard của nhân viên mới",                                          "url": "https://hrportal.ehr.ecosys.local/hronboard"},
-    {"code": "M10", "name": "pit.ehr.ecosys.local",                "description": "Website quản lý hồ sơ thuế thu nhập cá nhân",                                        "url": "https://hrportal.ehr.ecosys.local/pit"},
-    {"code": "M11", "name": "offer-managerment.ehr.ecosys.local",  "description": "Website quản lý Offer gửi cho ứng viên",                                             "url": "https://offer-managerment.ehr.ecosys.local"},
-    {"code": "M12", "name": "e-profile.ehr.ecosys.local",          "description": "Website quản lý lưu trữ hồ sơ nhân sự",                                              "url": "https://e-profile.ehr.ecosys.local"},
-    {"code": "M13", "name": "identityserver4.ehr.ecosys.local",    "description": "Website xác thực dùng IdentityServer4",                                              "url": "https://identityserver4.ehr.ecosys.local"},
-    {"code": "M14", "name": "directory.ehr.ecosys.local",          "description": "Danh bạ nhân sự  — hiển thị ảnh er, không cần xác thực",                       "url": "https://directory.ehr.ecosys.local"},
-    {"code": "M15", "name": "process.ehr.ecosys.local",            "description": "Website cũ quy trình nhân sự: điều chỉnh, nghỉ việc (chỉ để tra cứu)",               "url": "https://process.ehr.ecosys.local"},
-    {"code": "M16", "name": "process-rest.ehr.ecosys.local",       "description": "REST API phục vụ quy trình nhân sự trên intranet",                                   "url": "https://process-rest.ehr.ecosys.local"},
-    {"code": "M17", "name": "apiaspose.ehr.ecosys.local",          "description": "REST API sử dụng thư viện ASPOSE để convert Word/Excel/PDF",                         "url": "https://apiaspose.ehr.ecosys.local"},
-    {"code": "M18", "name": "apisignature.ehr.ecosys.local",       "description": "REST API ký số",                                                                     "url": "https://apisignature.ehr.ecosys.local"},
-    {"code": "M19", "name": "bts-searchusers.ehr.ecosys.local",    "description": "Website hỗ trợ BTS tra cứu user trong quá trình tạo tài khoản AD",                  "url": "https://bts-searchusers.ehr.ecosys.local"},
-    {"code": "M20", "name": "userlimit.ehr.ecosys.local",          "description": "REST API phục vụ EMS2 thông tin hạn mức phê duyệt của manager",                      "url": "https://userlimit.ehr.ecosys.local"},
-    {"code": "M21", "name": "repoting-portal.ehr.ecosys.local",    "description": "Website phục vụ báo cáo cho HR",                                                     "url": "https://repoting-portal.ehr.ecosys.local"},
-    {"code": "M22", "name": "employee-confirmation.ehr.ecosys.local", "description": "Website xác thực 1 user có phải đã từng là er",                                "url": "https://employee-confirmation.ehr.ecosys.local"},
-    {"code": "M23", "name": "conflict-interest.ecosys.local",      "description": "Website khai báo xung đột lợi ích",                                                  "url": "https://conflict-interest.ecosys.local"}
+    {"code": "M1",  "name": "ehr.example.local",                    "description": "Website đăng ký nghỉ phép",                                                          "url": "http://ehr.example.local"},
+    {"code": "M2",  "name": "employeeinfo.ehr.example.local",       "description": "Tra cứu lương của nhân sự",                                                          "url": "https://employeeinfo.ehr.example.local/"},
+    {"code": "M3",  "name": "histaff.ehr.example.local",            "description": "Phần mềm core HR - dùng winform",                                                    "url": "https://histaff.ehr.example.local"},
+    {"code": "M4",  "name": "histaff-rest.ehr.example.local",       "description": "REST API HiStaff - public thông tin nhân sự, tạo employee từ OfferManagement",       "url": "https://histaff-rest.ehr.example.local"},
+    {"code": "M5",  "name": "oms.ehr.example.local",                "description": "Website quản lý cơ cấu tổ chức",                                                     "url": "https://oms.ehr.example.local"},
+    {"code": "M6",  "name": "oms-rest.ehr.example.local",           "description": "REST API OMS - public thông tin cơ cấu tổ chức",                                     "url": "https://oms-rest.ehr.example.local"},
+    {"code": "M7",  "name": "pms.ehr.example.local",                "description": "Website đánh giá KPI cuối năm",                                                      "url": "https://pms.ehr.example.local"},
+    {"code": "M8",  "name": "keypersonel-info.example.local",       "description": "Website nhập thông tin cho nhân sự chủ chốt",                                        "url": "https://hrportal.ehr.example.local/keypersonel"},
+    {"code": "M9",  "name": "hronboard.ehr.example.local",          "description": "Website quản lý Onboard của nhân viên mới",                                          "url": "https://hrportal.ehr.example.local/hronboard"},
+    {"code": "M10", "name": "pit.ehr.example.local",                "description": "Website quản lý hồ sơ thuế thu nhập cá nhân",                                        "url": "https://hrportal.ehr.example.local/pit"},
+    {"code": "M11", "name": "offer-managerment.ehr.example.local",  "description": "Website quản lý Offer gửi cho ứng viên",                                             "url": "https://offer-managerment.ehr.example.local"},
+    {"code": "M12", "name": "e-profile.ehr.example.local",          "description": "Website quản lý lưu trữ hồ sơ nhân sự",                                              "url": "https://e-profile.ehr.example.local"},
+    {"code": "M13", "name": "identityserver4.ehr.example.local",    "description": "Website xác thực dùng IdentityServer4",                                              "url": "https://identityserver4.ehr.example.local"},
+    {"code": "M14", "name": "directory.ehr.example.local",          "description": "Danh bạ nhân sự  — hiển thị ảnh er, không cần xác thực",                       "url": "https://directory.ehr.example.local"},
+    {"code": "M15", "name": "process.ehr.example.local",            "description": "Website cũ quy trình nhân sự: điều chỉnh, nghỉ việc (chỉ để tra cứu)",               "url": "https://process.ehr.example.local"},
+    {"code": "M16", "name": "process-rest.ehr.example.local",       "description": "REST API phục vụ quy trình nhân sự trên intranet",                                   "url": "https://process-rest.ehr.example.local"},
+    {"code": "M17", "name": "apiaspose.ehr.example.local",          "description": "REST API sử dụng thư viện ASPOSE để convert Word/Excel/PDF",                         "url": "https://apiaspose.ehr.example.local"},
+    {"code": "M18", "name": "apisignature.ehr.example.local",       "description": "REST API ký số",                                                                     "url": "https://apisignature.ehr.example.local"},
+    {"code": "M19", "name": "bts-searchusers.ehr.example.local",    "description": "Website hỗ trợ BTS tra cứu user trong quá trình tạo tài khoản AD",                  "url": "https://bts-searchusers.ehr.example.local"},
+    {"code": "M20", "name": "userlimit.ehr.example.local",          "description": "REST API phục vụ EMS2 thông tin hạn mức phê duyệt của manager",                      "url": "https://userlimit.ehr.example.local"},
+    {"code": "M21", "name": "repoting-portal.ehr.example.local",    "description": "Website phục vụ báo cáo cho HR",                                                     "url": "https://repoting-portal.ehr.example.local"},
+    {"code": "M22", "name": "employee-confirmation.ehr.example.local", "description": "Website xác thực 1 user có phải đã từng là er",                                "url": "https://employee-confirmation.ehr.example.local"},
+    {"code": "M23", "name": "conflict-interest.example.local",      "description": "Website khai báo xung đột lợi ích",                                                  "url": "https://conflict-interest.example.local"}
   ]
 }'::jsonb FROM catalog_products WHERE product_code = 'E-HR'
 ON CONFLICT (product_id) DO NOTHING;
@@ -487,7 +487,7 @@ ON CONFLICT (product_id) DO NOTHING;
 -- e-Hiring
 INSERT INTO catalog_product_details (product_id, details)
 SELECT id, '{
-  "domain_dns": "ehiring.ehr.ecosys.local",
+  "domain_dns": "ehiring.ehr.example.local",
   "cdn": null,
   "browser_support": ["Chrome", "Edge"],
   "seo_config": "Internal tool — no SEO",
@@ -513,7 +513,7 @@ ON CONFLICT (product_id) DO NOTHING;
 -- e-Invoice
 INSERT INTO catalog_product_details (product_id, details)
 SELECT id, '{
-  "domain_dns": "einvoice.ecosys.local",
+  "domain_dns": "einvoice.example.local",
   "cdn": null,
   "browser_support": ["Chrome", "Edge"],
   "seo_config": "Internal tool — no SEO",
@@ -526,7 +526,7 @@ ON CONFLICT (product_id) DO NOTHING;
 -- Oracle Finance
 INSERT INTO catalog_product_details (product_id, details)
 SELECT id, '{
-  "domain_dns": "finance.ecosys.local",
+  "domain_dns": "finance.example.local",
   "cdn": null,
   "browser_support": ["Chrome", "IE11 (Oracle Forms)"],
   "seo_config": "Internal tool — no SEO",
@@ -539,7 +539,7 @@ ON CONFLICT (product_id) DO NOTHING;
 -- EMS 2.0
 INSERT INTO catalog_product_details (product_id, details)
 SELECT id, '{
-  "domain_dns": "ems2.ecosys.local",
+  "domain_dns": "ems2.example.local",
   "cdn": null,
   "browser_support": ["Chrome", "Edge"],
   "seo_config": "Internal tool — no SEO",
@@ -565,7 +565,7 @@ ON CONFLICT (product_id) DO NOTHING;
 -- Internal Audit 2.0
 INSERT INTO catalog_product_details (product_id, details)
 SELECT id, '{
-  "domain_dns": "ia.ecosys.local",
+  "domain_dns": "ia.example.local",
   "cdn": null,
   "browser_support": ["Chrome", "Edge"],
   "seo_config": "Internal tool — no SEO",
@@ -604,20 +604,20 @@ ON CONFLICT (product_id) DO NOTHING;
 -- OSS RB 1.0
 INSERT INTO catalog_product_details (product_id, details)
 SELECT id, '{
-  "domain_dns": "ops.ecosys.local",
+  "domain_dns": "ops.example.local",
   "cdn": null,
   "browser_support": ["Chrome", "Edge"],
   "seo_config": "Internal tool — no SEO",
   "static_assets_storage": null,
   "session_management": " SSO session",
   "modules": [
-    {"code": "M1", "name": "Manage Overnight Deposits", "description": "Digital quy trình đăng ký gửi tiền qua đêm", "url": "https://ops.ecosys.local/manageOvernightDeposits"},
-    {"code": "M2", "name": "Document Storing",          "description": "Quản lý hồ sơ vay",                         "url": "https://ops.ecosys.local/qlhs"},
-    {"code": "M3", "name": "AM - Account Management",   "description": "Quản lý tài khoản",                         "url": "https://ops.ecosys.local/am"},
-    {"code": "M4", "name": "Marketing",                  "description": "Module Marketing",                          "url": "https://ops.ecosys.local/marketing"},
-    {"code": "M5", "name": "Auto Contract",              "description": "Tự động tạo hợp đồng",                      "url": "https://ops.ecosys.local/autoContract"},
-    {"code": "M6", "name": "Archive Document",           "description": "Lưu trữ văn bản",                          "url": "https://ops.ecosys.local/archive-vanban"},
-    {"code": "M7", "name": "SBV Reporting",              "description": "Quản lý việc trả lời công văn tới cơ quan nhà nước (NHNN)", "url": "https://ops.ecosys.local/sbv-reporting"}
+    {"code": "M1", "name": "Manage Overnight Deposits", "description": "Digital quy trình đăng ký gửi tiền qua đêm", "url": "https://ops.example.local/manageOvernightDeposits"},
+    {"code": "M2", "name": "Document Storing",          "description": "Quản lý hồ sơ vay",                         "url": "https://ops.example.local/qlhs"},
+    {"code": "M3", "name": "AM - Account Management",   "description": "Quản lý tài khoản",                         "url": "https://ops.example.local/am"},
+    {"code": "M4", "name": "Marketing",                  "description": "Module Marketing",                          "url": "https://ops.example.local/marketing"},
+    {"code": "M5", "name": "Auto Contract",              "description": "Tự động tạo hợp đồng",                      "url": "https://ops.example.local/autoContract"},
+    {"code": "M6", "name": "Archive Document",           "description": "Lưu trữ văn bản",                          "url": "https://ops.example.local/archive-vanban"},
+    {"code": "M7", "name": "SBV Reporting",              "description": "Quản lý việc trả lời công văn tới cơ quan nhà nước (NHNN)", "url": "https://ops.example.local/sbv-reporting"}
   ]
 }'::jsonb FROM catalog_products WHERE product_code = 'OSS-RB-1'
 ON CONFLICT (product_id) DO NOTHING;
@@ -625,7 +625,7 @@ ON CONFLICT (product_id) DO NOTHING;
 -- OSS RB 2.0
 INSERT INTO catalog_product_details (product_id, details)
 SELECT id, '{
-  "domain_dns": "ops.ecosys.local",
+  "domain_dns": "ops.example.local",
   "cdn": null,
   "browser_support": ["Chrome", "Edge"],
   "seo_config": "Internal tool — no SEO",

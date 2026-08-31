@@ -1,6 +1,6 @@
 openapi: "3.1.0"
 info:
-  title:  DevOps Ecosystem Platform — Combined API
+  title:  BA_Home — Combined API
   version: "2.0.0"
   description: |
     API contract for 4 modules added in BRD-001 v1.1 (FR-019 – FR-032).

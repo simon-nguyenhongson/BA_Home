@@ -15,7 +15,7 @@ import asyncpg
 
 async def main():
     print("=" * 60)
-    print("   Ecosys - Admin Password Reset & Verify")
+    print("   BA_Home - Admin Password Reset & Verify")
     print("=" * 60)
 
     # Step 1: Connect to DB

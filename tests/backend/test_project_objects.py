@@ -191,7 +191,7 @@ def test_create_api_object_success(ppg_client):
         "code": "CUSTOMER_API",
         "owner": "team-platform",
         "standard_info": {
-            "base_url": "https://api.ecosys.local/customers",
+            "base_url": "https://api.example.local/customers",
             "auth_method": "JWT",
             "version": "v2",
         },
@@ -278,7 +278,7 @@ def test_create_web_app_success(ppg_client):
         "standard_info": {
             "tech_stack": "React + FastAPI",
             "version": "2.0.0",
-            "url_prod": "https://portal.ecosys.local",
+            "url_prod": "https://portal.example.local",
         },
     }
     resp = client.post(f"/projects/{project_id}/objects", json=payload)

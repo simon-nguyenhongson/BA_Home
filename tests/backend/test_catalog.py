@@ -60,7 +60,7 @@ def make_user_record(user_id: str | None = None, user_type: str = "internal") ->
     return {
         "id": user_id or str(uuid4()),
         "full_name": "Nguyen Van A",
-        "email": "nva@ecosys.local",
+        "email": "nva@example.local",
         "user_type": user_type,
         "department": "IT",
         "team": "Platform",
@@ -304,7 +304,7 @@ def test_create_environment_success(ppg_client):
         "id": str(uuid4()),
         "product_id": pid,
         "env_name": "PROD",
-        "url": "https://portal.ecosys.local",
+        "url": "https://portal.example.local",
         "server_info": "{}",
         "status": "active",
         "version": None,
@@ -322,7 +322,7 @@ def test_create_environment_success(ppg_client):
     app.dependency_overrides[get_db] = fake_db
     resp = client.post(f"/catalog/products/{pid}/environments", json={
         "env_name": "PROD",
-        "url": "https://portal.ecosys.local",
+        "url": "https://portal.example.local",
     })
     assert resp.status_code == 201
 
@@ -389,7 +389,7 @@ def test_create_user_success(ppg_client):
     app.dependency_overrides[get_db] = fake_db
     resp = client.post("/catalog/users", json={
         "full_name": "Nguyen Van A",
-        "email": "nva@ecosys.local",
+        "email": "nva@example.local",
         "user_type": "internal",
     })
     assert resp.status_code == 201

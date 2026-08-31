@@ -4,7 +4,7 @@ from copy import copy
 from datetime import date
 import os
 
-ROOT_TITLE = "DevOps Ecosystem — Nền Tảng Quản Trị Dự Án IT"
+ROOT_TITLE = "BA_Home — Nền Tảng Quản Trị Dự Án IT"
 
 MANAGEMENT = [
     "PPG System — Quản Trị Dự Án",
@@ -93,7 +93,7 @@ SUB_ITEMS = {
 TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), "GNM.xlsx")
 OUTPUT = os.path.normpath(os.path.join(
     os.path.dirname(__file__), "..",
-    f"gnm_devops_ecosystem_{date.today().strftime('%Y%m%d')}.xlsx"
+    f"gnm_ba_home_{date.today().strftime('%Y%m%d')}.xlsx"
 ))
 
 FONT_NAME  = "Myriad Pro"

@@ -1,5 +1,5 @@
 """
-GNM Export v2 — BRD DevOps Ecosystem Platform
+GNM Export v2 — BRD BA_Home
 Sheets: 0 (overview) | 1..6 (functional areas) | 1D/2D/3D (data objects per module)
 
 Sheet order: 0 → 1 → 1D → 2 → 2D → 3 → 3D → 4 → 5 → 6
@@ -12,7 +12,7 @@ import os
 
 # ── Content ────────────────────────────────────────────────────────────────────
 
-ROOT_TITLE = "DevOps Ecosystem — Nen Tang Quan Tri Du An IT"
+ROOT_TITLE = "BA_Home — Nen Tang Quan Tri Du An IT"
 
 # Management items và sheet names tương ứng
 # SHEET_LABEL dùng hiển thị số sheet ở cột H của sheet 0
@@ -164,7 +164,7 @@ SUB_ITEMS = {
 TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), "GNM.xlsx")
 OUTPUT = os.path.normpath(os.path.join(
     os.path.dirname(__file__), "..",
-    f"gnm_devops_ecosystem_v2_{date.today().strftime('%Y%m%d')}.xlsx"
+    f"gnm_ba_home_v2_{date.today().strftime('%Y%m%d')}.xlsx"
 ))
 
 FONT_NAME  = "Myriad Pro"

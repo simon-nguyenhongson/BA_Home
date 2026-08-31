@@ -185,7 +185,7 @@ Danh sách objects của dự án.
       "status": "active",
       "owner": "team-platform",
       "standard_info": {
-        "base_url": "https://api.ecosys.local/customers",
+        "base_url": "https://api.example.local/customers",
         "auth_method": "JWT",
         "version": "v2"
       },
@@ -209,7 +209,7 @@ Tạo object mới. Validate `standard_info` theo `object_type` (ADR-004).
   "description": "...",
   "owner": "team-platform",
   "standard_info": {
-    "base_url": "https://api.ecosys.local/customers",
+    "base_url": "https://api.example.local/customers",
     "auth_method": "JWT",
     "version": "v2",
     "protocol": "REST"

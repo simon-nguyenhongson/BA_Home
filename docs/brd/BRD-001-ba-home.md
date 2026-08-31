@@ -1,4 +1,4 @@
-# BRD — DevOps Ecosystem Platform
+# BRD — BA_Home
 **BRD-ID:** BRD-001
 **Version:** 1.3
 **Status:** Draft
@@ -14,7 +14,7 @@
 
 ## 0. Product Vision
 
-**For** IT project teams at , **who** struggle with fragmented project information, undocumented application landscapes, and manual BA/test workflows, **DevOps Ecosystem** is an **internal governance platform** that **centralises project data, standardises application metadata, and automates the BA-to-test pipeline**. Unlike disparate tools (SharePoint, email, Excel), our platform provides a single source of truth from annual planning through project closure — covering all 9 standard milestones, org-wide product/personnel catalogs, and automated test case generation from approved BRS.
+**For** IT project teams at , **who** struggle with fragmented project information, undocumented application landscapes, and manual BA/test workflows, **BA_Home** is an **internal governance platform** that **centralises project data, standardises application metadata, and automates the BA-to-test pipeline**. Unlike disparate tools (SharePoint, email, Excel), our platform provides a single source of truth from annual planning through project closure — covering all 9 standard milestones, org-wide product/personnel catalogs, and automated test case generation from approved BRS.
 
 **Why Now:**  IT is scaling delivery capacity across 12 business domains with 50+ active projects. Without a unified registry and workflow platform, audit readiness, knowledge transfer, and cross-team visibility are not achievable at current scale.
 
@@ -932,4 +932,4 @@ Gán nhân sự vào vai trò với phạm vi và thời hạn cụ thể.
 
 ---
 
-*BRD-001 — DevOps Ecosystem Platform | Author: BA Team / PO Agent | Created: 2026-04-09 | Updated: 2026-04-14 | Version: 1.3*
+*BRD-001 — BA_Home | Author: BA Team / PO Agent | Created: 2026-04-09 | Updated: 2026-04-14 | Version: 1.3*

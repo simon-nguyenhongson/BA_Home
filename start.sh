@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "Starting DevOps Ecosystem Platform on Mac..."
+echo "Starting BA_Home on Mac..."
 
 # Activate virtual environment if it exists, or suggest creating one
 if [ -d "venv" ]; then

@@ -99,7 +99,7 @@ FROM plan, (VALUES
     ),
     (
         'PS', 'ESD Portal',
-        'Cập nhật tính năng điều chuyển điện tại kho, hoàn trả tài khoản kho; mua tài liệu và cập nhật website ecosys.local.',
+        'Cập nhật tính năng điều chuyển điện tại kho, hoàn trả tài khoản kho; mua tài liệu và cập nhật website example.local.',
         'enhancement',
         'Hoàn thiện báo cáo và chức năng quản lý kho nội bộ ESD.',
         '2026-01-30', 'Q1', 3, 'planned', 50

@@ -230,20 +230,20 @@ ON CONFLICT (product_code) DO NOTHING;
 -- ── 2. Environments ──────────────────────────────────────────
 
 INSERT INTO catalog_product_environments (product_id, env_name, url, infra_type, region, version, status, notes)
-SELECT id, 'DEV',  'https://ib-dev.internal.ecosys.local',  'K8s', 'HCM-DC1', '2.14.0-dev', 'active', 'Dev sandbox'             FROM catalog_products WHERE product_code = 'IB-WEB'
+SELECT id, 'DEV',  'https://ib-dev.internal.example.local',  'K8s', 'HCM-DC1', '2.14.0-dev', 'active', 'Dev sandbox'             FROM catalog_products WHERE product_code = 'IB-WEB'
 UNION ALL
-SELECT id, 'SIT',  'https://ib-sit.internal.ecosys.local',  'K8s', 'HCM-DC1', '2.13.5-sit', 'active', 'System Integration Test'  FROM catalog_products WHERE product_code = 'IB-WEB'
+SELECT id, 'SIT',  'https://ib-sit.internal.example.local',  'K8s', 'HCM-DC1', '2.13.5-sit', 'active', 'System Integration Test'  FROM catalog_products WHERE product_code = 'IB-WEB'
 UNION ALL
-SELECT id, 'UAT',  'https://ib-uat.internal.ecosys.local',  'K8s', 'HCM-DC1', '2.13.0',     'active', 'User Acceptance Test'     FROM catalog_products WHERE product_code = 'IB-WEB'
+SELECT id, 'UAT',  'https://ib-uat.internal.example.local',  'K8s', 'HCM-DC1', '2.13.0',     'active', 'User Acceptance Test'     FROM catalog_products WHERE product_code = 'IB-WEB'
 UNION ALL
-SELECT id, 'PROD', 'https://online.ecosys.local',           'K8s', 'HCM-DC1', '2.12.3',     'active', 'Production'               FROM catalog_products WHERE product_code = 'IB-WEB'
+SELECT id, 'PROD', 'https://online.example.local',           'K8s', 'HCM-DC1', '2.12.3',     'active', 'Production'               FROM catalog_products WHERE product_code = 'IB-WEB'
 UNION ALL
-SELECT id, 'DR',   'https://ib-dr.internal.ecosys.local',   'K8s', 'HNI-DC2', '2.12.3',     'active', 'Disaster Recovery (HNI)'  FROM catalog_products WHERE product_code = 'IB-WEB'
+SELECT id, 'DR',   'https://ib-dr.internal.example.local',   'K8s', 'HNI-DC2', '2.12.3',     'active', 'Disaster Recovery (HNI)'  FROM catalog_products WHERE product_code = 'IB-WEB'
 
 UNION ALL
 SELECT id, 'DEV',  NULL,                                   'K8s', 'HCM-DC1', '1.5.0-dev', 'active', NULL FROM catalog_products WHERE product_code = 'CMS-WEB'
 UNION ALL
-SELECT id, 'PROD', 'https://cms.internal.ecosys.local',     'VM',  'HCM-DC1', '1.4.2',     'active', NULL FROM catalog_products WHERE product_code = 'CMS-WEB'
+SELECT id, 'PROD', 'https://cms.internal.example.local',     'VM',  'HCM-DC1', '1.4.2',     'active', NULL FROM catalog_products WHERE product_code = 'CMS-WEB'
 
 UNION ALL
 SELECT id, 'DEV',  NULL,                                   'K8s', 'HCM-DC1', '5.1.0-dev', 'active', NULL FROM catalog_products WHERE product_code = '-APP'
@@ -258,20 +258,20 @@ UNION ALL
 SELECT id, 'PROD', NULL,                                   'K8s', 'HCM-DC1', '1.2.0',     'active', NULL FROM catalog_products WHERE product_code = '-BIZ'
 
 UNION ALL
-SELECT id, 'SIT',  'https://corebank-api-sit.internal.ecosys.local', 'K8s', 'HCM-DC1', '3.2.0-sit', 'active', NULL FROM catalog_products WHERE product_code = 'COREBANK-API'
+SELECT id, 'SIT',  'https://corebank-api-sit.internal.example.local', 'K8s', 'HCM-DC1', '3.2.0-sit', 'active', NULL FROM catalog_products WHERE product_code = 'COREBANK-API'
 UNION ALL
-SELECT id, 'UAT',  'https://corebank-api-uat.internal.ecosys.local', 'K8s', 'HCM-DC1', '3.1.5',     'active', NULL FROM catalog_products WHERE product_code = 'COREBANK-API'
+SELECT id, 'UAT',  'https://corebank-api-uat.internal.example.local', 'K8s', 'HCM-DC1', '3.1.5',     'active', NULL FROM catalog_products WHERE product_code = 'COREBANK-API'
 UNION ALL
-SELECT id, 'PROD', 'https://corebank-api.internal.ecosys.local',     'K8s', 'HCM-DC1', '3.1.2',     'active', 'Internal only — not exposed to internet' FROM catalog_products WHERE product_code = 'COREBANK-API'
+SELECT id, 'PROD', 'https://corebank-api.internal.example.local',     'K8s', 'HCM-DC1', '3.1.2',     'active', 'Internal only — not exposed to internet' FROM catalog_products WHERE product_code = 'COREBANK-API'
 UNION ALL
-SELECT id, 'DR',   'https://corebank-api-dr.internal.ecosys.local',  'K8s', 'HNI-DC2', '3.1.2',     'active', 'DR site' FROM catalog_products WHERE product_code = 'COREBANK-API'
+SELECT id, 'DR',   'https://corebank-api-dr.internal.example.local',  'K8s', 'HNI-DC2', '3.1.2',     'active', 'DR site' FROM catalog_products WHERE product_code = 'COREBANK-API'
 
 UNION ALL
-SELECT id, 'DEV',  'https://ekyc-api-dev.internal.ecosys.local', 'K8s', 'HCM-DC1', '2.0.0-dev', 'active', NULL FROM catalog_products WHERE product_code = 'EKYC-API'
+SELECT id, 'DEV',  'https://ekyc-api-dev.internal.example.local', 'K8s', 'HCM-DC1', '2.0.0-dev', 'active', NULL FROM catalog_products WHERE product_code = 'EKYC-API'
 UNION ALL
-SELECT id, 'UAT',  'https://ekyc-api-uat.internal.ecosys.local', 'K8s', 'HCM-DC1', '1.9.5',     'active', NULL FROM catalog_products WHERE product_code = 'EKYC-API'
+SELECT id, 'UAT',  'https://ekyc-api-uat.internal.example.local', 'K8s', 'HCM-DC1', '1.9.5',     'active', NULL FROM catalog_products WHERE product_code = 'EKYC-API'
 UNION ALL
-SELECT id, 'PROD', 'https://ekyc-api.internal.ecosys.local',     'K8s', 'HCM-DC1', '1.9.2',     'active', NULL FROM catalog_products WHERE product_code = 'EKYC-API'
+SELECT id, 'PROD', 'https://ekyc-api.internal.example.local',     'K8s', 'HCM-DC1', '1.9.2',     'active', NULL FROM catalog_products WHERE product_code = 'EKYC-API'
 
 UNION ALL
 SELECT id, 'PROD', NULL, 'Bare Metal', 'HCM-DC1', '4.5.1', 'active', 'Spark cluster on-premise' FROM catalog_products WHERE product_code = 'TXN-ETL'
@@ -296,7 +296,7 @@ ON CONFLICT (product_id, env_name) DO NOTHING;
 
 INSERT INTO catalog_product_details (product_id, details)
 SELECT id, '{
-  "domain_dns": "online.ecosys.local",
+  "domain_dns": "online.example.local",
   "cdn": "Cloudflare Enterprise",
   "browser_support": ["Chrome 100+", "Firefox 100+", "Safari 15+", "Edge 100+"],
   "seo_config": "SSR (Next.js) + sitemap.xml",
@@ -307,7 +307,7 @@ ON CONFLICT (product_id) DO NOTHING;
 
 INSERT INTO catalog_product_details (product_id, details)
 SELECT id, '{
-  "domain_dns": "cms.internal.ecosys.local",
+  "domain_dns": "cms.internal.example.local",
   "cdn": null,
   "browser_support": ["Chrome 100+", "Edge 100+"],
   "seo_config": "Không cần SEO (internal tool)",
@@ -342,7 +342,7 @@ ON CONFLICT (product_id) DO NOTHING;
 
 INSERT INTO catalog_product_details (product_id, details)
 SELECT id, '{
-  "spec_url": "https://corebank-api.internal.ecosys.local/docs",
+  "spec_url": "https://corebank-api.internal.example.local/docs",
   "endpoints": [
     "GET /v3/accounts/{id}",
     "POST /v3/transfers/internal",
@@ -360,7 +360,7 @@ ON CONFLICT (product_id) DO NOTHING;
 
 INSERT INTO catalog_product_details (product_id, details)
 SELECT id, '{
-  "spec_url": "https://ekyc-api.internal.ecosys.local/docs",
+  "spec_url": "https://ekyc-api.internal.example.local/docs",
   "endpoints": [
     "POST /v2/verify/face",
     "POST /v2/ocr/cccd",

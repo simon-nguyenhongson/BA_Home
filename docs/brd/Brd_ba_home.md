@@ -1,6 +1,6 @@
-# Release Notes — DevOps Ecosystem Platform
+# Release Notes — BA_Home
 
-**Product:** DevOps Ecosystem — IT Project Governance & Documentation Platform
+**Product:** BA_Home — IT Project Governance & Documentation Platform
 **Version:** 3.0.0
 **Release Date:** 2026-04-09
 **Prepared by:** PO Agent
@@ -25,7 +25,7 @@
 
 ## 1. Tổng quan
 
-**DevOps Ecosystem** là nền tảng quản trị dự án IT và tài liệu hóa nghiệp vụ tích hợp, được xây dựng theo kiến trúc microservices. Hệ thống hỗ trợ toàn bộ vòng đời dự án từ lập kế hoạch, quản lý yêu cầu, phê duyệt tài liệu, đến tự động sinh test case và báo cáo kiểm thử.
+**BA_Home** là nền tảng quản trị dự án IT và tài liệu hóa nghiệp vụ tích hợp, được xây dựng theo kiến trúc microservices. Hệ thống hỗ trợ toàn bộ vòng đời dự án từ lập kế hoạch, quản lý yêu cầu, phê duyệt tài liệu, đến tự động sinh test case và báo cáo kiểm thử.
 
 **Mục tiêu cốt lõi:** Biến yêu cầu nghiệp vụ thô → đặc tả có cấu trúc (BRD/BRS/ERD/API) → test case tự động, với dashboard quản trị toàn bộ 9 giai đoạn chuẩn của dự án IT.
 
@@ -475,4 +475,4 @@ GET http://localhost:8003/health  → Test
 
 ---
 
-*Tài liệu này được tạo tự động bởi PO Agent — DevOps Ecosystem v3.0.0*
+*Tài liệu này được tạo tự động bởi PO Agent — BA_Home v3.0.0*

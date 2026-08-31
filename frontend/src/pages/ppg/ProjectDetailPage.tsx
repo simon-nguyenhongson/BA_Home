@@ -2707,7 +2707,7 @@ export default function ProjectDetailPage() {
           <form onSubmit={handleUpsertEnv} className="space-y-4">
             {[
               { label: 'Infrastructure Info', key: 'infra_info', placeholder: '{"server_type":"K8s","provider":"Azure","spec":"4vCPU/8GB"}' },
-              { label: 'Access Info', key: 'access_info', placeholder: '{"url":"https://app.dev.ecosys.local","port":443,"vpn_required":true}' },
+              { label: 'Access Info', key: 'access_info', placeholder: '{"url":"https://app.dev.example.local","port":443,"vpn_required":true}' },
               { label: 'Deployment Info', key: 'deployment_info', placeholder: '{"ci_cd_tool":"ADO","pipeline_url":"...","deploy_branch":"main"}' },
               { label: 'Monitoring Setup', key: 'monitoring_setup', placeholder: '{"tool":"Grafana","dashboard_url":"..."}' },
             ].map(({ label, key, placeholder }) => (
@@ -3261,7 +3261,7 @@ export default function ProjectDetailPage() {
                 <label className="block text-xs text-gray-600 mb-1">Run Server</label>
                 <input value={jobStandardForm.run_server ?? ''}
                   onChange={(e) => setJobStandardForm({ ...jobStandardForm, run_server: e.target.value || undefined })}
-                  className="w-full border rounded px-3 py-2 text-sm" placeholder="batch-server-01.ecosys.local" />
+                  className="w-full border rounded px-3 py-2 text-sm" placeholder="batch-server-01.example.local" />
               </div>
             </div>
             <p className="text-xs font-semibold text-gray-500 uppercase border-b pb-1">Lịch chạy</p>
@@ -3343,13 +3343,13 @@ export default function ProjectDetailPage() {
                 <label className="block text-xs text-gray-600 mb-1">On-call Contact</label>
                 <input value={jobStandardForm.on_call_contact ?? ''}
                   onChange={(e) => setJobStandardForm({ ...jobStandardForm, on_call_contact: e.target.value || undefined })}
-                  className="w-full border rounded px-3 py-2 text-sm" placeholder="ops@ecosys.local / #ops-channel" />
+                  className="w-full border rounded px-3 py-2 text-sm" placeholder="ops@example.local / #ops-channel" />
               </div>
               <div className="col-span-2">
                 <label className="block text-xs text-gray-600 mb-1">Runbook URL</label>
                 <input value={jobStandardForm.runbook_url ?? ''}
                   onChange={(e) => setJobStandardForm({ ...jobStandardForm, runbook_url: e.target.value || undefined })}
-                  className="w-full border rounded px-3 py-2 text-sm" placeholder="https://docs.ecosys.local/..." />
+                  className="w-full border rounded px-3 py-2 text-sm" placeholder="https://docs.example.local/..." />
               </div>
             </div>
             <div className="flex gap-2 justify-end pt-2 sticky bottom-0 bg-white pb-1">

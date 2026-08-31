@@ -19,7 +19,7 @@ Browser (localhost:5173 — React 18 + Vite, KHÔNG phải Next.js như CLAUDE.m
 - Frontend: React Router 6 + Zustand (1 store `src/stores/auth.ts`), không UI library, chart SVG tự vẽ. Token lưu sessionStorage. Page lớn nhất: `CatalogPage.tsx` (2.402 dòng), `PPGPage.tsx` (1.752 dòng).
 - DB: `infra/init.sql` + migrations V017–V045, chạy tay qua `migrate.bat` (không Flyway/Alembic). ~60 bảng.
 - Tests: 257 backend test (mock DB), 12 unit FE, 3 e2e Playwright.
-- `ecosys-mcpado/`: MCP server Node.js độc lập cho Azure DevOps (8 tools), không hardcode PAT.
+- `mcp-ado/`: MCP server Node.js độc lập cho Azure DevOps (8 tools), không hardcode PAT.
 
 ---
 

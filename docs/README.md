@@ -1,4 +1,4 @@
-#  DevOps Ecosystem Platform
+#  BA_Home
 
 ![Status](https://img.shields.io/badge/status-Phase%200%20Foundation-blue)
 ![Stack](https://img.shields.io/badge/stack-FastAPI%20%7C%20React%20%7C%20PostgreSQL-informational)
@@ -9,7 +9,7 @@
 
 ## Tổng quan / Overview
 
- DevOps Ecosystem Platform là **internal tool** dành cho các team IT nội bộ , được xây dựng để giải quyết hai vấn đề cốt lõi: thông tin dự án phân tán và thiếu tiêu chuẩn mô tả ứng dụng/hệ thống. Platform tập trung toàn bộ dữ liệu dự án vào một nơi, chuẩn hóa cấu trúc Application Registry, và tự động hóa pipeline từ yêu cầu nghiệp vụ thô đến test case có cấu trúc. (per BRD-001, Section 1.1)
+ BA_Home là **internal tool** dành cho các team IT nội bộ , được xây dựng để giải quyết hai vấn đề cốt lõi: thông tin dự án phân tán và thiếu tiêu chuẩn mô tả ứng dụng/hệ thống. Platform tập trung toàn bộ dữ liệu dự án vào một nơi, chuẩn hóa cấu trúc Application Registry, và tự động hóa pipeline từ yêu cầu nghiệp vụ thô đến test case có cấu trúc. (per BRD-001, Section 1.1)
 
 **Người dùng mục tiêu:** PM, BA, Developer, QA, PO, Stakeholder nội bộ . Platform không hỗ trợ mobile và không tích hợp hệ thống bên ngoài trong version này. (per BRD-001, Section 1.2 và 2.2)
 
@@ -161,7 +161,7 @@ CREATE TABLE ppg_app_registry (
 
 `test_cases` — Mỗi record chứa `playwright_script TEXT` cho auto-gen (per BRD-001 FR-013)
 
-**Seed data:** Default admin user `admin@ecosys.local` (password: `admin123`) được tạo sẵn trong `infra/init.sql`.
+**Seed data:** Default admin user `admin@example.local` (password: `admin123`) được tạo sẵn trong `infra/init.sql`.
 
 ---
 
@@ -309,7 +309,7 @@ Login với default admin: `admin` / `admin123` (per `infra/init.sql` seed data)
 (per ARCH-001, Section 2)
 
 ```
-ecosys/
+ba_home/
 ├── backend/
 │   ├── ppg/                          ← PPG System :8001
 │   │   ├── app/
@@ -409,5 +409,5 @@ Tất cả ADRs có status **Accepted** (date: 2026-04-09):
 
 ---
 
-* DevOps Ecosystem Platform | Technical Writer: Agent 09 | 2026-04-09*  
+* BA_Home | Technical Writer: Agent 09 | 2026-04-09*  
 *Nguồn: BRD-001, ADR-001, ADR-002, ADR-003, ARCH-001, CODE-001, infra/init.sql*

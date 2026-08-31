@@ -9,7 +9,7 @@
 
 ## Context
 
-DevOps Ecosystem Platform là internal tool với 3 backend services + 1 React SPA. Cần chọn tech stack phù hợp với:
+BA_Home là internal tool với 3 backend services + 1 React SPA. Cần chọn tech stack phù hợp với:
 - Existing  infrastructure (Python/FastAPI đã được dùng)
 - Team capability hiện tại
 - `compliance: banking_grade`, `launch_target: internal_only`

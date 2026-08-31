@@ -667,7 +667,7 @@ Artifact Registry enforce điều này qua required field `approved_comment` —
 ```yaml
 # Artifact approval schema — approved_comment là required, không phải optional
 approval:
-  approved_by:      "hr-manager@ecosys.local"
+  approved_by:      "hr-manager@example.local"
   approved_at:      "2026-03-30T09:15:00+07:00"
   approved_comment: "Đã review BRD-001. Confirm FR-001 đến FR-005 đúng với yêu cầu BU.
                      Lưu ý: FR-004 (dependent tax) cần confirm thêm với C&B về kỳ giảm trừ."
@@ -754,7 +754,7 @@ Artifact Registry lưu *what* (artifact nào được tạo ra). CLAUDE.md lưu 
 
 - timestamp:  "2026-04-09T10:30:00+07:00"
   type:       MILESTONE
-  actor:      "nguyen.thi.lan@ecosys.local"   # human hoặc agent ID
+  actor:      "nguyen.thi.lan@example.local"   # human hoặc agent ID
   gate:       "Gate 1"
   artifact:   "BRD-HISTAFF-001"
   message:    "BRD approved. FR-001 đến FR-012 confirmed. FR-004 có note: confirm C&B về kỳ giảm trừ."
@@ -768,13 +768,13 @@ Artifact Registry lưu *what* (artifact nào được tạo ra). CLAUDE.md lưu 
 
 - timestamp:  "2026-04-09T16:00:00+07:00"
   type:       DECISION
-  actor:      "tran.van.duc@ecosys.local"     # Architect
+  actor:      "tran.van.duc@example.local"     # Architect
   adr_ref:    "ADR-002"
   message:    "Chuyển Oracle → PostgreSQL Aurora cho Phase 1 (không phải Phase 2 như plan ban đầu). Lý do: Oracle license cost vượt budget. Ghi vào ADR-002."
 
 - timestamp:  "2026-04-10T09:00:00+07:00"
   type:       INSIGHT
-  actor:      "le.thi.mai@ecosys.local"
+  actor:      "le.thi.mai@example.local"
   message:    "Agent 03 đề xuất event-sourcing cho Payroll engine — tốt nhưng over-engineered cho phase 1. Reject và ghi vào ADR để tránh propose lại."
 ```
 

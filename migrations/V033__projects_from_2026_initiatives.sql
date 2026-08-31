@@ -55,7 +55,7 @@ FROM plan,
 
     ('ESD-PORTAL-2026',
      'ESD Portal',
-     'Cập nhật tính năng điều chuyển điện tại kho, hoàn trả tài khoản kho; mua tài liệu và cập nhật website ecosys.local.',
+     'Cập nhật tính năng điều chuyển điện tại kho, hoàn trả tài khoản kho; mua tài liệu và cập nhật website example.local.',
      '2026-01-01', '2026-01-30', 'OPERATIONS'),
 
     -- ── FS ──────────────────────────────────────────────────

@@ -44,7 +44,7 @@ def make_member_record(
         "project_id": project_id or str(uuid4()),
         "full_name": full_name,
         "alias": "nva",
-        "email": "nva@ecosys.local",
+        "email": "nva@example.local",
         "role": role,
         "is_active": is_active,
         "created_at": "2026-01-01T00:00:00Z",
@@ -112,7 +112,7 @@ def test_create_member_success(ppg_client):
     app.dependency_overrides[get_db] = fake_db
     resp = client.post(f"/projects/{pid}/members", json={
         "full_name": "Nguyen Van A",
-        "email": "nva@ecosys.local",
+        "email": "nva@example.local",
         "role": "BA",
         "alias": "nva",
     })
