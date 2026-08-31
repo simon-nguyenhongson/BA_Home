@@ -46,7 +46,7 @@ import {
   type Handover, type HandoverUpsert, type IntegrationLink, type IntegrationLinkCreate,
   type RagStatus,
 } from '../../api/ppg'
-import ProjectPCRTab from './ProjectPCRTab'
+import ProjectCRTab from './ProjectCRTab'
 import { X } from 'lucide-react'
 import { StatusBadge } from '../../components/StatusBadge'
 import { KpiCard } from '../../components/KpiCard'
@@ -626,7 +626,7 @@ export default function ProjectDetailPage() {
     { key: 'handover', label: 'Handover', group: 'comp' },
     { key: 'integrations', label: `Links (${integrationLinks.length})`, group: 'comp' },
     // Requests
-    { key: 'requests', label: 'PCR' },
+    { key: 'requests', label: 'CR' },
   ]
 
   const ragOptions: RagStatus[] = ['green', 'amber', 'red']
@@ -2325,9 +2325,9 @@ export default function ProjectDetailPage() {
         </div>
       )}
 
-      {/* ── PCR (Project Change Request) ─────────────────────────────────── */}
+      {/* ── CR (Project Change Request) ─────────────────────────────────── */}
       {tab === 'requests' && id && (
-        <ProjectPCRTab
+        <ProjectCRTab
           projectId={id}
           projectLabel={`${project.code} — ${project.name}`}
         />

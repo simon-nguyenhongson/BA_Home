@@ -1,4 +1,4 @@
-#  convert file System — CLAUDE.md
+# BA_Home — CLAUDE.md
 # Shared context cho tất cả agents và team members
 # Cập nhật sau mỗi decision quan trọng. KHÔNG xóa history — chỉ append.
 # Xem: Build_Standard.md — Section 1.4 (Multi-Human Collaboration)
@@ -6,8 +6,8 @@
 ---
 
 ## Project Profile
-project_id:     ecosys
-name:            ecosystem
+project_id:     ba_home
+name:           BA_Home
 product_type:   internal_tool
 tech_stack:
   frontend:     nextjs        # Next.js 15 + TypeScript

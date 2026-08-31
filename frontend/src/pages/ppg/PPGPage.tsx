@@ -24,9 +24,9 @@ import {
   Badge, StatusBadge, Btn, Modal, Field, AppInput, AppSelect,
   AppTextarea, EmptyState, Confirm,
 } from '../../components/ui'
-import ProjectPCRTab from './ProjectPCRTab'
+import ProjectCRTab from './ProjectCRTab'
 
-type Tab = 'projects' | 'overview' | 'milestones' | 'members' | 'files' | 'meetings' | 'publish' | 'checklist' | 'pcr'
+type Tab = 'projects' | 'overview' | 'milestones' | 'members' | 'files' | 'meetings' | 'publish' | 'checklist' | 'cr'
 
 const MILESTONE_STATUS_COLOR: Record<string, string> = {
   planned:     'var(--app-neutral-400)',
@@ -1533,7 +1533,7 @@ export default function PPGPage() {
     { key: 'files',      icon: '🗂️', label: 'Tài liệu',     needsProject: true },
     { key: 'checklist',  icon: '✅', label: 'Checklist',    needsProject: true },
     { key: 'meetings',   icon: '📝', label: 'Biên bản họp', needsProject: true },
-    { key: 'pcr',        icon: '🔄', label: 'PCR',          needsProject: true },
+    { key: 'cr',        icon: '🔄', label: 'CR',          needsProject: true },
     { key: 'publish',    icon: '📡', label: 'Publish',      needsProject: true },
   ]
 
@@ -1738,8 +1738,8 @@ export default function PPGPage() {
       {activeTab === 'checklist' && selectedProject && <ChecklistTab project={selectedProject} />}
       {activeTab === 'meetings'  && selectedProject && <MeetingsTab  project={selectedProject} />}
       {activeTab === 'publish'   && selectedProject && <PublishTab   project={selectedProject} />}
-      {activeTab === 'pcr'       && selectedProject && (
-        <ProjectPCRTab
+      {activeTab === 'cr'       && selectedProject && (
+        <ProjectCRTab
           projectId={selectedProject.id}
           projectLabel={`${selectedProject.code} — ${selectedProject.name}`}
         />

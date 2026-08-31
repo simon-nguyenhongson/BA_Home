@@ -1,6 +1,6 @@
 """
 Request Management Router — v7
-POST/GET/PATCH/DELETE /requests/project-changes   (project_change_requests)
+POST/GET/PATCH/DELETE /requests/change-requests   (change_requests)
 POST/GET/PATCH/DELETE /requests/service           (service_requests)
 """
 import io
@@ -23,8 +23,8 @@ UPLOAD_DIR = Path("uploads")
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
-PCR_CHANGE_TYPES = {"scope", "timeline", "resource", "budget", "technical", "process", "other"}
-PCR_STATUSES     = {"submitted", "reviewing", "approved", "rejected", "implementing", "implemented", "cancelled"}
+CR_CHANGE_TYPES = {"scope", "timeline", "resource", "budget", "technical", "process", "other"}
+CR_STATUSES     = {"submitted", "reviewing", "approved", "rejected", "implementing", "implemented", "cancelled"}
 SR_REQUEST_TYPES = {"bug_fix", "enhancement", "support", "incident", "access_request", "data_request", "other"}
 SR_STATUSES      = {"submitted", "reviewing", "approved", "in_progress", "resolved", "rejected", "cancelled"}
 PRIORITIES       = {"critical", "high", "medium", "low"}
@@ -33,8 +33,9 @@ ENVIRONMENTS     = {"DEV", "SIT", "UAT", "PROD", "DR", "STAGING"}
 
 # ── Schemas ───────────────────────────────────────────────────────────────────
 
-class PCRCreate(BaseModel):
+class CRCreate(BaseModel):
     project_id:    str  = Field(..., min_length=1)
+    product_id:    Optional[str]  = None   # hệ thống bị tác động — dùng để merge vào MasterDoc
     title:         str  = Field(..., min_length=1, max_length=255)
     description:   Optional[str]  = None
     change_type:   str  = Field("other")
@@ -47,8 +48,9 @@ class PCRCreate(BaseModel):
     notes:         Optional[str]  = None
 
 
-class PCRPatch(BaseModel):
+class CRPatch(BaseModel):
     title:         Optional[str]  = Field(None, min_length=1, max_length=255)
+    product_id:    Optional[str]  = None
     description:   Optional[str]  = None
     change_type:   Optional[str]  = None
     priority:      Optional[str]  = None
@@ -91,9 +93,9 @@ class SRPatch(BaseModel):
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-async def _next_pcr_code(db: asyncpg.Connection) -> str:
-    seq = await db.fetchval("SELECT nextval('pcr_seq')")
-    return f"PCR-{datetime.now().year}-{seq:03d}"
+async def _next_cr_code(db: asyncpg.Connection) -> str:
+    seq = await db.fetchval("SELECT nextval('cr_seq')")
+    return f"CR-{datetime.now().year}-{seq:03d}"
 
 
 async def _next_sr_code(db: asyncpg.Connection) -> str:
@@ -101,19 +103,19 @@ async def _next_sr_code(db: asyncpg.Connection) -> str:
     return f"SR-{datetime.now().year}-{seq:03d}"
 
 
-def _validate_pcr_create(body: PCRCreate) -> None:
-    if body.change_type not in PCR_CHANGE_TYPES:
+def _validate_cr_create(body: CRCreate) -> None:
+    if body.change_type not in CR_CHANGE_TYPES:
         raise HTTPException(400, f"change_type không hợp lệ: {body.change_type}")
     if body.priority not in PRIORITIES:
         raise HTTPException(400, f"priority không hợp lệ: {body.priority}")
 
 
-def _validate_pcr_patch(body: PCRPatch) -> None:
-    if body.change_type and body.change_type not in PCR_CHANGE_TYPES:
+def _validate_cr_patch(body: CRPatch) -> None:
+    if body.change_type and body.change_type not in CR_CHANGE_TYPES:
         raise HTTPException(400, f"change_type không hợp lệ: {body.change_type}")
     if body.priority and body.priority not in PRIORITIES:
         raise HTTPException(400, f"priority không hợp lệ: {body.priority}")
-    if body.status and body.status not in PCR_STATUSES:
+    if body.status and body.status not in CR_STATUSES:
         raise HTTPException(400, f"status không hợp lệ: {body.status}")
 
 
@@ -162,10 +164,11 @@ async def _log_history(
 
 # ── Project Change Requests ───────────────────────────────────────────────────
 
-@router.get("/project-changes")
+@router.get("/change-requests")
 async def list_project_changes(
     user: CurrentUser,
     project_id:  Optional[str] = Query(None),
+    product_id:  Optional[str] = Query(None),
     status:      Optional[str] = Query(None),
     priority:    Optional[str] = Query(None),
     change_type: Optional[str] = Query(None),
@@ -176,61 +179,65 @@ async def list_project_changes(
     i = 1
 
     if project_id:
-        clauses.append(f"pcr.project_id = ${i}::uuid"); params.append(project_id); i += 1
+        clauses.append(f"cr.project_id = ${i}::uuid"); params.append(project_id); i += 1
+    if product_id:
+        clauses.append(f"cr.product_id = ${i}::uuid"); params.append(product_id); i += 1
     if status:
-        clauses.append(f"pcr.status = ${i}");     params.append(status);     i += 1
+        clauses.append(f"cr.status = ${i}");     params.append(status);     i += 1
     if priority:
-        clauses.append(f"pcr.priority = ${i}");   params.append(priority);   i += 1
+        clauses.append(f"cr.priority = ${i}");   params.append(priority);   i += 1
     if change_type:
-        clauses.append(f"pcr.change_type = ${i}"); params.append(change_type); i += 1
+        clauses.append(f"cr.change_type = ${i}"); params.append(change_type); i += 1
 
     where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
     rows = await db.fetch(
         f"""
-        SELECT pcr.*, p.name AS project_name, p.code AS project_code
-        FROM project_change_requests pcr
-        LEFT JOIN projects p ON p.id = pcr.project_id
+        SELECT cr.*, p.name AS project_name, p.code AS project_code,
+               cp.name AS product_name
+        FROM change_requests cr
+        LEFT JOIN projects p ON p.id = cr.project_id
+        LEFT JOIN catalog_products cp ON cp.id = cr.product_id
         {where}
-        ORDER BY pcr.created_at DESC
+        ORDER BY cr.created_at DESC
         """,
         *params,
     )
     return [dict(r) for r in rows]
 
 
-@router.post("/project-changes", status_code=201)
+@router.post("/change-requests", status_code=201)
 async def create_project_change(
     user: CurrentUser,
-    body: PCRCreate,
+    body: CRCreate,
     db: asyncpg.Connection = Depends(get_db),
 ):
-    _validate_pcr_create(body)
+    _validate_cr_create(body)
     exists = await db.fetchval("SELECT id FROM projects WHERE id=$1::uuid", body.project_id)
     if not exists:
         raise HTTPException(404, f"Project '{body.project_id}' không tồn tại")
 
-    code = await _next_pcr_code(db)
+    code = await _next_cr_code(db)
     target = date.fromisoformat(body.target_date) if body.target_date else None
 
     row = await db.fetchrow(
         """
-        INSERT INTO project_change_requests
-            (request_code, project_id, title, description, change_type, priority,
+        INSERT INTO change_requests
+            (request_code, project_id, product_id, title, description, change_type, priority,
              impact_scope, impact_effort, requested_by, assigned_to, target_date, notes)
-        VALUES ($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+        VALUES ($1,$2::uuid,$3::uuid,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
         RETURNING *
         """,
-        code, body.project_id, body.title, body.description,
+        code, body.project_id, body.product_id, body.title, body.description,
         body.change_type, body.priority,
         body.impact_scope, body.impact_effort,
         body.requested_by, body.assigned_to, target, body.notes,
     )
-    await _log_history(db, 'pcr', str(row['id']), 'created', body.requested_by,
+    await _log_history(db, 'cr', str(row['id']), 'created', body.requested_by,
                        to_status='submitted')
     return dict(row)
 
 
-@router.get("/project-changes/export")
+@router.get("/change-requests/export")
 async def export_project_changes(
     user: CurrentUser,
     project_id:  Optional[str] = Query(None),
@@ -243,37 +250,37 @@ async def export_project_changes(
     params:  list      = []
     i = 1
     if project_id:
-        clauses.append(f"pcr.project_id = ${i}::uuid"); params.append(project_id); i += 1
+        clauses.append(f"cr.project_id = ${i}::uuid"); params.append(project_id); i += 1
     if status:
-        clauses.append(f"pcr.status = ${i}");     params.append(status);     i += 1
+        clauses.append(f"cr.status = ${i}");     params.append(status);     i += 1
     if priority:
-        clauses.append(f"pcr.priority = ${i}");   params.append(priority);   i += 1
+        clauses.append(f"cr.priority = ${i}");   params.append(priority);   i += 1
     if change_type:
-        clauses.append(f"pcr.change_type = ${i}"); params.append(change_type); i += 1
+        clauses.append(f"cr.change_type = ${i}"); params.append(change_type); i += 1
 
     where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
     rows = await db.fetch(
         f"""
-        SELECT pcr.*, p.name AS project_name, p.code AS project_code
-        FROM project_change_requests pcr
-        LEFT JOIN projects p ON p.id = pcr.project_id
+        SELECT cr.*, p.name AS project_name, p.code AS project_code
+        FROM change_requests cr
+        LEFT JOIN projects p ON p.id = cr.project_id
         {where}
-        ORDER BY pcr.created_at DESC
+        ORDER BY cr.created_at DESC
         """,
         *params,
     )
     if not rows:
         wb = openpyxl.Workbook()
         ws = wb.active
-        ws.title = "PCR"
+        ws.title = "CR"
         buf = io.BytesIO(); wb.save(buf); buf.seek(0)
         return StreamingResponse(buf, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                 headers={"Content-Disposition": "attachment; filename=pcr_export.xlsx"})
+                                 headers={"Content-Disposition": "attachment; filename=cr_export.xlsx"})
 
     ids = [str(r['id']) for r in rows]
     ph  = ",".join(f"${j+1}::uuid" for j in range(len(ids)))
     hist_rows = await db.fetch(
-        f"SELECT * FROM request_history WHERE ref_type='pcr' AND ref_id IN ({ph}) ORDER BY ref_id, created_at ASC",
+        f"SELECT * FROM request_history WHERE ref_type='cr' AND ref_id IN ({ph}) ORDER BY ref_id, created_at ASC",
         *ids,
     )
     hist_map: dict[str, list] = {}
@@ -294,7 +301,7 @@ async def export_project_changes(
 
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = "PCR"
+    ws.title = "CR"
 
     headers = ["Code", "Tiêu đề", "Dự án", "Loại thay đổi", "Ưu tiên", "Trạng thái",
                "Người yêu cầu", "Người xử lý", "Ngày mục tiêu", "Ngày tạo", "Lịch sử"]
@@ -341,37 +348,37 @@ async def export_project_changes(
 
     buf = io.BytesIO(); wb.save(buf); buf.seek(0)
     return StreamingResponse(buf, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                             headers={"Content-Disposition": "attachment; filename=pcr_export.xlsx"})
+                             headers={"Content-Disposition": "attachment; filename=cr_export.xlsx"})
 
 
-@router.get("/project-changes/{pcr_id}")
+@router.get("/change-requests/{cr_id}")
 async def get_project_change(
     user: CurrentUser,
-    pcr_id: str,
+    cr_id: str,
     db: asyncpg.Connection = Depends(get_db),
 ):
     row = await db.fetchrow(
         """
-        SELECT pcr.*, p.name AS project_name, p.code AS project_code
-        FROM project_change_requests pcr
-        LEFT JOIN projects p ON p.id = pcr.project_id
-        WHERE pcr.id = $1::uuid
+        SELECT cr.*, p.name AS project_name, p.code AS project_code
+        FROM change_requests cr
+        LEFT JOIN projects p ON p.id = cr.project_id
+        WHERE cr.id = $1::uuid
         """,
-        pcr_id,
+        cr_id,
     )
     if not row:
-        raise HTTPException(404, "PCR không tồn tại")
+        raise HTTPException(404, "CR không tồn tại")
     return dict(row)
 
 
-@router.patch("/project-changes/{pcr_id}")
+@router.patch("/change-requests/{cr_id}")
 async def update_project_change(
     user: CurrentUser,
-    pcr_id: str,
-    body: PCRPatch,
+    cr_id: str,
+    body: CRPatch,
     db: asyncpg.Connection = Depends(get_db),
 ):
-    _validate_pcr_patch(body)
+    _validate_cr_patch(body)
     updates = body.model_dump(exclude_none=True)
     comment = updates.pop('comment', None)
     if not updates:
@@ -379,10 +386,10 @@ async def update_project_change(
 
     # Fetch current status for history
     current = await db.fetchrow(
-        "SELECT status FROM project_change_requests WHERE id=$1::uuid", pcr_id
+        "SELECT status FROM change_requests WHERE id=$1::uuid", cr_id
     )
     if not current:
-        raise HTTPException(404, "PCR không tồn tại")
+        raise HTTPException(404, "CR không tồn tại")
     old_status = current['status']
 
     # Auto set approved_at
@@ -397,51 +404,52 @@ async def update_project_change(
             val = date.fromisoformat(val)
         if key == "status" and val == "approved":
             sets.append(f"approved_at = NOW()")
-        sets.append(f"{key} = ${i}"); params.append(val); i += 1
+        cast = "::uuid" if key == "product_id" else ""
+        sets.append(f"{key} = ${i}{cast}"); params.append(val); i += 1
     sets.append("updated_at = NOW()")
 
     result = await db.execute(
-        f"UPDATE project_change_requests SET {', '.join(sets)} WHERE id = ${i}::uuid",
-        *params, pcr_id,
+        f"UPDATE change_requests SET {', '.join(sets)} WHERE id = ${i}::uuid",
+        *params, cr_id,
     )
     if result == "UPDATE 0":
-        raise HTTPException(404, "PCR không tồn tại")
+        raise HTTPException(404, "CR không tồn tại")
 
     new_status = updates.get('status')
     action = 'status_changed' if new_status and new_status != old_status else 'updated'
-    await _log_history(db, 'pcr', pcr_id, action, user.sub,
+    await _log_history(db, 'cr', cr_id, action, user.sub,
                        from_status=old_status if new_status else None,
                        to_status=new_status or None,
                        comment=comment)
     return {"ok": True}
 
 
-@router.delete("/project-changes/{pcr_id}", status_code=204)
+@router.delete("/change-requests/{cr_id}", status_code=204)
 async def delete_project_change(
     user: CurrentUser,
-    pcr_id: str,
+    cr_id: str,
     db: asyncpg.Connection = Depends(get_db),
 ):
     result = await db.execute(
-        "DELETE FROM project_change_requests WHERE id = $1::uuid", pcr_id
+        "DELETE FROM change_requests WHERE id = $1::uuid", cr_id
     )
     if result == "DELETE 0":
-        raise HTTPException(404, "PCR không tồn tại")
+        raise HTTPException(404, "CR không tồn tại")
 
 
-@router.get("/project-changes/{pcr_id}/history")
-async def get_pcr_history(
+@router.get("/change-requests/{cr_id}/history")
+async def get_cr_history(
     user: CurrentUser,
-    pcr_id: str,
+    cr_id: str,
     db: asyncpg.Connection = Depends(get_db),
 ):
     rows = await db.fetch(
         """
         SELECT * FROM request_history
-        WHERE ref_type = 'pcr' AND ref_id = $1::uuid
+        WHERE ref_type = 'cr' AND ref_id = $1::uuid
         ORDER BY created_at ASC
         """,
-        pcr_id,
+        cr_id,
     )
     return [dict(r) for r in rows]
 
@@ -781,27 +789,27 @@ async def _save_attachment(
     return dict(row)
 
 
-@router.post("/project-changes/{pcr_id}/attachments", status_code=201)
-async def upload_pcr_attachment(
+@router.post("/change-requests/{cr_id}/attachments", status_code=201)
+async def upload_cr_attachment(
     user: CurrentUser,
-    pcr_id: str,
+    cr_id: str,
     file: UploadFile = UpFile(...),
     db: asyncpg.Connection = Depends(get_db),
 ):
-    if not await db.fetchval("SELECT id FROM project_change_requests WHERE id=$1::uuid", pcr_id):
-        raise HTTPException(404, "PCR không tồn tại")
-    return await _save_attachment(db, "pcr", pcr_id, file, user.sub)
+    if not await db.fetchval("SELECT id FROM change_requests WHERE id=$1::uuid", cr_id):
+        raise HTTPException(404, "CR không tồn tại")
+    return await _save_attachment(db, "cr", cr_id, file, user.sub)
 
 
-@router.get("/project-changes/{pcr_id}/attachments")
-async def list_pcr_attachments(
+@router.get("/change-requests/{cr_id}/attachments")
+async def list_cr_attachments(
     user: CurrentUser,
-    pcr_id: str,
+    cr_id: str,
     db: asyncpg.Connection = Depends(get_db),
 ):
     rows = await db.fetch(
-        "SELECT * FROM request_attachments WHERE ref_type='pcr' AND ref_id=$1::uuid ORDER BY created_at",
-        pcr_id,
+        "SELECT * FROM request_attachments WHERE ref_type='cr' AND ref_id=$1::uuid ORDER BY created_at",
+        cr_id,
     )
     return [dict(r) for r in rows]
 

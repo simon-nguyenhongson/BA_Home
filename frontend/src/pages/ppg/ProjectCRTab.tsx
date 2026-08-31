@@ -1,15 +1,15 @@
 /**
- * ProjectPCRTab — PCR management scoped to one project.
- * PCRs created in the global Requests module (same project_id) appear here automatically.
+ * ProjectCRTab — CR management scoped to one project.
+ * CRs created in the global Requests module (same project_id) appear here automatically.
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import {
-  pcrApi,
-  type ProjectChangeRequest,
-  type PCRCreate,
-  type PCRChangeType,
-  type PCRStatus,
+  crApi,
+  type ChangeRequest,
+  type CRCreate,
+  type CRChangeType,
+  type CRStatus,
   type Priority,
   type RequestHistoryEntry,
 } from '../../api/requests'
@@ -34,11 +34,11 @@ function addWorkingDays(days: number, from = new Date()): string {
 }
 
 // ── Label maps ────────────────────────────────────────────────────
-const CHANGE_TYPE_LABELS: Record<PCRChangeType, string> = {
+const CHANGE_TYPE_LABELS: Record<CRChangeType, string> = {
   scope: 'Phạm vi', timeline: 'Timeline', resource: 'Nhân lực',
   budget: 'Ngân sách', technical: 'Kỹ thuật', process: 'Quy trình', other: 'Khác',
 }
-const STATUS_LABELS: Record<PCRStatus, string> = {
+const STATUS_LABELS: Record<CRStatus, string> = {
   submitted:    'Khởi tạo',
   reviewing:    'Đang review',
   approved:     'Pending',
@@ -47,7 +47,7 @@ const STATUS_LABELS: Record<PCRStatus, string> = {
   implemented:  'Đã triển khai',
   cancelled:    'Hủy',
 }
-const STATUS_CSS: Record<PCRStatus, string> = {
+const STATUS_CSS: Record<CRStatus, string> = {
   submitted:    'bg-gray-100 text-gray-600',
   reviewing:    'bg-yellow-50 text-yellow-700',
   approved:     'bg-blue-50 text-blue-700',
@@ -70,10 +70,10 @@ const PRIORITY_BORDER: Record<Priority, string> = {
 }
 
 // Flow for progress bar (main path, excluding terminal states)
-const FLOW: PCRStatus[] = ['submitted', 'reviewing', 'approved', 'implementing', 'implemented']
+const FLOW: CRStatus[] = ['submitted', 'reviewing', 'approved', 'implementing', 'implemented']
 
 // Status tabs — each tab may match multiple DB values
-interface StatusTab { label: string; values: PCRStatus[] | null }
+interface StatusTab { label: string; values: CRStatus[] | null }
 const STATUS_TABS: StatusTab[] = [
   { label: 'Tất cả',           values: null },
   { label: 'Khởi tạo',         values: ['submitted'] },
@@ -99,8 +99,8 @@ function ErrorBanner({ message, onClose }: { message: string; onClose: () => voi
   )
 }
 
-// ── PCR flow progress bar ─────────────────────────────────────────
-function FlowBar({ status }: { status: PCRStatus }) {
+// ── CR flow progress bar ─────────────────────────────────────────
+function FlowBar({ status }: { status: CRStatus }) {
   // For submitted, treat same position as draft in progress bar
   const idx = FLOW.indexOf(status)
   const isTerminal = status === 'rejected' || status === 'cancelled'
@@ -132,8 +132,8 @@ function FlowBar({ status }: { status: PCRStatus }) {
   )
 }
 
-// ── PCR Form (create / edit) ──────────────────────────────────────
-function blankForm(projectId: string, username: string | null): PCRCreate {
+// ── CR Form (create / edit) ──────────────────────────────────────
+function blankForm(projectId: string, username: string | null): CRCreate {
   return {
     project_id:   projectId,
     title:        '',
@@ -144,20 +144,20 @@ function blankForm(projectId: string, username: string | null): PCRCreate {
   }
 }
 
-function PCRFormModal({
+function CRFormModal({
   projectId, projectLabel,
   initial, mode,
   onClose, onSaved,
 }: {
   projectId: string
   projectLabel: string
-  initial?: ProjectChangeRequest | null
+  initial?: ChangeRequest | null
   mode: 'create' | 'edit'
   onClose: () => void
-  onSaved: (pcr: ProjectChangeRequest) => void
+  onSaved: (cr: ChangeRequest) => void
 }) {
   const { username } = useStore()
-  const [form, setForm] = useState<PCRCreate>(() =>
+  const [form, setForm] = useState<CRCreate>(() =>
     initial
       ? {
           project_id:    projectId,
@@ -178,7 +178,7 @@ function PCRFormModal({
   const [error,  setError]            = useState<string | null>(null)
   const [queuedFiles, setQueuedFiles] = useState<File[]>([])
 
-  const set = <K extends keyof PCRCreate>(k: K, v: PCRCreate[K]) =>
+  const set = <K extends keyof CRCreate>(k: K, v: CRCreate[K]) =>
     setForm(f => ({ ...f, [k]: v }))
 
   async function submit(e: React.FormEvent) {
@@ -188,14 +188,14 @@ function PCRFormModal({
     }
     setSaving(true); setError(null)
     try {
-      let result: ProjectChangeRequest
+      let result: ChangeRequest
       if (mode === 'edit' && initial) {
-        await pcrApi.update(initial.id, form)
-        result = await pcrApi.get(initial.id)
+        await crApi.update(initial.id, form)
+        result = await crApi.get(initial.id)
       } else {
-        result = await pcrApi.create(form)
+        result = await crApi.create(form)
         for (const file of queuedFiles) {
-          try { await pcrApi.uploadAttachment(result.id, file) } catch (_) {}
+          try { await crApi.uploadAttachment(result.id, file) } catch (_) {}
         }
       }
       onSaved(result)
@@ -229,7 +229,7 @@ function PCRFormModal({
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
         }}>
           <span style={{ fontSize: 15, fontWeight: 700 }}>
-            {mode === 'edit' ? 'Chỉnh sửa PCR' : 'Tạo Project Change Request'}
+            {mode === 'edit' ? 'Chỉnh sửa CR' : 'Tạo Project Change Request'}
           </span>
           <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
             <X size={18} />
@@ -278,9 +278,9 @@ function PCRFormModal({
               <select
                 className="w-full border rounded px-3 py-2 text-sm"
                 value={form.change_type}
-                onChange={e => set('change_type', e.target.value as PCRChangeType)}
+                onChange={e => set('change_type', e.target.value as CRChangeType)}
               >
-                {(Object.entries(CHANGE_TYPE_LABELS) as [PCRChangeType, string][]).map(([v, l]) => (
+                {(Object.entries(CHANGE_TYPE_LABELS) as [CRChangeType, string][]).map(([v, l]) => (
                   <option key={v} value={v}>{l}</option>
                 ))}
               </select>
@@ -394,7 +394,7 @@ function PCRFormModal({
               disabled={saving || !form.title.trim() || !form.requested_by.trim()}
               className="px-4 py-2 text-sm bg-app-blue text-white rounded hover:bg-blue-900 disabled:opacity-50"
             >
-              {saving ? 'Đang lưu...' : mode === 'edit' ? 'Lưu thay đổi' : 'Tạo PCR'}
+              {saving ? 'Đang lưu...' : mode === 'edit' ? 'Lưu thay đổi' : 'Tạo CR'}
             </button>
           </div>
         </form>
@@ -410,19 +410,19 @@ const TODO_TYPE_LABELS: Record<TodoType, string> = {
 }
 
 function CreateTaskModal({
-  pcr, projectId, projectLabel, onClose,
+  cr, projectId, projectLabel, onClose,
 }: {
-  pcr: ProjectChangeRequest
+  cr: ChangeRequest
   projectId: string
   projectLabel: string
   onClose: () => void
 }) {
-  const [title,    setTitle]    = useState(`[${pcr.request_code}] ${pcr.title}`)
+  const [title,    setTitle]    = useState(`[${cr.request_code}] ${cr.title}`)
   const [desc,     setDesc]     = useState('')
   const [taskType, setTaskType] = useState<TodoType>('other')
-  const [priority, setPriority] = useState<Priority>(pcr.priority)
-  const [assignee, setAssignee] = useState(pcr.assigned_to ?? '')
-  const [dueDate,  setDueDate]  = useState(pcr.target_date ?? '')
+  const [priority, setPriority] = useState<Priority>(cr.priority)
+  const [assignee, setAssignee] = useState(cr.assigned_to ?? '')
+  const [dueDate,  setDueDate]  = useState(cr.target_date ?? '')
   const [saving,   setSaving]   = useState(false)
   const [error,    setError]    = useState<string | null>(null)
 
@@ -439,8 +439,8 @@ function CreateTaskModal({
         priority,
         assignee_id: assignee.trim() || undefined,
         due_date:    dueDate || undefined,
-        ref_type:    'PCR',
-        ref_id:      pcr.id,
+        ref_type:    'CR',
+        ref_id:      cr.id,
       })
       onClose()
     } catch (e) {
@@ -457,9 +457,9 @@ function CreateTaskModal({
         {/* Header */}
         <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--app-neutral-200)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 15 }}>Tạo Task từ PCR</div>
+            <div style={{ fontWeight: 700, fontSize: 15 }}>Tạo Task từ CR</div>
             <div style={{ fontSize: 12, color: 'var(--app-neutral-500)', marginTop: 2 }}>
-              <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{pcr.request_code}</span>
+              <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{cr.request_code}</span>
               {' · '}{projectLabel}
             </div>
           </div>
@@ -468,10 +468,10 @@ function CreateTaskModal({
 
         {/* Ref badge */}
         <div style={{ margin: '12px 20px 0', padding: '6px 10px', borderRadius: 6, background: '#eff6ff', border: '1px solid #bfdbfe', fontSize: 12, color: '#1d4ed8', display: 'flex', gap: 8, alignItems: 'center' }}>
-          <span style={{ fontFamily: 'monospace', fontWeight: 700 }}>{pcr.request_code}</span>
+          <span style={{ fontFamily: 'monospace', fontWeight: 700 }}>{cr.request_code}</span>
           <span style={{ color: '#60a5fa' }}>·</span>
-          <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pcr.title}</span>
-          <span style={{ fontSize: 11, fontWeight: 600, padding: '1px 6px', borderRadius: 8, background: '#bfdbfe', color: '#1e40af' }}>PCR</span>
+          <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cr.title}</span>
+          <span style={{ fontSize: 11, fontWeight: 600, padding: '1px 6px', borderRadius: 8, background: '#bfdbfe', color: '#1e40af' }}>CR</span>
         </div>
 
         {/* Form */}
@@ -527,16 +527,16 @@ function CreateTaskModal({
 }
 
 // ══════════════════════════════════════════════════════════════════
-// ProjectPCRTab — main export
+// ProjectCRTab — main export
 // ══════════════════════════════════════════════════════════════════
-export default function ProjectPCRTab({
+export default function ProjectCRTab({
   projectId,
   projectLabel,
 }: {
   projectId: string
   projectLabel: string
 }) {
-  const [items, setItems]           = useState<ProjectChangeRequest[]>([])
+  const [items, setItems]           = useState<ChangeRequest[]>([])
   const [loading, setLoading]       = useState(true)
   const [pageError, setPageError]   = useState<string | null>(null)
   const [activeTabIdx, setActiveTabIdx] = useState(0)
@@ -545,20 +545,20 @@ export default function ProjectPCRTab({
   const [filterText, setFText]      = useState('')
   const [filterFrom, setFFrom]      = useState('')
   const [filterTo,   setFTo]        = useState('')
-  const [selected, setSelected]     = useState<ProjectChangeRequest | null>(null)
-  const [editStatus, setEditStatus] = useState<PCRStatus>('submitted')
+  const [selected, setSelected]     = useState<ChangeRequest | null>(null)
+  const [editStatus, setEditStatus] = useState<CRStatus>('submitted')
   const [statusSaving, setStatusSaving] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
   const [history, setHistory]       = useState<RequestHistoryEntry[]>([])
   const [historyLoading, setHistoryLoading] = useState(false)
-  const [commentFor, setCommentFor] = useState<PCRStatus | null>(null)
+  const [commentFor, setCommentFor] = useState<CRStatus | null>(null)
   const [showCreateTask, setShowCreateTask] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
     setPageError(null)
     try {
-      const data = await pcrApi.list({
+      const data = await crApi.list({
         project_id:  projectId,
         priority:    filterPriority || undefined,
         change_type: filterType     || undefined,
@@ -581,11 +581,11 @@ export default function ProjectPCRTab({
     }
   }, [items, selected?.id])
 
-  // Load history when a PCR is selected
+  // Load history when a CR is selected
   useEffect(() => {
     if (!selected) { setHistory([]); return }
     setHistoryLoading(true)
-    pcrApi.history(selected.id)
+    crApi.history(selected.id)
       .then(h => setHistory(h))
       .catch(() => setHistory([]))
       .finally(() => setHistoryLoading(false))
@@ -597,7 +597,7 @@ export default function ProjectPCRTab({
     : items
 
   const visible = applyDateFilter(
-    applyTextFilter(byTab, filterText, ['title', 'request_code', 'requested_by'] as (keyof ProjectChangeRequest)[]),
+    applyTextFilter(byTab, filterText, ['title', 'request_code', 'requested_by'] as (keyof ChangeRequest)[]),
     'created_at', filterFrom, filterTo,
   )
 
@@ -606,7 +606,7 @@ export default function ProjectPCRTab({
     setFP(''); setFT('')
   }
 
-  const REQUIRES_COMMENT: PCRStatus[] = ['rejected', 'cancelled']
+  const REQUIRES_COMMENT: CRStatus[] = ['rejected', 'cancelled']
 
   function handleStatusSaveClick() {
     if (!selected || editStatus === selected.status) return
@@ -617,17 +617,17 @@ export default function ProjectPCRTab({
     }
   }
 
-  async function doStatusSave(status: PCRStatus, comment: string | undefined) {
+  async function doStatusSave(status: CRStatus, comment: string | undefined) {
     if (!selected) return
     const id = selected.id
     setStatusSaving(true)
     setCommentFor(null)
     try {
-      await pcrApi.update(id, { status, ...(comment ? { comment } : {}) })
+      await crApi.update(id, { status, ...(comment ? { comment } : {}) })
       const [, fresh, hist] = await Promise.all([
         load(),
-        pcrApi.get(id),
-        pcrApi.history(id),
+        crApi.get(id),
+        crApi.history(id),
       ])
       setSelected(fresh)
       setEditStatus(fresh.status)
@@ -651,8 +651,8 @@ export default function ProjectPCRTab({
       }}>
         <span style={{ fontSize: 15 }}>ℹ️</span>
         <span style={{ flex: 1 }}>
-          PCR tạo từ <strong>Module Requests</strong> với cùng dự án này sẽ tự động hiển thị ở đây.
-          Bạn cũng có thể tạo PCR trực tiếp tại tab này.
+          CR tạo từ <strong>Module Requests</strong> với cùng dự án này sẽ tự động hiển thị ở đây.
+          Bạn cũng có thể tạo CR trực tiếp tại tab này.
         </span>
         <a
           href="/requests"
@@ -714,7 +714,7 @@ export default function ProjectPCRTab({
           { key: 'priority', value: filterPriority, onChange: setFP, placeholder: 'Tất cả ưu tiên',
             options: (Object.entries(PRIORITY_LABELS) as [Priority, string][]).map(([v, l]) => ({ value: v, label: l })) },
           { key: 'type', value: filterType, onChange: setFT, placeholder: 'Tất cả loại',
-            options: (Object.entries(CHANGE_TYPE_LABELS) as [PCRChangeType, string][]).map(([v, l]) => ({ value: v, label: l })) },
+            options: (Object.entries(CHANGE_TYPE_LABELS) as [CRChangeType, string][]).map(([v, l]) => ({ value: v, label: l })) },
         ]}
         dateFrom={{ value: filterFrom, onChange: setFFrom, label: 'Từ ngày' }}
         dateTo={{ value: filterTo, onChange: setFTo }}
@@ -725,7 +725,7 @@ export default function ProjectPCRTab({
             className="bg-app-blue text-white px-3 py-1.5 rounded text-xs font-medium"
             onClick={() => setShowCreate(true)}
           >
-            + Tạo PCR
+            + Tạo CR
           </button>
         }
       />
@@ -747,55 +747,55 @@ export default function ProjectPCRTab({
               {items.length === 0 ? 'Chưa có Change Request nào cho dự án này' : 'Không tìm thấy kết quả'}
             </div>
           )}
-          {visible.map(pcr => (
+          {visible.map(cr => (
             <div
-              key={pcr.id}
-              onClick={() => { setSelected(pcr); setEditStatus(pcr.status) }}
+              key={cr.id}
+              onClick={() => { setSelected(cr); setEditStatus(cr.status) }}
               style={{
                 background: '#fff', borderRadius: 10,
-                border: `1px solid ${selected?.id === pcr.id ? 'var(--app-primary)' : 'var(--app-neutral-200)'}`,
-                borderLeft: `4px solid ${PRIORITY_BORDER[pcr.priority]}`,
+                border: `1px solid ${selected?.id === cr.id ? 'var(--app-primary)' : 'var(--app-neutral-200)'}`,
+                borderLeft: `4px solid ${PRIORITY_BORDER[cr.priority]}`,
                 padding: '10px 14px', cursor: 'pointer',
-                boxShadow: selected?.id === pcr.id ? '0 0 0 2px rgba(37,99,235,0.15)' : 'none',
+                boxShadow: selected?.id === cr.id ? '0 0 0 2px rgba(37,99,235,0.15)' : 'none',
                 transition: 'all 0.1s',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
                 <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--app-neutral-500)' }}>
-                  {pcr.request_code}
+                  {cr.request_code}
                 </span>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_CSS[pcr.status]}`}>
-                  {STATUS_LABELS[pcr.status]}
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_CSS[cr.status]}`}>
+                  {STATUS_LABELS[cr.status]}
                 </span>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${PRIORITY_CSS[pcr.priority]}`}>
-                  {PRIORITY_LABELS[pcr.priority]}
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${PRIORITY_CSS[cr.priority]}`}>
+                  {PRIORITY_LABELS[cr.priority]}
                 </span>
                 <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-500">
-                  {CHANGE_TYPE_LABELS[pcr.change_type]}
+                  {CHANGE_TYPE_LABELS[cr.change_type]}
                 </span>
               </div>
               <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--app-neutral-800)', marginBottom: 2 }}>
-                {pcr.title}
+                {cr.title}
               </div>
-              {pcr.description && (
+              {cr.description && (
                 <div style={{
                   fontSize: 12, color: 'var(--app-neutral-500)',
                   overflow: 'hidden', display: '-webkit-box',
                   WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
                 }}>
-                  {pcr.description}
+                  {cr.description}
                 </div>
               )}
               <div style={{ display: 'flex', gap: 12, marginTop: 6, fontSize: 11, color: 'var(--app-neutral-400)' }}>
-                <span>Yêu cầu: <span style={{ color: 'var(--app-neutral-600)' }}>{pcr.requested_by}</span></span>
-                {pcr.assigned_to && (
-                  <span>Phụ trách: <span style={{ color: 'var(--app-neutral-600)' }}>{pcr.assigned_to}</span></span>
+                <span>Yêu cầu: <span style={{ color: 'var(--app-neutral-600)' }}>{cr.requested_by}</span></span>
+                {cr.assigned_to && (
+                  <span>Phụ trách: <span style={{ color: 'var(--app-neutral-600)' }}>{cr.assigned_to}</span></span>
                 )}
-                {pcr.target_date && (
-                  <span>Mục tiêu: <span style={{ color: 'var(--app-neutral-600)' }}>{pcr.target_date}</span></span>
+                {cr.target_date && (
+                  <span>Mục tiêu: <span style={{ color: 'var(--app-neutral-600)' }}>{cr.target_date}</span></span>
                 )}
                 <span style={{ marginLeft: 'auto' }}>
-                  {new Date(pcr.created_at).toLocaleDateString('vi-VN')}
+                  {new Date(cr.created_at).toLocaleDateString('vi-VN')}
                 </span>
               </div>
             </div>
@@ -917,9 +917,9 @@ export default function ProjectPCRTab({
                     className="input input-sm"
                     style={{ flex: 1 }}
                     value={editStatus}
-                    onChange={e => setEditStatus(e.target.value as PCRStatus)}
+                    onChange={e => setEditStatus(e.target.value as CRStatus)}
                   >
-                    {(Object.entries(STATUS_LABELS) as [PCRStatus, string][]).map(([v, l]) => (
+                    {(Object.entries(STATUS_LABELS) as [CRStatus, string][]).map(([v, l]) => (
                       <option key={v} value={v}>{l}</option>
                     ))}
                   </select>
@@ -937,8 +937,8 @@ export default function ProjectPCRTab({
               {/* Attachments */}
               <RequestAttachments
                 refId={selected.id}
-                listFn={pcrApi.listAttachments}
-                uploadFn={pcrApi.uploadAttachment}
+                listFn={crApi.listAttachments}
+                uploadFn={crApi.uploadAttachment}
               />
 
               {/* History timeline */}
@@ -954,9 +954,9 @@ export default function ProjectPCRTab({
         {/* Comment modal for terminal status actions */}
         {commentFor && selected && (
           <CommentModal
-            title={commentFor === 'rejected' ? 'Từ chối PCR' : 'Hủy PCR'}
-            subtitle={`Vui lòng nhập lý do ${commentFor === 'rejected' ? 'từ chối' : 'hủy'} PCR "${selected.title}".`}
-            confirmLabel={commentFor === 'rejected' ? 'Từ chối' : 'Hủy PCR'}
+            title={commentFor === 'rejected' ? 'Từ chối CR' : 'Hủy CR'}
+            subtitle={`Vui lòng nhập lý do ${commentFor === 'rejected' ? 'từ chối' : 'hủy'} CR "${selected.title}".`}
+            confirmLabel={commentFor === 'rejected' ? 'Từ chối' : 'Hủy CR'}
             onClose={() => setCommentFor(null)}
             onConfirm={comment => doStatusSave(commentFor, comment)}
           />
@@ -965,7 +965,7 @@ export default function ProjectPCRTab({
         {/* Create task modal */}
         {showCreateTask && selected && (
           <CreateTaskModal
-            pcr={selected}
+            cr={selected}
             projectId={projectId}
             projectLabel={projectLabel}
             onClose={() => setShowCreateTask(false)}
@@ -975,7 +975,7 @@ export default function ProjectPCRTab({
 
       {/* Create modal */}
       {showCreate && (
-        <PCRFormModal
+        <CRFormModal
           projectId={projectId}
           projectLabel={projectLabel}
           mode="create"

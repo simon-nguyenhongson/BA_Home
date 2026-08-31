@@ -3,7 +3,7 @@ import { Plus, Wand2, FileText, Loader2, Search, CheckSquare, Square, File, Cloc
 import { Btn, AppInput, AppTextarea, StatusBadge } from '../../components/ui'
 import { createRequirement, generateDocumentFromRequirement } from '../../api/ba'
 import { getProjects, getProjectDomains, type Project, type ProjectDomain } from '../../api/ppg'
-import { pcrApi, type ProjectChangeRequest } from '../../api/requests'
+import { crApi, type ChangeRequest } from '../../api/requests'
 import { getBADocuments, createBADocument } from '../../lib/api/workflow-docs'
 import type { BADocument } from '../../lib/types/workflow-doc'
 import { useStore } from '../../stores/auth'
@@ -18,10 +18,10 @@ export function RequirementsTab() {
   const [showProjectDropdown, setShowProjectDropdown] = useState(false)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
 
-  // PCRs & Selection
-  const [pcrs, setPcrs] = useState<ProjectChangeRequest[]>([])
-  const [loadingPcrs, setLoadingPcrs] = useState(false)
-  const [selectedPcrIds, setSelectedPcrIds] = useState<Set<string>>(new Set())
+  // CRs & Selection
+  const [crs, setCrs] = useState<ChangeRequest[]>([])
+  const [loadingCrs, setLoadingCrs] = useState(false)
+  const [selectedCrIds, setSelectedCrIds] = useState<Set<string>>(new Set())
 
   // Text Aggregation
   const [aggregatedText, setAggregatedText] = useState('')
@@ -49,43 +49,43 @@ export function RequirementsTab() {
   useEffect(() => { loadProjects() }, [loadProjects])
 
   const loadProjectData = useCallback(async (projectId: string) => {
-    setLoadingPcrs(true)
+    setLoadingCrs(true)
     try {
-      const pcrRes = await pcrApi.list({ project_id: projectId })
-      setPcrs(Array.isArray(pcrRes) ? pcrRes : [])
+      const crRes = await crApi.list({ project_id: projectId })
+      setCrs(Array.isArray(crRes) ? crRes : [])
     } catch (e: unknown) {
       addToast((e as Error).message, 'error')
     } finally {
-      setLoadingPcrs(false)
+      setLoadingCrs(false)
     }
   }, [addToast])
 
   useEffect(() => {
     if (selectedProject) {
       loadProjectData(selectedProject.id)
-      setSelectedPcrIds(new Set())
+      setSelectedCrIds(new Set())
       setAggregatedText('')
       setPreviewDoc(null)
     } else {
-      setPcrs([])
+      setCrs([])
       setAggregatedText('')
       setPreviewDoc(null)
     }
   }, [selectedProject, loadProjectData])
 
   // ── Interactions ──────────────────────────────────────────────────
-  const handleTogglePcr = (pcr: ProjectChangeRequest) => {
-    const next = new Set(selectedPcrIds)
-    if (next.has(pcr.id)) {
-      next.delete(pcr.id)
+  const handleToggleCr = (cr: ChangeRequest) => {
+    const next = new Set(selectedCrIds)
+    if (next.has(cr.id)) {
+      next.delete(cr.id)
     } else {
-      next.add(pcr.id)
+      next.add(cr.id)
     }
-    setSelectedPcrIds(next)
+    setSelectedCrIds(next)
     
     // Auto-update aggregated text
     let newText = ''
-    pcrs.filter(p => next.has(p.id)).forEach(p => {
+    crs.filter(p => next.has(p.id)).forEach(p => {
       newText += `[${p.request_code}] ${p.title}\n`
       if (p.description) newText += `${p.description}\n`
       if (p.notes) newText += `Notes: ${p.notes}\n`
@@ -95,15 +95,15 @@ export function RequirementsTab() {
   }
 
   const handleSelectAll = () => {
-    if (selectedPcrIds.size === pcrs.length) {
-      setSelectedPcrIds(new Set())
+    if (selectedCrIds.size === crs.length) {
+      setSelectedCrIds(new Set())
       setAggregatedText('')
     } else {
-      const allIds = new Set(pcrs.map(p => p.id))
-      setSelectedPcrIds(allIds)
+      const allIds = new Set(crs.map(p => p.id))
+      setSelectedCrIds(allIds)
       
       let newText = ''
-      pcrs.forEach(p => {
+      crs.forEach(p => {
         newText += `[${p.request_code}] ${p.title}\n`
         if (p.description) newText += `${p.description}\n`
         if (p.notes) newText += `Notes: ${p.notes}\n`
@@ -115,7 +115,7 @@ export function RequirementsTab() {
 
   const handleGenerate = async (docType: string) => {
     if (!aggregatedText.trim()) {
-      addToast('Cần có nội dung để tạo tài liệu (chọn PCR hoặc tự nhập)', 'warn')
+      addToast('Cần có nội dung để tạo tài liệu (chọn CR hoặc tự nhập)', 'warn')
       return
     }
     if (!selectedProject) return
@@ -136,9 +136,9 @@ export function RequirementsTab() {
       }
 
       // 2. Create a raw requirement with the aggregated text to maintain linkage history
-      const selectedPcrCodes = pcrs.filter(p => selectedPcrIds.has(p.id)).map(p => p.request_code)
-      const reqTitle = selectedPcrCodes.length > 0 
-        ? `Aggregated from PCRs: ${selectedPcrCodes.join(', ')}`
+      const selectedCrCodes = crs.filter(p => selectedCrIds.has(p.id)).map(p => p.request_code)
+      const reqTitle = selectedCrCodes.length > 0 
+        ? `Aggregated from CRs: ${selectedCrCodes.join(', ')}`
         : `Manual aggregated requirements`
 
       const reqRes = await createRequirement({
@@ -157,7 +157,7 @@ export function RequirementsTab() {
       
       // Reset form text
       setAggregatedText('')
-      setSelectedPcrIds(new Set())
+      setSelectedCrIds(new Set())
     } catch (e: unknown) {
       addToast(`Lỗi khi tạo tài liệu: ${(e as Error).message}`, 'error')
     } finally {
@@ -201,7 +201,7 @@ export function RequirementsTab() {
   return (
     <div style={{ display: 'flex', height: '100%', gap: 16 }}>
       
-      {/* ── Left Pane: Project Selection & PCR Form ──────────────────────────── */}
+      {/* ── Left Pane: Project Selection & CR Form ──────────────────────────── */}
       <div style={{ 
         width: '450px', display: 'flex', flexDirection: 'column',
         background: '#fff', border: '1px solid var(--app-neutral-200)', borderRadius: 12,
@@ -265,7 +265,7 @@ export function RequirementsTab() {
           </div>
         </div>
         
-        {/* PCR Form Workspace */}
+        {/* CR Form Workspace */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column' }}>
           {!selectedProject ? (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--app-neutral-400)', opacity: 0.6 }}>
@@ -274,36 +274,36 @@ export function RequirementsTab() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {/* Select PCRs */}
+              {/* Select CRs */}
               <div style={{ marginBottom: 20 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                   <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--app-neutral-700)' }}>
-                    Chọn Project Change Request (PCR)
+                    Chọn Project Change Request (CR)
                   </label>
                   <button 
                     onClick={handleSelectAll}
                     style={{ background: 'none', border: 'none', color: 'var(--app-primary)', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}
                   >
-                    {selectedPcrIds.size === pcrs.length && pcrs.length > 0 ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
+                    {selectedCrIds.size === crs.length && crs.length > 0 ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
                   </button>
                 </div>
                 
-                {loadingPcrs ? (
+                {loadingCrs ? (
                   <div style={{ padding: 20, textAlign: 'center', color: 'var(--app-neutral-400)' }}><Loader2 size={20} className="spin" /></div>
-                ) : pcrs.length === 0 ? (
+                ) : crs.length === 0 ? (
                   <div style={{ padding: 16, background: 'var(--app-neutral-50)', borderRadius: 8, fontSize: 13, color: 'var(--app-neutral-500)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <AlertCircle size={16} /> Dự án này chưa có PCR nào.
+                    <AlertCircle size={16} /> Dự án này chưa có CR nào.
                   </div>
                 ) : (
                   <div style={{ 
                     maxHeight: 220, overflowY: 'auto', border: '1px solid var(--app-neutral-200)', borderRadius: 8, background: '#fff' 
                   }}>
-                    {pcrs.map(pcr => {
-                      const isSelected = selectedPcrIds.has(pcr.id)
+                    {crs.map(cr => {
+                      const isSelected = selectedCrIds.has(cr.id)
                       return (
                         <div 
-                          key={pcr.id}
-                          onClick={() => handleTogglePcr(pcr)}
+                          key={cr.id}
+                          onClick={() => handleToggleCr(cr)}
                           style={{ 
                             display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', 
                             borderBottom: '1px solid var(--app-neutral-100)', cursor: 'pointer',
@@ -316,7 +316,7 @@ export function RequirementsTab() {
                           </div>
                           <div style={{ flex: 1 }}>
                             <div style={{ fontSize: 13, fontWeight: 600, color: isSelected ? 'var(--app-primary-800)' : 'var(--app-neutral-800)' }}>
-                              [{pcr.request_code}] {pcr.title}
+                              [{cr.request_code}] {cr.title}
                             </div>
                           </div>
                         </div>
@@ -332,7 +332,7 @@ export function RequirementsTab() {
                   Nội dung tổng hợp (Raw Text)
                 </label>
                 <textarea
-                  placeholder="Mô tả của các PCR sẽ được ghép vào đây..."
+                  placeholder="Mô tả của các CR sẽ được ghép vào đây..."
                   value={aggregatedText}
                   onChange={e => setAggregatedText(e.target.value)}
                   style={{

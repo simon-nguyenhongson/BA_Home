@@ -1,6 +1,6 @@
 /**
  * Request Management API client
- * /requests/project-changes  — project_change_requests (PCR)
+ * /requests/change-requests  — change_requests (CR)
  * /requests/service           — service_requests (SR)
  */
 
@@ -29,15 +29,15 @@ async function req<T>(method: string, path: string, body?: unknown): Promise<T> 
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export type PCRChangeType = 'scope' | 'timeline' | 'resource' | 'budget' | 'technical' | 'process' | 'other'
-export type PCRStatus     = 'submitted' | 'reviewing' | 'approved' | 'rejected' | 'implementing' | 'implemented' | 'cancelled'
+export type CRChangeType = 'scope' | 'timeline' | 'resource' | 'budget' | 'technical' | 'process' | 'other'
+export type CRStatus     = 'submitted' | 'reviewing' | 'approved' | 'rejected' | 'implementing' | 'implemented' | 'cancelled'
 export type SRRequestType = 'bug_fix' | 'enhancement' | 'support' | 'incident' | 'access_request' | 'data_request' | 'other'
 export type SRStatus      = 'submitted' | 'reviewing' | 'approved' | 'in_progress' | 'resolved' | 'rejected' | 'cancelled'
 export type Priority      = 'critical' | 'high' | 'medium' | 'low'
 export type Severity      = 'critical' | 'high' | 'medium' | 'low'
 export type Environment   = 'DEV' | 'SIT' | 'UAT' | 'PROD' | 'DR' | 'STAGING'
 
-export interface ProjectChangeRequest {
+export interface ChangeRequest {
   id:            string
   request_code:  string
   project_id:    string
@@ -45,9 +45,9 @@ export interface ProjectChangeRequest {
   project_code?: string
   title:         string
   description?:  string
-  change_type:   PCRChangeType
+  change_type:   CRChangeType
   priority:      Priority
-  status:        PCRStatus
+  status:        CRStatus
   impact_scope?:  string
   impact_effort?: string
   requested_by:  string
@@ -82,11 +82,11 @@ export interface ServiceRequest {
   updated_at:       string
 }
 
-export interface PCRCreate {
+export interface CRCreate {
   project_id:    string
   title:         string
   description?:  string
-  change_type?:  PCRChangeType
+  change_type?:  CRChangeType
   priority?:     Priority
   impact_scope?: string
   impact_effort?: string
@@ -111,7 +111,7 @@ export interface SRCreate {
 
 export interface RequestAttachment {
   id:          string
-  ref_type:    'pcr' | 'sr'
+  ref_type:    'cr' | 'sr'
   ref_id:      string
   filename:    string
   file_size:   number | null
@@ -172,7 +172,7 @@ export async function downloadRequestAttachment(attId: string, filename: string)
 
 export interface RequestHistoryEntry {
   id:          string
-  ref_type:    'pcr' | 'sr'
+  ref_type:    'cr' | 'sr'
   ref_id:      string
   action:      string
   actor:       string
@@ -182,9 +182,9 @@ export interface RequestHistoryEntry {
   created_at:  string
 }
 
-// ── PCR endpoints ─────────────────────────────────────────────────────────────
+// ── CR endpoints ─────────────────────────────────────────────────────────────
 
-export const pcrApi = {
+export const crApi = {
   list: (params?: { project_id?: string; status?: string; priority?: string; change_type?: string }) => {
     const qs = new URLSearchParams()
     if (params?.project_id)  qs.set('project_id',  params.project_id)
@@ -192,16 +192,16 @@ export const pcrApi = {
     if (params?.priority)    qs.set('priority',     params.priority)
     if (params?.change_type) qs.set('change_type',  params.change_type)
     const q = qs.toString()
-    return req<ProjectChangeRequest[]>('GET', `/requests/project-changes${q ? '?' + q : ''}`)
+    return req<ChangeRequest[]>('GET', `/requests/change-requests${q ? '?' + q : ''}`)
   },
-  get:    (id: string) => req<ProjectChangeRequest>('GET', `/requests/project-changes/${id}`),
-  create: (body: PCRCreate) => req<ProjectChangeRequest>('POST', '/requests/project-changes', body),
-  update: (id: string, body: Partial<PCRCreate & { status: PCRStatus; approved_by: string; comment: string }>) =>
-    req<{ ok: boolean }>('PATCH', `/requests/project-changes/${id}`, body),
-  delete: (id: string) => req<void>('DELETE', `/requests/project-changes/${id}`),
-  history:           (id: string) => req<RequestHistoryEntry[]>('GET', `/requests/project-changes/${id}/history`),
-  listAttachments:   (id: string) => req<RequestAttachment[]>('GET', `/requests/project-changes/${id}/attachments`),
-  uploadAttachment:  (id: string, file: File) => uploadAttachmentFetch(`/requests/project-changes/${id}/attachments`, file),
+  get:    (id: string) => req<ChangeRequest>('GET', `/requests/change-requests/${id}`),
+  create: (body: CRCreate) => req<ChangeRequest>('POST', '/requests/change-requests', body),
+  update: (id: string, body: Partial<CRCreate & { status: CRStatus; approved_by: string; comment: string }>) =>
+    req<{ ok: boolean }>('PATCH', `/requests/change-requests/${id}`, body),
+  delete: (id: string) => req<void>('DELETE', `/requests/change-requests/${id}`),
+  history:           (id: string) => req<RequestHistoryEntry[]>('GET', `/requests/change-requests/${id}/history`),
+  listAttachments:   (id: string) => req<RequestAttachment[]>('GET', `/requests/change-requests/${id}/attachments`),
+  uploadAttachment:  (id: string, file: File) => uploadAttachmentFetch(`/requests/change-requests/${id}/attachments`, file),
   export: (params?: { project_id?: string; status?: string; priority?: string; change_type?: string }) => {
     const qs = new URLSearchParams()
     if (params?.project_id)  qs.set('project_id',  params.project_id)
@@ -209,7 +209,7 @@ export const pcrApi = {
     if (params?.priority)    qs.set('priority',     params.priority)
     if (params?.change_type) qs.set('change_type',  params.change_type)
     const q = qs.toString()
-    return downloadBlob(`/requests/project-changes/export${q ? '?' + q : ''}`, 'pcr_export.xlsx')
+    return downloadBlob(`/requests/change-requests/export${q ? '?' + q : ''}`, 'cr_export.xlsx')
   },
 }
 

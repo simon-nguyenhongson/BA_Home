@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { X } from 'lucide-react'
 import {
-  pcrApi, srApi,
-  ProjectChangeRequest, ServiceRequest,
-  PCRCreate, SRCreate,
-  PCRChangeType, PCRStatus, SRRequestType, SRStatus, Priority,
+  crApi, srApi,
+  ChangeRequest, ServiceRequest,
+  CRCreate, SRCreate,
+  CRChangeType, CRStatus, SRRequestType, SRStatus, Priority,
   RequestHistoryEntry,
 } from '../../api/requests'
 import { getProjects, Project } from '../../api/ppg'
@@ -127,12 +127,12 @@ function ComboSelect({
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const PCR_CHANGE_TYPE_LABELS: Record<PCRChangeType, string> = {
+const CR_CHANGE_TYPE_LABELS: Record<CRChangeType, string> = {
   scope: 'Phạm vi', timeline: 'Timeline', resource: 'Nhân lực',
   budget: 'Ngân sách', technical: 'Kỹ thuật', process: 'Quy trình', other: 'Khác',
 }
 
-const PCR_STATUS_LABELS: Record<PCRStatus, string> = {
+const CR_STATUS_LABELS: Record<CRStatus, string> = {
   submitted:    'Khởi tạo',
   reviewing:    'Đang review',
   approved:     'Pending',
@@ -142,7 +142,7 @@ const PCR_STATUS_LABELS: Record<PCRStatus, string> = {
   cancelled:    'Hủy',
 }
 
-const PCR_STATUS_VARIANTS: Record<PCRStatus, string> = {
+const CR_STATUS_VARIANTS: Record<CRStatus, string> = {
   submitted:    'neutral',
   reviewing:    'warning',
   approved:     'info',
@@ -152,8 +152,8 @@ const PCR_STATUS_VARIANTS: Record<PCRStatus, string> = {
   cancelled:    'neutral',
 }
 
-interface PcrStatusTab { label: string; values: PCRStatus[] | null }
-const PCR_STATUS_TABS: PcrStatusTab[] = [
+interface CrStatusTab { label: string; values: CRStatus[] | null }
+const CR_STATUS_TABS: CrStatusTab[] = [
   { label: 'Tất cả',           values: null },
   { label: 'Khởi tạo',         values: ['submitted'] },
   { label: 'Đang review',      values: ['reviewing'] },
@@ -209,30 +209,30 @@ const PRIORITY_LABELS: Record<Priority, string> = {
   critical: 'Khẩn cấp', high: 'Cao', medium: 'Trung bình', low: 'Thấp',
 }
 
-// ── PCR Flow indicator ────────────────────────────────────────────────────────
+// ── CR Flow indicator ────────────────────────────────────────────────────────
 
-const PCR_FLOW: PCRStatus[] = ['submitted', 'reviewing', 'approved', 'implementing', 'implemented']
+const CR_FLOW: CRStatus[] = ['submitted', 'reviewing', 'approved', 'implementing', 'implemented']
 
-function PCRFlowBar({ current }: { current: PCRStatus }) {
-  const idx = PCR_FLOW.indexOf(current)
+function CRFlowBar({ current }: { current: CRStatus }) {
+  const idx = CR_FLOW.indexOf(current)
   const isTerminal = current === 'rejected' || current === 'cancelled'
   return (
     <div style={{ display: 'flex', gap: 4, alignItems: 'center', margin: '8px 0', flexWrap: 'wrap' }}>
-      {PCR_FLOW.map((s, i) => (
+      {CR_FLOW.map((s, i) => (
         <React.Fragment key={s}>
           <span style={{
             padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600,
             background: !isTerminal && i <= idx ? 'var(--app-primary)' : 'var(--app-neutral-200)',
             color: !isTerminal && i <= idx ? '#fff' : 'var(--app-neutral-500)',
-          }}>{PCR_STATUS_LABELS[s]}</span>
-          {i < PCR_FLOW.length - 1 && <span style={{ color: 'var(--app-neutral-400)', fontSize: 10 }}>›</span>}
+          }}>{CR_STATUS_LABELS[s]}</span>
+          {i < CR_FLOW.length - 1 && <span style={{ color: 'var(--app-neutral-400)', fontSize: 10 }}>›</span>}
         </React.Fragment>
       ))}
       {isTerminal && (
         <span style={{
           padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600,
           background: '#fee2e2', color: '#b91c1c',
-        }}>{PCR_STATUS_LABELS[current]}</span>
+        }}>{CR_STATUS_LABELS[current]}</span>
       )}
     </div>
   )
@@ -273,7 +273,7 @@ const TODO_TYPE_LABELS: Record<TodoType, string> = {
 }
 
 interface CreateTaskProps {
-  refType:             'PCR' | 'SR'
+  refType:             'CR' | 'SR'
   refCode:             string
   refId:               string
   refTitle:            string
@@ -461,10 +461,10 @@ function CreateTaskFromRequestModal({
   )
 }
 
-// ── PCR Tab ───────────────────────────────────────────────────────────────────
+// ── CR Tab ───────────────────────────────────────────────────────────────────
 
-function PCRTab() {
-  const [items, setItems]           = useState<ProjectChangeRequest[]>([])
+function CRTab() {
+  const [items, setItems]           = useState<ChangeRequest[]>([])
   const [loading, setLoading]       = useState(false)
   const [error, setError]           = useState<string | null>(null)
   const [activeTabIdx, setActiveTabIdx] = useState(0)
@@ -472,25 +472,25 @@ function PCRTab() {
   const [filterText, setFText]      = useState('')
   const [filterFrom, setFFrom]      = useState('')
   const [filterTo, setFTo]          = useState('')
-  const [projects, setPCRProjects]  = useState<Project[]>([])
-  const [selected, setSelected]     = useState<ProjectChangeRequest | null>(null)
-  const [hoveredId, setPCRHovered]  = useState<string | null>(null)
+  const [projects, setCRProjects]  = useState<Project[]>([])
+  const [selected, setSelected]     = useState<ChangeRequest | null>(null)
+  const [hoveredId, setCRHovered]  = useState<string | null>(null)
   const [editStatus, setEditStatus] = useState('')
   const [saving, setSaving]         = useState(false)
-  const [pcrHistory, setPcrHistory] = useState<RequestHistoryEntry[]>([])
-  const [pcrHistoryLoading, setPcrHistoryLoading] = useState(false)
-  const [pcrCommentFor, setPcrCommentFor] = useState<PCRStatus | null>(null)
-  const [showPcrCreateTask, setShowPcrCreateTask] = useState(false)
-  const pcrDialogRef                = useRef<HTMLDialogElement>(null)
+  const [crHistory, setCrHistory] = useState<RequestHistoryEntry[]>([])
+  const [crHistoryLoading, setCrHistoryLoading] = useState(false)
+  const [crCommentFor, setCrCommentFor] = useState<CRStatus | null>(null)
+  const [showCrCreateTask, setShowCrCreateTask] = useState(false)
+  const crDialogRef                = useRef<HTMLDialogElement>(null)
 
   useEffect(() => {
-    getProjects({ all_years: true }).then(setPCRProjects).catch(() => {})
+    getProjects({ all_years: true }).then(setCRProjects).catch(() => {})
   }, [])
 
   const load = useCallback(async () => {
     setLoading(true); setError(null)
     try {
-      const data = await pcrApi.list({ project_id: filterProject || undefined })
+      const data = await crApi.list({ project_id: filterProject || undefined })
       setItems(data)
     } catch (e) { setError((e as Error).message) }
     finally { setLoading(false) }
@@ -499,15 +499,15 @@ function PCRTab() {
   useEffect(() => { load() }, [load])
 
   useEffect(() => {
-    if (!selected) { setPcrHistory([]); return }
-    setPcrHistoryLoading(true)
-    pcrApi.history(selected.id)
-      .then(h => setPcrHistory(h))
-      .catch(() => setPcrHistory([]))
-      .finally(() => setPcrHistoryLoading(false))
+    if (!selected) { setCrHistory([]); return }
+    setCrHistoryLoading(true)
+    crApi.history(selected.id)
+      .then(h => setCrHistory(h))
+      .catch(() => setCrHistory([]))
+      .finally(() => setCrHistoryLoading(false))
   }, [selected?.id])
 
-  const tabFilter = PCR_STATUS_TABS[activeTabIdx]
+  const tabFilter = CR_STATUS_TABS[activeTabIdx]
   const byTab = tabFilter.values
     ? items.filter(p => tabFilter.values!.includes(p.status))
     : items
@@ -519,39 +519,39 @@ function PCRTab() {
     return rows
   })()
 
-  const PCR_REQUIRES_COMMENT: PCRStatus[] = ['rejected', 'cancelled']
+  const CR_REQUIRES_COMMENT: CRStatus[] = ['rejected', 'cancelled']
 
   function handleStatusUpdateClick() {
     if (!selected || !editStatus || editStatus === selected.status) return
-    const newStatus = editStatus as PCRStatus
-    if (PCR_REQUIRES_COMMENT.includes(newStatus)) {
-      setPcrCommentFor(newStatus)
+    const newStatus = editStatus as CRStatus
+    if (CR_REQUIRES_COMMENT.includes(newStatus)) {
+      setCrCommentFor(newStatus)
     } else {
-      doPcrStatusSave(newStatus, undefined)
+      doCrStatusSave(newStatus, undefined)
     }
   }
 
-  async function doPcrStatusSave(status: PCRStatus, comment: string | undefined) {
+  async function doCrStatusSave(status: CRStatus, comment: string | undefined) {
     if (!selected) return
     const id = selected.id
-    setSaving(true); setPcrCommentFor(null)
+    setSaving(true); setCrCommentFor(null)
     try {
-      await pcrApi.update(id, { status, ...(comment ? { comment } : {}) })
+      await crApi.update(id, { status, ...(comment ? { comment } : {}) })
       const [, fresh, hist] = await Promise.all([
         load(),
-        pcrApi.get(id),
-        pcrApi.history(id),
+        crApi.get(id),
+        crApi.history(id),
       ])
       setSelected(fresh)
       setEditStatus(fresh.status)
-      setPcrHistory(hist)
+      setCrHistory(hist)
     } catch (e) { alert((e as Error).message) }
     finally { setSaving(false) }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Xoá PCR này?')) return
-    await pcrApi.delete(id)
+    if (!confirm('Xoá CR này?')) return
+    await crApi.delete(id)
     await load()
     if (selected?.id === id) setSelected(null)
   }
@@ -566,7 +566,7 @@ function PCRTab() {
           borderBottom: '2px solid var(--app-neutral-200)',
           marginBottom: 10, flexShrink: 0,
         }}>
-          {PCR_STATUS_TABS.map((tab, idx) => {
+          {CR_STATUS_TABS.map((tab, idx) => {
             const count = tab.values
               ? items.filter(p => tab.values!.includes(p.status)).length
               : items.length
@@ -617,12 +617,12 @@ function PCRTab() {
               <button
                 className="btn btn-sm"
                 style={{ border: '1px solid var(--app-neutral-300)', background: '#fff', color: 'var(--app-neutral-700)' }}
-                onClick={() => pcrApi.export({ project_id: filterProject || undefined }).catch(e => alert(e.message))}
+                onClick={() => crApi.export({ project_id: filterProject || undefined }).catch(e => alert(e.message))}
               >
                 ↓ Excel
               </button>
-              <button className="btn btn-primary btn-sm" onClick={() => pcrDialogRef.current?.showModal()}>
-                + Tạo PCR
+              <button className="btn btn-primary btn-sm" onClick={() => crDialogRef.current?.showModal()}>
+                + Tạo CR
               </button>
             </div>
           }
@@ -632,15 +632,15 @@ function PCRTab() {
         {loading && <div className="txt-secondary" style={{ padding: 16 }}>Đang tải...</div>}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-          {displayed.map(pcr => {
-            const isSelected = selected?.id === pcr.id
-            const isHovered  = hoveredId === pcr.id
+          {displayed.map(cr => {
+            const isSelected = selected?.id === cr.id
+            const isHovered  = hoveredId === cr.id
             return (
               <div
-                key={pcr.id}
-                onMouseEnter={() => setPCRHovered(pcr.id)}
-                onMouseLeave={() => setPCRHovered(null)}
-                onClick={() => { setSelected(pcr); setEditStatus(pcr.status) }}
+                key={cr.id}
+                onMouseEnter={() => setCRHovered(cr.id)}
+                onMouseLeave={() => setCRHovered(null)}
+                onClick={() => { setSelected(cr); setEditStatus(cr.status) }}
                 style={{
                   cursor: 'pointer',
                   background: isSelected
@@ -650,7 +650,7 @@ function PCRTab() {
                   border: isSelected
                     ? '1.5px solid var(--app-primary)'
                     : '1px solid var(--app-neutral-200)',
-                  borderLeft: `4px solid var(--app-${PRIORITY_VARIANTS[pcr.priority]})`,
+                  borderLeft: `4px solid var(--app-${PRIORITY_VARIANTS[cr.priority]})`,
                   padding: '10px 14px',
                   boxShadow: isSelected ? '0 0 0 3px rgba(37,99,235,0.1)' : isHovered ? '0 1px 4px rgba(0,0,0,0.07)' : 'none',
                   transition: 'background 0.1s, box-shadow 0.1s, border-color 0.1s',
@@ -660,32 +660,32 @@ function PCRTab() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginBottom: 4 }}>
                       <span className="txt_mono" style={{ fontSize: 11, color: 'var(--app-neutral-500)' }}>
-                        {pcr.request_code}
+                        {cr.request_code}
                       </span>
-                      <span className={`badge badge-${PCR_STATUS_VARIANTS[pcr.status]}`}>
-                        {PCR_STATUS_LABELS[pcr.status]}
+                      <span className={`badge badge-${CR_STATUS_VARIANTS[cr.status]}`}>
+                        {CR_STATUS_LABELS[cr.status]}
                       </span>
-                      <span className={`badge badge-${PRIORITY_VARIANTS[pcr.priority]}`}>
-                        {PRIORITY_LABELS[pcr.priority]}
+                      <span className={`badge badge-${PRIORITY_VARIANTS[cr.priority]}`}>
+                        {PRIORITY_LABELS[cr.priority]}
                       </span>
-                      <span className="badge badge-neutral">{PCR_CHANGE_TYPE_LABELS[pcr.change_type]}</span>
+                      <span className="badge badge-neutral">{CR_CHANGE_TYPE_LABELS[cr.change_type]}</span>
                       {isSelected && (
                         <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--app-primary)', fontWeight: 600 }}>
                           ● Đang xem
                         </span>
                       )}
                     </div>
-                    <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>{pcr.title}</div>
+                    <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>{cr.title}</div>
                     <div style={{ fontSize: 12, color: 'var(--app-neutral-500)' }}>
-                      {pcr.project_name || pcr.project_id} · {pcr.requested_by}
-                      {pcr.target_date && (
+                      {cr.project_name || cr.project_id} · {cr.requested_by}
+                      {cr.target_date && (
                         <span style={{ marginLeft: 8, color: 'var(--app-neutral-400)' }}>
-                          · Mục tiêu: {pcr.target_date}
+                          · Mục tiêu: {cr.target_date}
                         </span>
                       )}
                     </div>
                     {/* Hover preview — description excerpt */}
-                    {isHovered && !isSelected && pcr.description && (
+                    {isHovered && !isSelected && cr.description && (
                       <div style={{
                         marginTop: 6, paddingTop: 6,
                         borderTop: '1px dashed var(--app-neutral-200)',
@@ -693,7 +693,7 @@ function PCRTab() {
                         overflow: 'hidden', display: '-webkit-box',
                         WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
                       }}>
-                        {pcr.description}
+                        {cr.description}
                       </div>
                     )}
                   </div>
@@ -724,12 +724,12 @@ function PCRTab() {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <PCRFlowBar current={selected.status} />
+              <CRFlowBar current={selected.status} />
               <button
                 type="button"
                 className="btn btn-secondary btn-sm"
                 style={{ marginLeft: 'auto', flexShrink: 0 }}
-                onClick={() => setShowPcrCreateTask(true)}
+                onClick={() => setShowCrCreateTask(true)}
               >
                 + Tạo Task
               </button>
@@ -738,7 +738,7 @@ function PCRTab() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, margin: '12px 0' }}>
               <div>
                 <div className="form-label">Loại thay đổi</div>
-                <div>{PCR_CHANGE_TYPE_LABELS[selected.change_type]}</div>
+                <div>{CR_CHANGE_TYPE_LABELS[selected.change_type]}</div>
               </div>
               <div>
                 <div className="form-label">Ưu tiên</div>
@@ -793,8 +793,8 @@ function PCRTab() {
               <div className="form-label">Cập nhật trạng thái</div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <select className="input input-sm" value={editStatus} onChange={e => setEditStatus(e.target.value)}>
-                  {(Object.keys(PCR_STATUS_LABELS) as PCRStatus[]).map(s => (
-                    <option key={s} value={s}>{PCR_STATUS_LABELS[s]}</option>
+                  {(Object.keys(CR_STATUS_LABELS) as CRStatus[]).map(s => (
+                    <option key={s} value={s}>{CR_STATUS_LABELS[s]}</option>
                   ))}
                 </select>
                 <button
@@ -809,32 +809,32 @@ function PCRTab() {
 
             <RequestAttachments
               refId={selected.id}
-              listFn={pcrApi.listAttachments}
-              uploadFn={pcrApi.uploadAttachment}
+              listFn={crApi.listAttachments}
+              uploadFn={crApi.uploadAttachment}
             />
 
             <RequestHistoryTimeline
-              entries={pcrHistory}
-              statusLabels={PCR_STATUS_LABELS}
-              loading={pcrHistoryLoading}
+              entries={crHistory}
+              statusLabels={CR_STATUS_LABELS}
+              loading={crHistoryLoading}
             />
           </div>
         </div>
       )}
 
-      {pcrCommentFor && selected && (
+      {crCommentFor && selected && (
         <CommentModal
-          title={pcrCommentFor === 'rejected' ? 'Từ chối PCR' : 'Hủy PCR'}
-          subtitle={`Vui lòng nhập lý do ${pcrCommentFor === 'rejected' ? 'từ chối' : 'hủy'} PCR "${selected.title}".`}
-          confirmLabel={pcrCommentFor === 'rejected' ? 'Từ chối' : 'Hủy PCR'}
-          onClose={() => setPcrCommentFor(null)}
-          onConfirm={comment => doPcrStatusSave(pcrCommentFor, comment)}
+          title={crCommentFor === 'rejected' ? 'Từ chối CR' : 'Hủy CR'}
+          subtitle={`Vui lòng nhập lý do ${crCommentFor === 'rejected' ? 'từ chối' : 'hủy'} CR "${selected.title}".`}
+          confirmLabel={crCommentFor === 'rejected' ? 'Từ chối' : 'Hủy CR'}
+          onClose={() => setCrCommentFor(null)}
+          onConfirm={comment => doCrStatusSave(crCommentFor, comment)}
         />
       )}
 
-      {showPcrCreateTask && selected && (
+      {showCrCreateTask && selected && (
         <CreateTaskFromRequestModal
-          refType="PCR"
+          refType="CR"
           refCode={selected.request_code}
           refId={selected.id}
           refTitle={selected.title}
@@ -843,29 +843,29 @@ function PCRTab() {
           defaultPriority={selected.priority}
           defaultAssignee={selected.assigned_to ?? undefined}
           defaultDueDate={selected.target_date ?? undefined}
-          onClose={() => setShowPcrCreateTask(false)}
-          onCreated={() => setShowPcrCreateTask(false)}
+          onClose={() => setShowCrCreateTask(false)}
+          onCreated={() => setShowCrCreateTask(false)}
         />
       )}
 
-      <PCRCreateModal
-        dialogRef={pcrDialogRef}
-        onCreated={() => { pcrDialogRef.current?.close(); load() }}
+      <CRCreateModal
+        dialogRef={crDialogRef}
+        onCreated={() => { crDialogRef.current?.close(); load() }}
       />
     </div>
   )
 }
 
-// ── PCR Create Modal ──────────────────────────────────────────────────────────
+// ── CR Create Modal ──────────────────────────────────────────────────────────
 
-function PCRCreateModal({
+function CRCreateModal({
   dialogRef, onCreated,
 }: {
   dialogRef: React.RefObject<HTMLDialogElement>
   onCreated: () => void
 }) {
-  const BLANK: PCRCreate = { project_id: '', title: '', change_type: 'other', priority: 'medium', requested_by: '' }
-  const [form, setForm]           = useState<PCRCreate>(BLANK)
+  const BLANK: CRCreate = { project_id: '', title: '', change_type: 'other', priority: 'medium', requested_by: '' }
+  const [form, setForm]           = useState<CRCreate>(BLANK)
   const [projects, setProjects]   = useState<Project[]>([])
   const [lovLoading, setLovLoading] = useState(true)
   const [saving, setSaving]       = useState(false)
@@ -887,7 +887,7 @@ function PCRCreateModal({
       meta:  `${p.code}${p.domain_code ? ' · ' + p.domain_code : ''} · ${p.status}`,
     }))
 
-  function set(k: keyof PCRCreate, v: string) { setForm(f => ({ ...f, [k]: v })) }
+  function set(k: keyof CRCreate, v: string) { setForm(f => ({ ...f, [k]: v })) }
 
   function closeDialog() {
     setForm(BLANK); setQueuedFiles([]); setError(null)
@@ -901,9 +901,9 @@ function PCRCreateModal({
     }
     setSaving(true); setError(null)
     try {
-      const result = await pcrApi.create(form)
+      const result = await crApi.create(form)
       for (const file of queuedFiles) {
-        try { await pcrApi.uploadAttachment(result.id, file) } catch (_) {}
+        try { await crApi.uploadAttachment(result.id, file) } catch (_) {}
       }
       setForm(BLANK); setQueuedFiles([])
       onCreated()
@@ -986,8 +986,8 @@ function PCRCreateModal({
                 <div>
                   <label className="form-label" style={{ marginBottom: 6, display: 'block' }}>Loại thay đổi</label>
                   <select className="input" value={form.change_type} onChange={e => set('change_type', e.target.value)}>
-                    {(Object.keys(PCR_CHANGE_TYPE_LABELS) as PCRChangeType[]).map(t => (
-                      <option key={t} value={t}>{PCR_CHANGE_TYPE_LABELS[t]}</option>
+                    {(Object.keys(CR_CHANGE_TYPE_LABELS) as CRChangeType[]).map(t => (
+                      <option key={t} value={t}>{CR_CHANGE_TYPE_LABELS[t]}</option>
                     ))}
                   </select>
                 </div>
@@ -1035,7 +1035,7 @@ function PCRCreateModal({
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={closeDialog}>Huỷ</button>
             <button type="submit" className="btn btn-primary" disabled={saving || lovLoading}>
-              {saving ? 'Đang tạo...' : 'Tạo PCR'}
+              {saving ? 'Đang tạo...' : 'Tạo CR'}
             </button>
           </div>
         </form>
@@ -1668,10 +1668,10 @@ function SRCreateModal({
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
-type Tab = 'pcr' | 'sr'
+type Tab = 'cr' | 'sr'
 
 export default function RequestsPage() {
-  const [tab, setTab] = useState<Tab>('pcr')
+  const [tab, setTab] = useState<Tab>('cr')
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 0 }}>
@@ -1679,7 +1679,7 @@ export default function RequestsPage() {
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid var(--app-neutral-200)', marginBottom: 16 }}>
         {([
-          { key: 'pcr' as Tab, label: '🔄 Project Change Request', desc: 'Thay đổi trong dự án đang chạy' },
+          { key: 'cr' as Tab, label: '🔄 Project Change Request', desc: 'Thay đổi trong dự án đang chạy' },
           { key: 'sr'  as Tab, label: '🎫 Service Request',        desc: 'Yêu cầu với ứng dụng vận hành' },
         ] as const).map(t => (
           <button
@@ -1700,7 +1700,7 @@ export default function RequestsPage() {
       </div>
 
       <div style={{ flex: 1, overflow: 'auto' }}>
-        {tab === 'pcr' ? <PCRTab /> : <SRTab />}
+        {tab === 'cr' ? <CRTab /> : <SRTab />}
       </div>
     </div>
   )

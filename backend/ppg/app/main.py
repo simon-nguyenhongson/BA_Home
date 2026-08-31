@@ -78,7 +78,7 @@ app.include_router(dashboard.router)
 # v6 routers — Project Docs (folder tree + template downloads)
 app.include_router(project_docs.router)
 
-# v7 routers — Request Management (PCR + SR)
+# v7 routers — Request Management (CR + SR)
 app.include_router(requests.router)
 
 # v8 routers — Test Documents (Test Plan / Bug Report / UAT Sign-off)
