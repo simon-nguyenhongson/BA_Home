@@ -34,41 +34,6 @@ current_stage:  Stage 0.1 — Discover & Deconstruct
 
 ---
 
-## Hướng dẫn làm việc với Azure DevOps (ADO) qua MCP
-
-Claude sử dụng MCP server `ecosys-mcpado` để tương tác với Azure DevOps. Áp dụng các quy tắc sau mỗi khi làm việc với ADO:
-
-### Nguyên tắc chung
-- Luôn dùng MCP tools của `ecosys-mcpado` (không dùng REST API trực tiếp hay Azure CLI) khi có thể.
-- Trước khi tạo/sửa bất kỳ item nào trên ADO, hãy xác nhận với user nếu hành động có thể ảnh hưởng đến người khác (ví dụ: cập nhật Work Item của người khác, đóng Sprint, xóa Branch).
-- Không tự ý push code lên ADO Repos hay tạo PR mà chưa có yêu cầu rõ ràng từ user.
-
-### Work Items
-- Khi tạo Work Item mới (Epic / Feature / User Story / Task / Bug): điền đủ `Title`, `Description`, `Assigned To`, `Iteration Path`, `Area Path`.
-- Khi cập nhật trạng thái Work Item: chỉ chuyển sang trạng thái hợp lệ theo flow (New → Active → Resolved → Closed). Không skip bước.
-- Liên kết Work Item với BRD reference tương ứng: ghi `BRD-XXX` vào `Tags` hoặc `Description`.
-- Commit message và PR title phải chứa Work Item ID: `feat(CVF-XXX): ... #<WorkItemID>`.
-
-### Boards & Sprints
-- Khi query board/sprint: luôn lọc theo `Iteration Path` hiện tại trừ khi user yêu cầu xem lịch sử.
-- Không tự ý di chuyển items giữa Sprint mà không có lệnh rõ ràng.
-
-### Repositories & Pull Requests
-- Tạo PR: luôn set `reviewers` (ít nhất 1 người), gắn Work Item liên quan, chọn đúng `target branch`.
-- Không approve hay complete PR thay cho user.
-- Không force-push lên `main`/`master`/`develop`.
-
-### Pipelines
-- Chỉ trigger pipeline khi user yêu cầu tường minh.
-- Báo cáo kết quả pipeline (success/fail/log tóm tắt) sau khi run xong.
-
-### Query mẫu thường dùng
-- Xem Work Items của sprint hiện tại: query theo `Iteration Path = @CurrentIteration` và `Assigned To = @Me` (hoặc theo yêu cầu).
-- Xem bugs chưa xử lý: `Work Item Type = Bug AND State <> Closed`.
-- Xem PRs đang chờ review: dùng tool pull request list của `ecosys-mcpado`.
-
----
-
 ## Conventions bắt buộc
 - Mọi commit message phải chứa BRD reference: `feat(CVF-XXX): ...`
 - PR không được merge nếu chưa có test file
@@ -189,4 +154,5 @@ _Xem .highlight-log.yaml để xem full log._
 - 2026-04-12: Dev session — CODE-002 v2.0: Mở rộng catalog module với đầy đủ metadata cấu trúc cho 5 loại sản phẩm. V026 migration thêm 7 columns (domain + 6 JSONB sections) vào catalog_products, thêm infra_type + region vào environments. Pydantic sub-models typed cho 6 sections chung + 5 type-specific detail models. UI rewrite: 8-tab detail modal + 5-section create form + structured forms per product type. Fix asyncpg double-serialization bug (V025 migration + router rewrite). Key pattern: asyncpg JSONB codec handles encoding — never call json.dumps() before passing to asyncpg parameters.
 - 2026-08-31: Rebrand — Đổi tên dự án thành BA_Home (CLAUDE.md, project-profile.yaml, README, frontend title/brand/login, package.json). Sanitize toàn bộ định danh tổ chức nội bộ khỏi repo: ecosys-mcpado (.env.example, README, index.js, CLAUDE.md, package.json — ADO org/project/email thay bằng placeholder generic), logo login đổi thành "B". Lưu ý: giá trị cũ vẫn còn trong Git history.
 - 2026-08-31: Review session — Đọc toàn bộ codebase (~49k dòng), lưu báo cáo đầy đủ tại docs/review/CODE-REVIEW-2026-08-31.md. P0 nổi bật: bug 500 project_objects (_get_object_or_404 sai arity ×5), 8 endpoint không auth (+/sites StaticFiles), không RBAC, SSRF copy-from-url, secrets hardcode (JWT_SECRET default, devops123, find_key.py), audit log gần như không hoạt động, migrate.bat thiếu V045 + migrate_annual_plans_v2.sql, 4 cặp migration trùng version. Chưa sửa — chờ chỉ đạo. Lưu ý: stack thực tế là Vite + React (không phải Next.js như header CLAUDE.md ghi).
+- 2026-08-31: Gỡ bỏ tích hợp MCP ADO — xóa thư mục ecosys-mcpado/ và section "Hướng dẫn làm việc với Azure DevOps (ADO) qua MCP" khỏi CLAUDE.md theo yêu cầu. Repo không còn phụ thuộc Azure DevOps.
 - 2026-04-13: Dev session — CODE-003: 3 features shipped. (1) Export/Import XLSX project info (4 sheets: Overview/Timeline/Nguồn lực/To-do list) — backend StreamingResponse + openpyxl, frontend blob download + file upload. (2) Domain field cho project — V028 migration (project_domains LOV 12 entries + FK projects.domain_code), folder tree thay đổi thành {domain}/{project}/BA/ và {domain}/{project}/Tester/, GET /projects/domains LOV endpoint. (3) 5-domain governance checklist — V029 migration (project_activity_tasks), 38 tasks auto-generated per project, new router activity_tasks.py, ChecklistTab UI với progress bar + per-domain sections + click-to-cycle status.
