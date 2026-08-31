@@ -7,7 +7,7 @@
  *
  * Config via environment variables (or .env file):
  *   ADO_ORG          - Azure DevOps org name (e.g. "your-ado-org")
- *   ADO_PROJECT      - Project name (e.g. "B05-BTS-CTS")
+ *   ADO_PROJECT      - Project name (e.g. "your-ado-project")
  *   ADO_PAT          - Personal Access Token
  *   ADO_AGENT_ROLE   - Role for this session: pm | dev | qa | ba (optional)
  *

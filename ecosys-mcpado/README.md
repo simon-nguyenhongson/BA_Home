@@ -1,7 +1,7 @@
 # ADO MCP Server —  Claude Code Integration
 
 > **Tự động sync Claude Code output ↔ Azure DevOps Work Items**
-> Dự án: `your-ado-org / B05-BTS-CTS`
+> Dự án: `your-ado-org / your-ado-project`
 
 ---
 
@@ -31,7 +31,7 @@
         │                                               │ REST API
         ▼                                               ▼
   CLAUDE.md rules                            Azure DevOps
-  (auto sync policy)                         B05-BTS-CTS
+  (auto sync policy)                         your-ado-project
 ```
 
 **Vấn đề giải quyết:** Khi team dùng Claude Code để implement task, output (code, phân tích, quyết định) bị mất sau session. MCP server này giúp Claude **tự động**:
@@ -73,7 +73,7 @@ Sau bước 3, mở `.env` và điền thông tin:
 **Dùng Azure CLI (không cần PAT):**
 ```env
 ADO_ORG=your-ado-org
-ADO_PROJECT=B05-BTS-CTS
+ADO_PROJECT=your-ado-project
 ADO_EMAIL=ten.ho@ecosys.local
 ADO_AGENT_ROLE=dev
 ```
@@ -81,7 +81,7 @@ ADO_AGENT_ROLE=dev
 **Dùng PAT truyền thống:**
 ```env
 ADO_ORG=your-ado-org
-ADO_PROJECT=B05-BTS-CTS
+ADO_PROJECT=your-ado-project
 ADO_PAT=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ADO_EMAIL=ten.ho@ecosys.local
 ADO_AGENT_ROLE=dev
@@ -159,14 +159,14 @@ Dùng khi không cài Azure CLI hoặc môi trường không hỗ trợ browser 
 # Dùng Azure CLI (không cần PAT)
 claude mcp add ado-mcp node /đường/dẫn/tuyệt/đối/ado-mcp/index.js \
   --env ADO_ORG=your-ado-org \
-  --env ADO_PROJECT=B05-BTS-CTS \
+  --env ADO_PROJECT=your-ado-project \
   --env ADO_EMAIL=ten.ho@ecosys.local \
   --env ADO_AGENT_ROLE=dev
 
 # Dùng PAT
 claude mcp add ado-mcp node /đường/dẫn/tuyệt/đối/ado-mcp/index.js \
   --env ADO_ORG=your-ado-org \
-  --env ADO_PROJECT=B05-BTS-CTS \
+  --env ADO_PROJECT=your-ado-project \
   --env ADO_PAT=your_pat \
   --env ADO_EMAIL=ten.ho@ecosys.local \
   --env ADO_AGENT_ROLE=dev
@@ -184,7 +184,7 @@ Mở (hoặc tạo) file `~/.claude.json`, thêm block `mcpServers`:
       "args": ["/đường/dẫn/tuyệt/đối/ado-mcp/index.js"],
       "env": {
         "ADO_ORG":        "your-ado-org",
-        "ADO_PROJECT":    "B05-BTS-CTS",
+        "ADO_PROJECT":    "your-ado-project",
         "ADO_EMAIL":      "ten.ho@ecosys.local",
         "ADO_AGENT_ROLE": "dev"
       }
@@ -350,7 +350,7 @@ Types: `Task` | `User Story` | `Bug` | `Feature` | `Epic`.
 Liệt kê các sprint của project.
 
 ```
-Input:  { teamName: "B05-BTS-CTS Team" }   // optional
+Input:  { teamName: "your-ado-project Team" }   // optional
 Output: Tên sprint, ngày bắt đầu/kết thúc, sprint hiện tại được đánh dấu
 ```
 
@@ -496,7 +496,7 @@ az login
 
 **Fix:**
 - Kiểm tra URL ADO: `https://dev.azure.com/{ADO_ORG}/{ADO_PROJECT}`
-- Tên project phân biệt hoa/thường: `B05-BTS-CTS` ≠ `b05-bts-cts`
+- Tên project phân biệt hoa/thường: `Your-Ado-Project` ≠ `your-ado-project`
 
 ---
 

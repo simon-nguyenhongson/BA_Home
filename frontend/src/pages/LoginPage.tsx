@@ -30,9 +30,9 @@ export default function LoginPage() {
       <div className="bg-white rounded-xl shadow-md w-full max-w-sm p-8">
         <div className="mb-6 text-center">
           <div className="w-12 h-12 bg-app-blue rounded-lg mx-auto mb-3 flex items-center justify-center">
-            <span className="text-white font-bold text-lg">V</span>
+            <span className="text-white font-bold text-lg">B</span>
           </div>
-          <h1 className="text-xl font-bold text-gray-900">DevOps Ecosystem</h1>
+          <h1 className="text-xl font-bold text-gray-900">BA_Home</h1>
           <p className="text-sm text-gray-500 mt-1"> Internal Platform</p>
         </div>
 

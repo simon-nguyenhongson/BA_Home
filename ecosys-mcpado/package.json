@@ -1,7 +1,7 @@
 {
   "name": "ado-mcp",
   "version": "1.0.0",
-  "description": "Azure DevOps MCP Server for Claude Code —  B05-BTS-CTS",
+  "description": "Azure DevOps MCP Server for Claude Code — BA_Home",
   "type": "module",
   "main": "index.js",
   "bin": { "ado-mcp": "./index.js" },

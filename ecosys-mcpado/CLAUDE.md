@@ -1,8 +1,8 @@
 # CLAUDE.md — ADO Integration Agent
 
 ## Project context
-- **Org**: app-lz-devops
-- **Project**: B05-BTS-CTS (Azure DevOps)
+- **Org**: your-ado-org
+- **Project**: your-ado-project (Azure DevOps)
 - **MCP Server**: `ecosys-mcpado` (running via stdio)
 
 ---

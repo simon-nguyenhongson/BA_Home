@@ -1,10 +1,10 @@
-# project-profile.yaml —  convert file System
+# project-profile.yaml — BA_Home
 #  AI-DLC Platform — Project Profile
 # Lưu file này ở Git root. Đăng ký vào Artifact Registry khi Phase 0 Stage 0.1 kickoff.
 # Xem: Build_Standard.md — Section 2 và D3
 
-project_id:    "Conver_file_001"
-name:          " convert file System"
+project_id:    "ba_home"
+name:          "BA_Home"
 product_type:  internal_tool       # web_app | mobile_app | api_service | data_pipeline | internal_tool | hybrid
 tech_stack:
   frontend:    nextjs              # next.js 15 + TypeScript (ADR-001)

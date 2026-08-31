@@ -44,7 +44,7 @@ function Shell() {
           <button className="sidebar__toggle" onClick={() => setSidebarExpanded(e => !e)} aria-label="Toggle navigation">
             ☰
           </button>
-          <span className="sidebar__brand">DevOps Hub</span>
+          <span className="sidebar__brand">BA_Home</span>
         </div>
         <div className="sidebar-nav">
           {APPS.map(app => (
@@ -110,7 +110,7 @@ function Shell() {
         <div className="body-area">
           <div className="main-wrap">
             <div className="breadcrumb-bar">
-              <span>DevOps Hub</span>
+              <span>BA_Home</span>
               <span className="sep">›</span>
               <span>{currentApp.label}</span>
               <span className="sep">›</span>
