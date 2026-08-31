@@ -75,7 +75,7 @@ Từ `<project_root>`, chạy **1 lệnh duy nhất**:
 migrate.bat
 ```
 
-Script này sẽ tự động chạy `infra/init.sql` + `infra/migrate_annual_plans_v2.sql` + toàn bộ 35 migration files (V017–V047) theo đúng thứ tự.
+Script này sẽ tự động chạy `infra/init.sql` + `infra/migrate_annual_plans_v2.sql` + toàn bộ 36 migration files (V017–V048) theo đúng thứ tự.
 
 **Hoặc chạy thủ công từng file** (nếu cần):
 
@@ -122,6 +122,7 @@ psql -h 127.0.0.1 -U devops -d devops_hub -f migrations/V044__project_todos_stat
 psql -h 127.0.0.1 -U devops -d devops_hub -f migrations/V045__ba_documents_and_project_objects.sql
 psql -h 127.0.0.1 -U devops -d devops_hub -f migrations/V046__rename_pcr_to_cr.sql
 psql -h 127.0.0.1 -U devops -d devops_hub -f migrations/V047__master_doc_versioning.sql
+psql -h 127.0.0.1 -U devops -d devops_hub -f migrations/V048__ai_skills_brs_automation.sql
 ```
 
 > **Lưu ý:** Một số migration dùng `IF NOT EXISTS` — chạy lại không bị lỗi. Nếu thấy lỗi `already exists` có thể bỏ qua.
@@ -251,7 +252,7 @@ ba_home/
 │   └── vite.config.ts
 ├── infra/
 │   └── init.sql              # Schema khởi tạo
-├── migrations/               # V017–V047 incremental migrations
+├── migrations/               # V017–V048 incremental migrations
 ├── docs/                     # ADRs, Architecture, BRD
 ├── uploads/                  # File uploads (tự tạo khi chạy)
 ├── install.bat               # Cài dependencies (chạy 1 lần)

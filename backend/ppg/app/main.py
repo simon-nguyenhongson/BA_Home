@@ -23,6 +23,7 @@ from app.routers import project_docs
 from app.routers import requests
 from app.routers import test_documents
 from app.routers import todos
+from app.routers import ai_admin, cr_brs, master_docs, automation
 
 
 @asynccontextmanager
@@ -86,6 +87,14 @@ app.include_router(test_documents.router)
 
 # v9 routers — To-do List (FR-T01 – FR-T10)
 app.include_router(todos.router)
+
+# v10 routers — AI Agent: cấu hình Claude + kho skill, BRS theo CR,
+# Master Doc merge có phê duyệt, Automation Test
+# (docs/design/AI-DOC-AUTOMATION-FLOW.md)
+app.include_router(ai_admin.router)
+app.include_router(cr_brs.router)
+app.include_router(master_docs.router)
+app.include_router(automation.router)
 
 # Serve MkDocs static sites at /sites/{project_code}/
 _sites_dir = Path(os.getenv("SITES_DIR", "./public/sites"))

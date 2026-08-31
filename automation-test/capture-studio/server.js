@@ -14,6 +14,16 @@ const PORT = process.env.STUDIO_PORT ? Number(process.env.STUDIO_PORT) : 4700;
 
 const app = express();
 app.use(express.json({ limit: '5mb' }));
+
+// Cho phép BA_Home frontend (Vite) đọc API studio để map test case và import kết quả chạy.
+const ALLOW_ORIGIN = process.env.STUDIO_ALLOW_ORIGIN || 'http://localhost:5173';
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', ALLOW_ORIGIN);
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/runs', express.static(path.join(__dirname, 'data', 'runs')));
 
