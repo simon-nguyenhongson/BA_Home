@@ -204,7 +204,7 @@ export function ExportImportPanel({
                 size="sm"
                 onClick={() => setImportFile(null)}
               >
-                ✕
+                
               </Btn>
             </div>
           ) : (

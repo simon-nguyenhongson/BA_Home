@@ -146,9 +146,9 @@ export function ToastContainer() {
     <div className="toast-container">
       {toasts.map((t) => (
         <div key={t.id} className={`toast${t.type === 'success' ? ' toast-success' : t.type === 'warn' ? ' toast-warning' : t.type === 'error' ? ' toast-danger' : ''}`}>
-          <span>{t.type === 'success' ? '✓' : t.type === 'warn' ? '⚠' : t.type === 'error' ? '✕' : 'ℹ'}</span>
+          <span>{t.type === 'success'?'': t.type ==='warn'?'': t.type ==='error'?'':'ℹ'}</span>
           <span>{t.message}</span>
-          <button onClick={() => removeToast(t.id)} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', opacity: 0.7 }}>✕</button>
+          <button onClick={() => removeToast(t.id)} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', opacity: 0.7 }}></button>
         </div>
       ))}
     </div>

@@ -82,7 +82,7 @@ export function UserSelect({
           <span
             onClick={e => { e.stopPropagation(); onChange('') }}
             style={{ color: 'var(--app-neutral-400)', fontSize: 11, cursor: 'pointer', lineHeight: 1 }}
-          >✕</span>
+          ></span>
         )}
         <span style={{ color: 'var(--app-neutral-400)', fontSize: 10 }}>{open ? '▲' : '▼'}</span>
       </div>

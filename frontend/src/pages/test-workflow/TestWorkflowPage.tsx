@@ -151,7 +151,7 @@ function LoadingCard() {
 function ErrorCard({ onRetry }: { onRetry: () => void }) {
   return (
     <div style={{ padding: 60, textAlign: 'center', color: C.n500 }}>
-      <div style={{ fontSize: 24, marginBottom: 8 }}>⚠️</div>
+      <div style={{ fontSize: 24, marginBottom: 8 }}><AlertTriangle size={14} strokeWidth={1.5} /></div>
       <div style={{ fontSize: 13, marginBottom: 16 }}>Không thể tải dữ liệu. Kiểm tra kết nối backend.</div>
       <button
         onClick={onRetry}
@@ -264,14 +264,14 @@ function ExecutionTab({ data }: { data: ExecutionMetrics }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
-        <KpiCard label="Tổng test cases" value={data.total_cases} icon="📋" sub={`${execPct}% executed`} />
-        <KpiCard label="Pass rate" value={`${data.pass_pct}%`} icon="✅"
+        <KpiCard label="Tổng test cases"value={data.total_cases} icon="" sub={`${execPct}% executed`} />
+        <KpiCard label="Pass rate"value={`${data.pass_pct}%`} icon=""
           color={data.pass_pct >= 80 ? C.success : C.warning}
           sub={`${data.sum_passed} / ${data.sum_total} tests`} />
-        <KpiCard label="Fail rate" value={`${data.fail_pct}%`} icon="❌"
+        <KpiCard label="Fail rate"value={`${data.fail_pct}%`} icon=""
           color={data.fail_pct > 20 ? C.danger : data.fail_pct > 5 ? C.warning : C.n500}
           sub={`${data.sum_failed} failed`} />
-        <KpiCard label="Automation" value={`${data.automation_pct}%`} icon="🤖"
+        <KpiCard label="Automation"value={`${data.automation_pct}%`} icon=""
           color={data.automation_pct >= 60 ? C.success : C.warning}
           sub={`${data.automated_count} / ${data.total_cases} scripts`} />
       </div>
@@ -467,8 +467,8 @@ function ControlTab({ data }: { data: ControlMetrics }) {
                 </div>
                 <div style={{ width: 100, display: 'flex', gap: 6, fontSize: 11, justifyContent: 'flex-end' }}>
                   <strong>{d.total}</strong>
-                  <span style={{ color: C.success }}>✔{d.resolved}</span>
-                  {d.open > 0 && <span style={{ color: SEV_COLOR[d.severity], fontWeight: 700 }}>✗{d.open}</span>}
+                  <span style={{ color: C.success }}>{d.resolved}</span>
+                  {d.open > 0 && <span style={{ color: SEV_COLOR[d.severity], fontWeight: 700 }}>{d.open}</span>}
                 </div>
               </div>
             ))}
@@ -476,7 +476,7 @@ function ControlTab({ data }: { data: ControlMetrics }) {
           {(critOpen > 0 || highOpen > 0) && (
             <div style={{ padding: '8px 12px', background: '#fff1f2', borderRadius: 8,
               borderLeft: `3px solid ${C.danger}`, fontSize: 12, color: '#991b1b' }}>
-              ⚠️ <strong>{critOpen + highOpen} defect Critical/High</strong> chưa resolve — cần xử lý trước release.
+               <strong>{critOpen + highOpen} defect Critical/High</strong> chưa resolve — cần xử lý trước release.
             </div>
           )}
         </Card>
@@ -500,7 +500,7 @@ function ControlTab({ data }: { data: ControlMetrics }) {
               <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 3 }}>
                 {data.defects_by_env.map(e => (
                   <div key={e.env} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11 }}>
-                    <span style={{ color: e.env === 'PROD' ? C.danger : C.n600 }}>{e.env === 'PROD' && '⚠ '}{e.env}</span>
+                    <span style={{ color: e.env === 'PROD'? C.danger : C.n600 }}>{e.env ==='PROD'&&' '}{e.env}</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                       <div style={{ width: 40, height: 4, background: C.n100, borderRadius: 2 }}>
                         <div style={{ height: '100%', borderRadius: 2, background: e.env === 'PROD' ? C.danger : C.info,
@@ -530,9 +530,9 @@ function ControlTab({ data }: { data: ControlMetrics }) {
                 <span style={{ color: C.n400 }}> / {data.total_resolved}</span>
               </div>
               <div style={{ marginTop: 8, fontSize: 11, color: C.n600 }}>
-                {data.reopen_rate_pct === 0 ? '✅ Không có defect bị reopen'
-                  : data.reopen_rate_pct <= 10 ? '⚠ Kiểm tra quy trình verify fix'
-                  : '❌ Reopen rate cao — cần cải thiện'}
+                {data.reopen_rate_pct === 0 ? 'Không có defect bị reopen'
+                  : data.reopen_rate_pct <= 10 ? 'Kiểm tra quy trình verify fix'
+                  : 'Reopen rate cao — cần cải thiện'}
               </div>
             </div>
           </div>
@@ -560,7 +560,7 @@ function ControlTab({ data }: { data: ControlMetrics }) {
           ))}
           {totalOpen === 0 && (
             <div style={{ textAlign: 'center', padding: 14, fontSize: 12, color: C.success,
-              background: '#dcfce7', borderRadius: 8 }}>✅ Không còn defect open</div>
+              background: '#dcfce7', borderRadius: 8 }}> Không còn defect open</div>
           )}
         </Card>
       </div>
@@ -773,7 +773,7 @@ function DocumentsTab() {
                 Trạng thái: <strong>{transitionTarget.status}</strong>
               </div>
             </div>
-            <Btn variant="ghost" size="sm" onClick={() => setTransitionTarget(null)}>✕</Btn>
+            <Btn variant="ghost"size="sm" onClick={() => setTransitionTarget(null)}></Btn>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {getTransitionsForDoc(transitionTarget).map(t => (
@@ -791,7 +791,7 @@ function DocumentsTab() {
       >
         {coverage
           ? <CoverageIndicator coverage={coverage} />
-          : <EmptyState icon="📊" title="Không có dữ liệu coverage" />}
+          : <EmptyState icon=""title="Không có dữ liệu coverage" />}
       </Modal>
     </>
   )

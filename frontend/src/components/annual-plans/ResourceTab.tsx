@@ -99,7 +99,7 @@ export function ResourceTab({ planId, readOnly }: { planId: string; readOnly?: b
         Object.entries(byTeam).map(([team, members]) => (
           <div key={team} style={{ marginBottom: 16 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--app-neutral-600)', marginBottom: 6, padding: '4px 8px', background: 'var(--app-neutral-100)', borderRadius: 4 }}>
-              👥 {team} ({members.length})
+               {team} ({members.length})
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {members.map(item => (

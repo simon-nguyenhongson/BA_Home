@@ -19,10 +19,10 @@ const RISK_LABEL = (score: number) =>
   score >= 20 ? 'Critical' : score >= 12 ? 'High' : score >= 6 ? 'Medium' : 'Low'
 
 const STATUS_STYLE: Record<RiskStatus, { bg: string; color: string; label: string }> = {
-  open:      { bg: '#ef444415', color: '#ef4444', label: '🔴 Open' },
-  mitigated: { bg: '#f59e0b15', color: '#f59e0b', label: '🟡 Mitigated' },
-  closed:    { bg: '#10b98115', color: '#10b981', label: '🟢 Closed' },
-  occurred:  { bg: '#6366f115', color: '#6366f1', label: '⚡ Occurred' },
+  open:      { bg: '#ef444415', color: '#ef4444', label: 'Open' },
+  mitigated: { bg: '#f59e0b15', color: '#f59e0b', label: 'Mitigated' },
+  closed:    { bg: '#10b98115', color: '#10b981', label: 'Closed' },
+  occurred:  { bg: '#6366f115', color: '#6366f1', label: 'Occurred' },
 }
 
 const EMPTY: RiskCreate = { title: '', probability: 3, impact: 3, status: 'open' }
@@ -79,12 +79,12 @@ export function RiskTab({ planId, readOnly }: { planId: string; readOnly?: boole
         <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
           {openRisks.length > 0 && (
             <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 6, padding: '8px 12px', fontSize: 12, color: 'var(--app-danger)', flex: 1 }}>
-              🔴 <strong>{openRisks.length} risks</strong> đang mở cần xử lý
+               <strong>{openRisks.length} risks</strong> đang mở cần xử lý
             </div>
           )}
           {highRisks.length > 0 && (
             <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 6, padding: '8px 12px', fontSize: 12, color: '#ea580c', flex: 1 }}>
-              ⚠ <strong>{highRisks.length} risks</strong> mức độ High/Critical
+               <strong>{highRisks.length} risks</strong> mức độ High/Critical
             </div>
           )}
         </div>
@@ -125,7 +125,7 @@ export function RiskTab({ planId, readOnly }: { planId: string; readOnly?: boole
                       <span style={{ fontWeight: 700, fontSize: 13 }}>{item.title}</span>
                       <span style={{ fontSize: 10, padding: '1px 7px', borderRadius: 8, background: sts.bg, color: sts.color, fontWeight: 600 }}>{sts.label}</span>
                       {item.category && <span style={{ fontSize: 10, color: 'var(--app-neutral-400)' }}>{item.category}</span>}
-                      {item.owner && <span style={{ fontSize: 10, color: 'var(--app-neutral-500)', marginLeft: 'auto' }}>👤 {item.owner}</span>}
+                      {item.owner && <span style={{ fontSize: 10, color: 'var(--app-neutral-500)', marginLeft: 'auto' }}> {item.owner}</span>}
                     </div>
                     <div style={{ display: 'flex', gap: 12, fontSize: 11, color: 'var(--app-neutral-500)', marginBottom: 3 }}>
                       <span>P: {item.probability}/5</span>
@@ -134,7 +134,7 @@ export function RiskTab({ planId, readOnly }: { planId: string; readOnly?: boole
                     </div>
                     {item.description && <p className="txt_r_xxxs text-muted" style={{ margin: '2px 0' }}>{item.description}</p>}
                     {item.mitigation && (
-                      <div style={{ fontSize: 11, color: 'var(--app-success)', marginTop: 2 }}>🛡 {item.mitigation}</div>
+                      <div style={{ fontSize: 11, color: 'var(--app-success)', marginTop: 2 }}> {item.mitigation}</div>
                     )}
                   </div>
                   {!readOnly && (

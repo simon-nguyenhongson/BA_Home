@@ -247,7 +247,7 @@ function BusinessTab({ projects, domains, loading }: {
                   </td>
                   <td>
                     <span style={{ fontSize: 12, fontWeight: 500, color: statusColor }}>
-                      {p.status === 'active' ? '▶ Active' : p.status === 'completed' ? '✓ Done' : p.status}
+                      {p.status === 'active'?'▶ Active': p.status ==='completed'?' Done' : p.status}
                     </span>
                   </td>
                   <td style={{ whiteSpace: 'nowrap', fontSize: 11, color: 'var(--app-neutral-500)' }}>
@@ -506,7 +506,7 @@ function DeliveryTab({ projects, loading }: { projects: Project[]; loading: bool
                     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                       {taskDone > 0 && (
                         <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 8, background: '#dcfce7', color: '#16a34a', fontWeight: 700 }}>
-                          ✓ {taskDone} done
+                           {taskDone} done
                         </span>
                       )}
                       {taskInProg > 0 && (
@@ -534,12 +534,12 @@ function DeliveryTab({ projects, loading }: { projects: Project[]; loading: bool
                       <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                         {openBugsP > 0 && (
                           <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 8, background: '#fee2e2', color: '#dc2626', fontWeight: 700 }}>
-                            🐛 {openBugsP} open
+                             {openBugsP} open
                           </span>
                         )}
                         {resolvedB > 0 && (
                           <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 8, background: '#dcfce7', color: '#16a34a', fontWeight: 700 }}>
-                            ✓ {resolvedB} resolved
+                             {resolvedB} resolved
                           </span>
                         )}
                       </div>
@@ -588,11 +588,11 @@ import { DocumentsTab } from './DocumentsTab'
 type ExtendedBaTab = BaTab | 'requirements' | 'documents'
 
 const TABS: { key: ExtendedBaTab; label: string; icon: string; sub: string }[] = [
-  { key: 'requirements', icon: '📝', label: 'Requirements', sub: 'Transform Raw Requirements → Documents' },
-  { key: 'documents',    icon: '📄', label: 'Documents',    sub: 'Document Hub · Duyệt tài liệu · State machine: draft → review → approved' },
-  { key: 'business', icon: '💼', label: 'Business',  sub: 'Project list · Business value · Stakeholder · Priority' },
-  { key: 'solution', icon: '🔧', label: 'Solution',  sub: 'Requirement status · Data mapping · API integration · Complexity' },
-  { key: 'delivery', icon: '🚀', label: 'Delivery',  sub: 'Sprint progress · BA workload · Defects · Change requests' },
+  { key: 'requirements', icon: '', label: 'Requirements', sub: 'Transform Raw Requirements → Documents' },
+  { key: 'documents',    icon: '', label: 'Documents',    sub: 'Document Hub · Duyệt tài liệu · State machine: draft → review → approved' },
+  { key: 'business', icon: '', label: 'Business',  sub: 'Project list · Business value · Stakeholder · Priority' },
+  { key: 'solution', icon: '', label: 'Solution',  sub: 'Requirement status · Data mapping · API integration · Complexity' },
+  { key: 'delivery', icon: '', label: 'Delivery',  sub: 'Sprint progress · BA workload · Defects · Change requests' },
 ]
 
 export default function BAWorkflowPage() {

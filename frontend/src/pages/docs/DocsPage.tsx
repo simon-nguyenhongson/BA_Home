@@ -6,6 +6,7 @@ import {
   type DocFileInfo, type DocFileVersion,
 } from '../../api/ppg'
 import { useStore } from '../../stores/auth'
+import { FileText, FolderOpen } from 'lucide-react'
 
 // ─── colour helpers ───────────────────────────────────────────────
 const TRACK_COLOR: Record<string, string> = {
@@ -126,7 +127,7 @@ function VersionHistoryModal({
             <div key={file.id} style={{ marginBottom: 20 }}>
               {/* File name + current version badge */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <span style={{ fontSize: 14 }}>📄</span>
+                <span style={{ fontSize: 14 }}><FileText size={14} strokeWidth={1.5} /></span>
                 <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--app-neutral-800)', flex: 1 }}>
                   {file.name}
                 </span>
@@ -373,7 +374,7 @@ function FolderRow({
             padding: '5px 12px 5px 34px',
             background: '#f8fffe', borderTop: '1px solid var(--app-neutral-100)',
           }}>
-            <span style={{ fontSize: 12 }}>📄</span>
+            <span style={{ fontSize: 12 }}><FileText size={14} strokeWidth={1.5} /></span>
             <span style={{
               fontSize: 12, color: 'var(--app-neutral-700)', fontWeight: 600,
               flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -419,7 +420,7 @@ function FolderRow({
             {folder.templates.map(tpl => (
               <div key={tpl.rel_path}
                 style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
-                <span style={{ fontSize: 12 }}>📄</span>
+                <span style={{ fontSize: 12 }}><FileText size={14} strokeWidth={1.5} /></span>
                 <span style={{ flex: 1, fontSize: 12, color: 'var(--app-neutral-700)' }}>{tpl.display_name}</span>
                 <button
                   onClick={() => onDownload(tpl.rel_path)}
@@ -703,7 +704,7 @@ function FoldersTab() {
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             height: '100%', minHeight: 300, color: 'var(--app-neutral-400)',
           }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>📂</div>
+            <div style={{ fontSize: 40, marginBottom: 12 }}><FolderOpen size={14} strokeWidth={1.5} /></div>
             <div style={{ fontSize: 14, fontWeight: 600 }}>Chọn dự án để xem thư mục</div>
             <div style={{ fontSize: 12, marginTop: 6, color: 'var(--app-neutral-300)' }}>Domain → Dự án → Thư mục</div>
           </div>

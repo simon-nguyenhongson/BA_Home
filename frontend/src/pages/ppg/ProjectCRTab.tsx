@@ -72,7 +72,7 @@ function ErrorBanner({ message, onClose }: { message: string; onClose: () => voi
       display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#b91c1c',
     }}>
       <span style={{ flex: 1 }}>{message}</span>
-      <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b91c1c', fontSize: 16 }}>✕</button>
+      <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b91c1c', fontSize: 16 }}></button>
     </div>
   )
 }
@@ -622,7 +622,7 @@ export default function ProjectCRTab({
         background: '#eff6ff', border: '1px solid #bfdbfe',
         display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: '#1d4ed8',
       }}>
-        <span style={{ fontSize: 15 }}>ℹ️</span>
+        <span style={{ fontSize: 15 }}>ℹ</span>
         <span style={{ flex: 1 }}>
           CR tạo từ <strong>Module Requests</strong> với cùng dự án này sẽ tự động hiển thị ở đây.
           Bạn cũng có thể tạo CR trực tiếp tại tab này.
@@ -798,7 +798,7 @@ export default function ProjectCRTab({
                   onClick={() => setSelected(null)}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-neutral-400)', fontSize: 18, padding: 2 }}
                 >
-                  ✕
+                  
                 </button>
               </div>
 

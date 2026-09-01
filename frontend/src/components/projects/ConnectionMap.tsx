@@ -176,7 +176,7 @@ export function ConnectionMap({
         <div className="empty-state">Đang tải...</div>
       ) : outbound.length === 0 && inbound.length === 0 ? (
         <EmptyState
-          icon="🔗"
+          icon=""
           title="Chưa có kết nối"
           desc="Thêm kết nối inbound hoặc outbound cho đối tượng này"
           action={

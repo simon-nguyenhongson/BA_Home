@@ -6,7 +6,7 @@ const PREVIEW_EXTS = new Set(['pdf', 'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp',
 
 function actionIcon(filename: string): string {
   const ext = filename.split('.').pop()?.toLowerCase() ?? ''
-  return PREVIEW_EXTS.has(ext) ? '👁' : '↓'
+  return PREVIEW_EXTS.has(ext) ? '':'↓'
 }
 function actionTitle(filename: string): string {
   const ext = filename.split('.').pop()?.toLowerCase() ?? ''
@@ -69,7 +69,7 @@ export function RequestAttachments({
             color: 'var(--app-neutral-600)', display: 'flex', alignItems: 'center', gap: 4,
           }}
         >
-          {uploading ? 'Đang tải...' : '📎 Đính kèm'}
+          {uploading ? 'Đang tải...':' Đính kèm'}
         </button>
         <input ref={inputRef} type="file" accept={FILE_ACCEPT} multiple hidden
           onChange={e => handleFiles(e.target.files)} />

@@ -9,10 +9,10 @@ import type { PlanKpi, KpiCreate, KpiStatus, Quarter } from '../../lib/types/ann
 import { useStore } from '../../stores/auth'
 
 const STATUS_STYLE: Record<KpiStatus, { bg: string; color: string; label: string }> = {
-  on_track:  { bg: '#10b98115', color: '#10b981', label: '✅ On Track' },
-  at_risk:   { bg: '#f59e0b15', color: '#f59e0b', label: '⚠️ At Risk' },
-  off_track: { bg: '#ef444415', color: '#ef4444', label: '❌ Off Track' },
-  achieved:  { bg: '#6366f115', color: '#6366f1', label: '🏆 Achieved' },
+  on_track:  { bg: '#10b98115', color: '#10b981', label: 'On Track' },
+  at_risk:   { bg: '#f59e0b15', color: '#f59e0b', label: 'At Risk' },
+  off_track: { bg: '#ef444415', color: '#ef4444', label: 'Off Track' },
+  achieved:  { bg: '#6366f115', color: '#6366f1', label: 'Achieved' },
 }
 
 const PCT_PROGRESS = (actual?: number, target?: number) => {

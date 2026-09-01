@@ -18,7 +18,7 @@ const DEP_TYPES = [
 const STATUS_STYLE: Record<string, { color: string; label: string }> = {
   active:   { color: 'var(--app-primary)',  label: 'Active' },
   resolved: { color: 'var(--app-success)',  label: 'Resolved' },
-  blocked:  { color: 'var(--app-danger)',   label: '⚠ Blocked' },
+  blocked:  { color: 'var(--app-danger)',   label: 'Blocked' },
 }
 
 const EMPTY: DependencyCreate = { from_label: '', to_label: '', dep_type: 'finish_to_start', status: 'active' }
@@ -69,7 +69,7 @@ export function DependencyTab({ planId, readOnly }: { planId: string; readOnly?:
     <div>
       {blocked.length > 0 && (
         <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 6, padding: '10px 14px', marginBottom: 16, fontSize: 12, color: 'var(--app-danger)' }}>
-          ⚠ <strong>{blocked.length} dependency</strong> đang ở trạng thái BLOCKED — cần xử lý.
+           <strong>{blocked.length} dependency</strong> đang ở trạng thái BLOCKED — cần xử lý.
         </div>
       )}
 

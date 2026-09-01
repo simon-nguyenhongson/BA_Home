@@ -113,7 +113,7 @@ export function TestDocumentList({
         <div className="empty-state">Đang tải...</div>
       ) : filtered.length === 0 ? (
         <EmptyState
-          icon="🧪"
+          icon=""
           title="Không có tài liệu test"
           desc="Chưa có tài liệu test nào"
           action={

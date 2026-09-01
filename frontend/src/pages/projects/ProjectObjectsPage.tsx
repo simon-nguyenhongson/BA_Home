@@ -158,7 +158,7 @@ export default function ProjectObjectsPage() {
   if (!projectId) {
     return (
       <EmptyState
-        icon="📁"
+        icon=""
         title="Chưa chọn Project"
         desc="Chọn một project từ tab Projects để quản lý đối tượng"
       />

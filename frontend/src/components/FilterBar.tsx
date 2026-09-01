@@ -86,7 +86,7 @@ export function FilterBar({
             position: 'absolute', left: 8,
             color: 'var(--app-neutral-400)', fontSize: 12, pointerEvents: 'none',
           }}>
-            🔍
+            
           </span>
           <input
             style={{ ...S.input, paddingLeft: 26, minWidth: 200 }}
@@ -102,7 +102,7 @@ export function FilterBar({
                 position: 'absolute', right: 6, background: 'none', border: 'none',
                 cursor: 'pointer', color: 'var(--app-neutral-400)', fontSize: 12, padding: 2,
               }}
-            >✕</button>
+            ></button>
           )}
         </div>
       )}
@@ -149,7 +149,7 @@ export function FilterBar({
       {/* Clear */}
       {hasActive && onClear && (
         <button type="button" style={S.clearBtn} onClick={onClear}>
-          ✕ Xóa filter
+           Xóa filter
         </button>
       )}
 

@@ -587,7 +587,7 @@ export default function AnnualPlansPage() {
           <div className="empty-state">Đang tải...</div>
         ) : plans.length === 0 ? (
           <EmptyState
-            icon="📅"
+            icon=""
             title={yearFilter ? `Chưa có kế hoạch năm ${yearFilter}` : 'Chưa có kế hoạch năm'}
             desc="Tạo kế hoạch đầu tiên để theo dõi danh mục dự án và mục tiêu"
             action={
@@ -752,7 +752,7 @@ export default function AnnualPlansPage() {
                   {/* Timeline */}
                   {(selectedPlan.start_date || selectedPlan.end_date) && (
                     <div className="txt_r_xxxs text-muted" style={{ marginTop: 6 }}>
-                      📅 {selectedPlan.start_date?.slice(0, 10) ?? '?'} → {selectedPlan.end_date?.slice(0, 10) ?? '?'}
+                       {selectedPlan.start_date?.slice(0, 10) ?? '?'} → {selectedPlan.end_date?.slice(0, 10) ?? '?'}
                     </div>
                   )}
 
@@ -761,7 +761,7 @@ export default function AnnualPlansPage() {
                     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 8 }}>
                       {selectedPlan.related_systems.map((sys, i) => (
                         <span key={i} style={{ fontSize: 11, background: 'var(--app-neutral-100)', padding: '2px 8px', borderRadius: 10, color: 'var(--app-neutral-700)' }}>
-                          🔗 {sys}
+                           {sys}
                         </span>
                       ))}
                     </div>
@@ -797,17 +797,17 @@ export default function AnnualPlansPage() {
             {/* Tabs */}
             <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--app-neutral-200)', marginBottom: 16, flexWrap: 'wrap' }}>
               {([
-                { key: 'objectives',   label: `🎯 Mục tiêu (${selectedPlan.objectives.length})` },
-                { key: 'dod',          label: '✅ Def. of Done' },
-                { key: 'projects',     label: `📁 Dự án (${selectedPlan.projects.length})` },
-                { key: 'initiatives',  label: '🗓️ Initiatives' },
-                { key: 'biz-mapping',  label: '🏢 BIZ Mapping' },
-                { key: 'budget',       label: '💰 Ngân sách' },
-                { key: 'resources',    label: '👥 Nguồn lực' },
-                { key: 'kpis',         label: '📊 KPI / OKR' },
-                { key: 'dependencies', label: '🔗 Dependencies' },
-                { key: 'risks',        label: '⚠️ Risk Register' },
-                { key: 'dashboard',    label: '📈 Dashboard' },
+                { key: 'objectives',   label: ` Mục tiêu (${selectedPlan.objectives.length})` },
+                { key: 'dod',          label: 'Def. of Done' },
+                { key: 'projects',     label: ` Dự án (${selectedPlan.projects.length})` },
+                { key: 'initiatives',  label: 'Initiatives' },
+                { key: 'biz-mapping',  label: 'BIZ Mapping' },
+                { key: 'budget',       label: 'Ngân sách' },
+                { key: 'resources',    label: 'Nguồn lực' },
+                { key: 'kpis',         label: 'KPI / OKR' },
+                { key: 'dependencies', label: 'Dependencies' },
+                { key: 'risks',        label: 'Risk Register' },
+                { key: 'dashboard',    label: 'Dashboard' },
               ] as { key: DetailTab; label: string }[]).map((t) => (
                 <button
                   key={t.key}
@@ -856,7 +856,7 @@ export default function AnnualPlansPage() {
                 </div>
                 {selectedPlan.projects.length === 0 ? (
                   <EmptyState
-                    icon="📁"
+                    icon=""
                     title="Chưa có dự án liên kết"
                     desc={
                       selectedPlan.status === 'active'

@@ -285,10 +285,10 @@ export function DocumentsTab() {
       <div style={{ display: 'flex', gap: 16, marginBottom: 16, fontSize: 12, color: 'var(--app-neutral-500)' }}>
         <span>{documents.length} tài liệu</span>
         <span>·</span>
-        <span style={{ color: 'var(--app-neutral-600)' }}>📝 {countByStatus('draft')} draft</span>
-        <span style={{ color: '#d97706' }}>👁 {countByStatus('in_review')} đang review</span>
-        <span style={{ color: '#16a34a' }}>✓ {countByStatus('approved')} approved</span>
-        <span style={{ color: '#6b7280' }}>📦 {countByStatus('archived')} archived</span>
+        <span style={{ color: 'var(--app-neutral-600)'}}> {countByStatus('draft')} draft</span>
+        <span style={{ color: '#d97706'}}> {countByStatus('in_review')} đang review</span>
+        <span style={{ color: '#16a34a'}}> {countByStatus('approved')} approved</span>
+        <span style={{ color: '#6b7280'}}> {countByStatus('archived')} archived</span>
       </div>
 
       {/* Filter bar */}
@@ -360,7 +360,7 @@ export function DocumentsTab() {
       {loading ? (
         <div className="empty-state"><div>Đang tải...</div></div>
       ) : displayDocs.length === 0 ? (
-        <EmptyState icon="📄" title="Chưa có document nào"
+        <EmptyState icon=""title="Chưa có document nào"
           desc="Tạo tài liệu mới hoặc thay đổi bộ lọc"
           action={<Btn onClick={() => setShowCreate(true)}><Plus size={14} /> Tạo Document</Btn>} />
       ) : (
@@ -386,8 +386,8 @@ export function DocumentsTab() {
                     {project ? `${project.code} — ${project.name}` : doc.project_id?.slice(0, 8)}
                     {' · '}{doc.version}
                     {' · '}{doc.created_at ? new Date(doc.created_at).toLocaleDateString('vi-VN') : ''}
-                    {doc.approved_by && <span> · ✓ {doc.approved_by}</span>}
-                    {doc.created_by && <span> · 👤 {doc.created_by}</span>}
+                    {doc.approved_by && <span> ·  {doc.approved_by}</span>}
+                    {doc.created_by && <span> ·  {doc.created_by}</span>}
                   </div>
                 </div>
                 <div style={{ color: 'var(--app-neutral-400)' }}><ArrowRight size={16} /></div>

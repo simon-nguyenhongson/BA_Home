@@ -231,7 +231,7 @@ export function TestDocumentForm({
 
       {error && (
         <div style={{ color: '#DC2626', fontSize: 13, fontWeight: 500, marginTop: 8, padding: '8px 12px', background: '#FEF2F2', borderRadius: 8, border: '1px solid #FECACA' }}>
-          ⚠️ {error}
+           {error}
         </div>
       )}
 

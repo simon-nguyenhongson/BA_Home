@@ -271,12 +271,12 @@ describe('OverviewTab — milestone mini timeline logic', () => {
 
 describe('OverviewTab — doc template grid', () => {
   const DOC_TEMPLATES = [
-    { icon: '📋', name: 'BRD Template', cat: 'BRD' },
-    { icon: '📐', name: 'FRD Template', cat: 'FRD' },
-    { icon: '🧪', name: 'Test Plan Template', cat: 'TestPlan' },
-    { icon: '✅', name: 'Test Case Template', cat: 'TestCase' },
-    { icon: '📝', name: 'Meeting Minutes', cat: 'MeetingMinutes' },
-    { icon: '🚀', name: 'Go-Live Checklist', cat: 'Deployment' },
+    { icon: '', name: 'BRD Template', cat: 'BRD'},
+    { icon: '', name: 'FRD Template', cat: 'FRD'},
+    { icon: '', name: 'Test Plan Template', cat: 'TestPlan'},
+    { icon: '', name: 'Test Case Template', cat: 'TestCase'},
+    { icon: '', name: 'Meeting Minutes', cat: 'MeetingMinutes'},
+    { icon: '', name: 'Go-Live Checklist', cat: 'Deployment'},
   ]
 
   it('doc template array has exactly 6 items', () => {

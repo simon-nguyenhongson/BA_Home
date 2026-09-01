@@ -4,16 +4,16 @@ export const FILE_ACCEPT = '.xlsx,.xls,.doc,.docx,.pdf,.txt,.sql,.csv,.json,.xml
 
 export function fileIcon(name: string): string {
   const ext = name.split('.').pop()?.toLowerCase() ?? ''
-  if (['xlsx', 'xls', 'csv'].includes(ext)) return '📊'
-  if (['doc', 'docx'].includes(ext)) return '📝'
-  if (ext === 'pdf') return '📕'
-  if (ext === 'txt') return '📄'
-  if (ext === 'sql') return '🗃️'
-  if (['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'].includes(ext)) return '🖼️'
-  if (['zip', 'rar', '7z'].includes(ext)) return '📦'
+  if (['xlsx', 'xls', 'csv'].includes(ext)) return ''
+  if (['doc', 'docx'].includes(ext)) return ''
+  if (ext === 'pdf') return ''
+  if (ext === 'txt') return ''
+  if (ext === 'sql') return ''
+  if (['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'].includes(ext)) return ''
+  if (['zip', 'rar', '7z'].includes(ext)) return ''
   if (ext === 'json') return '{ }'
-  if (['html', 'htm'].includes(ext)) return '🌐'
-  return '📎'
+  if (['html', 'htm'].includes(ext)) return ''
+  return ''
 }
 
 export function fmtSize(bytes: number): string {
@@ -48,7 +48,7 @@ export function FileQueueSection({
             color: 'var(--app-neutral-600)', display: 'flex', alignItems: 'center', gap: 4,
           }}
         >
-          📎 Thêm file
+           Thêm file
         </button>
         <input
           ref={ref}
@@ -88,7 +88,7 @@ export function FileQueueSection({
               style={{ fontSize: 14, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-neutral-400)', padding: '2px 4px', flexShrink: 0 }}
               title="Bỏ file"
             >
-              ✕
+              
             </button>
           </div>
         ))}

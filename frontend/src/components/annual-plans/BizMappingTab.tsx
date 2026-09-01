@@ -130,7 +130,7 @@ export function BizMappingTab({ planId, readOnly }: { planId: string; readOnly?:
       {/* Unmapped warning */}
       {unmappedInits.length > 0 && (
         <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 6, padding: '10px 14px', marginBottom: 14, fontSize: 12, color: '#ea580c' }}>
-          ⚠ <strong>{unmappedInits.length} initiative</strong> chưa được gắn với mục tiêu business nào:&nbsp;
+           <strong>{unmappedInits.length} initiative</strong> chưa được gắn với mục tiêu business nào:&nbsp;
           {unmappedInits.slice(0, 3).map(i => <strong key={i.id}>{i.title}</strong>).reduce<React.ReactNode[]>((acc, el, idx) => idx === 0 ? [el] : [...acc, ', ', el], [])}
           {unmappedInits.length > 3 && <span> và {unmappedInits.length - 3} khác...</span>}
         </div>
@@ -181,7 +181,7 @@ export function BizMappingTab({ planId, readOnly }: { planId: string; readOnly?:
                       )}
                       {obj.biz_owner && (
                         <span style={{ fontSize: 10, color: 'var(--app-neutral-500)', marginLeft: 'auto' }}>
-                          👤 {obj.biz_owner}
+                           {obj.biz_owner}
                         </span>
                       )}
                     </div>
@@ -198,7 +198,7 @@ export function BizMappingTab({ planId, readOnly }: { planId: string; readOnly?:
                             background: 'var(--app-neutral-100)', color: 'var(--app-neutral-700)',
                             display: 'flex', alignItems: 'center', gap: 4,
                           }}>
-                            🗓️ {i.title}
+                             {i.title}
                             {!readOnly && (
                               <button
                                 disabled={mapping}
@@ -264,7 +264,7 @@ export function BizMappingTab({ planId, readOnly }: { planId: string; readOnly?:
                                 transition: 'all 0.15s',
                               }}
                             >
-                              {linked ? '✓ ' : '+ '}{i.title}
+                              {linked ? '' : '+ '}{i.title}
                               {i.quarter && <span style={{ fontSize: 10, marginLeft: 4, opacity: 0.7 }}>[{i.quarter}]</span>}
                             </button>
                           )

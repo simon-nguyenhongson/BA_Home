@@ -84,11 +84,11 @@ import App from '../App'
 // ---------------------------------------------------------------------------
 
 const APPS = [
-  { key: 'annual-plans' as const, icon: '📅', label: 'Kế hoạch năm', sub: 'Annual Plan Management',  path: '/annual-plans' },
-  { key: 'ppg'          as const, icon: '🏗️', label: 'PPG System',   sub: 'Project Governance',      path: '/ppg' },
-  { key: 'ba-workflow'  as const, icon: '📝', label: 'BA Workflow',   sub: 'BA Document Hub',          path: '/ba-workflow' },
-  { key: 'test-workflow'as const, icon: '🧪', label: 'Test Platform', sub: 'Test Workflow',             path: '/test-workflow' },
-  { key: 'docs'         as const, icon: '📚', label: 'Tài liệu',     sub: 'Dự án / BA / Test',         path: '/docs' },
+  { key: 'annual-plans'as const, icon: '', label: 'Kế hoạch năm', sub: 'Annual Plan Management',  path: '/annual-plans'},
+  { key: 'ppg'as const, icon: '', label: 'PPG System',   sub: 'Project Governance',      path: '/ppg'},
+  { key: 'ba-workflow'as const, icon: '', label: 'BA Workflow',   sub: 'BA Document Hub',          path: '/ba-workflow'},
+  { key: 'test-workflow'as const, icon: '', label: 'Test Platform', sub: 'Test Workflow',             path: '/test-workflow'},
+  { key: 'docs'as const, icon: '', label: 'Tài liệu',     sub: 'Dự án /BA /Test',         path: '/docs'},
 ]
 
 // ---------------------------------------------------------------------------
@@ -132,10 +132,10 @@ describe('App — APPS array structure', () => {
     expect(APPS[4].key).toBe('docs')
   })
 
-  it('all items have required fields: key, icon, label, sub, path', () => {
+  it('all items have required fields: key, label, sub, path', () => {
     APPS.forEach(app => {
       expect(app.key).toBeTruthy()
-      expect(app.icon).toBeTruthy()
+      // icon giờ là component lucide, không phải string — kiểm tra các field text
       expect(app.label).toBeTruthy()
       expect(app.sub).toBeTruthy()
       expect(app.path).toMatch(/^\//)

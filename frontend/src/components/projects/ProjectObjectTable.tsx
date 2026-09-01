@@ -15,10 +15,10 @@ const OBJECT_TYPE_LABELS: Record<ProjectObjectType, string> = {
 }
 
 const OBJECT_TYPE_ICONS: Record<ProjectObjectType, string> = {
-  web_app: '🌐',
-  mobile_app: '📱',
-  api: '🔌',
-  elt: '🔄',
+  web_app: '',
+  mobile_app: '',
+  api: '',
+  elt: '',
 }
 
 interface ProjectObjectTableProps {
@@ -114,7 +114,7 @@ export function ProjectObjectTable({
         <div className="empty-state">Đang tải...</div>
       ) : filtered.length === 0 ? (
         <EmptyState
-          icon="🗂️"
+          icon=""
           title="Không có đối tượng"
           desc={
             typeFilter
@@ -220,7 +220,7 @@ export function ProjectObjectTable({
                           title="Xem kết nối"
                           onClick={() => onViewConnections(obj)}
                         >
-                          🔗
+                          
                         </Btn>
                       )}
                       {onEdit && (

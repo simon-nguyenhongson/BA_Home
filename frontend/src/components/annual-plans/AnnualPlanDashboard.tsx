@@ -49,7 +49,7 @@ export function AnnualPlanDashboard({
   if (!summary) {
     return (
       <EmptyState
-        icon="📊"
+        icon=""
         title="Không có dữ liệu dashboard"
         action={
           <Btn variant="ghost" size="sm" onClick={load}>

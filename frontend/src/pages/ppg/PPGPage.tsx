@@ -161,16 +161,16 @@ function ProjectModal({ open, onClose, onSaved, editing, plans, domains }: {
       </Field>
       {!editing && (
         <div className="state-banner state-banner-info" style={{ fontSize: 12, marginTop: 4 }}>
-          <div style={{ fontWeight: 700, marginBottom: 6 }}>✨ Tự động tạo khi khởi tạo project:</div>
+          <div style={{ fontWeight: 700, marginBottom: 6 }}> Tự động tạo khi khởi tạo project:</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
-            <span>📍 Milestones (Kickoff → Closure)</span>
-            <span>📋 BRD + FRD templates</span>
-            <span>🧪 Test Plan + Test Case templates</span>
-            <span>📝 Meeting Minutes template</span>
-            <span>👥 Khung danh sách thành viên</span>
-            <span>🚀 Go-Live checklist</span>
-            <span>📁 Thư mục BA (domain/project/BA/)</span>
-            <span>📁 Thư mục Tester (domain/project/Tester/)</span>
+            <span> Milestones (Kickoff → Closure)</span>
+            <span> BRD + FRD templates</span>
+            <span> Test Plan + Test Case templates</span>
+            <span> Meeting Minutes template</span>
+            <span> Khung danh sách thành viên</span>
+            <span> Go-Live checklist</span>
+            <span> Thư mục BA (domain/project/BA/)</span>
+            <span> Thư mục Tester (domain/project/Tester/)</span>
           </div>
         </div>
       )}
@@ -245,12 +245,12 @@ function OverviewTab({ project, annualPlans, onNavigate }: {
 
   // Auto-created templates info
   const DOC_TEMPLATES = [
-    { icon: '📋', name: 'BRD Template', cat: 'BRD' },
-    { icon: '📐', name: 'FRD Template', cat: 'FRD' },
-    { icon: '🧪', name: 'Test Plan Template', cat: 'TestPlan' },
-    { icon: '✅', name: 'Test Case Template', cat: 'TestCase' },
-    { icon: '📝', name: 'Meeting Minutes', cat: 'MeetingMinutes' },
-    { icon: '🚀', name: 'Go-Live Checklist', cat: 'Deployment' },
+    { icon: '', name: 'BRD Template', cat: 'BRD' },
+    { icon: '', name: 'FRD Template', cat: 'FRD' },
+    { icon: '', name: 'Test Plan Template', cat: 'TestPlan' },
+    { icon: '', name: 'Test Case Template', cat: 'TestCase' },
+    { icon: '', name: 'Meeting Minutes', cat: 'MeetingMinutes' },
+    { icon: '', name: 'Go-Live Checklist', cat: 'Deployment' },
   ]
 
   return (
@@ -264,12 +264,12 @@ function OverviewTab({ project, annualPlans, onNavigate }: {
               <StatusBadge status={project.status} />
               {project.domain_code && (
                 <span style={{ fontSize: 11, background: 'var(--app-warning)20', color: 'var(--app-warning)', padding: '2px 8px', borderRadius: 10, fontWeight: 700, border: '1px solid var(--app-warning)40' }}>
-                  🏢 {project.domain_code}
+                   {project.domain_code}
                 </span>
               )}
               {linkedPlan && (
                 <span style={{ fontSize: 11, background: 'var(--app-primary)15', color: 'var(--app-primary)', padding: '2px 8px', borderRadius: 10, fontWeight: 600 }}>
-                  📅 {linkedPlan.year} · {linkedPlan.name}
+                   {linkedPlan.year} · {linkedPlan.name}
                 </span>
               )}
             </div>
@@ -279,12 +279,12 @@ function OverviewTab({ project, annualPlans, onNavigate }: {
           <div style={{ textAlign: 'right', flexShrink: 0 }}>
             {project.owner && (
               <div style={{ fontSize: 12, color: 'var(--app-neutral-600)', marginBottom: 4 }}>
-                👤 <strong>{project.owner}</strong>
+                 <strong>{project.owner}</strong>
               </div>
             )}
             {project.start_date && (
               <div style={{ fontSize: 12, color: 'var(--app-neutral-500)' }}>
-                📅 {project.start_date.slice(0, 10)} → {project.end_date?.slice(0, 10) || '...'}
+                 {project.start_date.slice(0, 10)} → {project.end_date?.slice(0, 10) || '...'}
                 {duration !== null && <span style={{ marginLeft: 6, color: 'var(--app-primary)' }}>({duration} ngày)</span>}
               </div>
             )}
@@ -432,7 +432,7 @@ function MilestonesTab({ project }: { project: Project }) {
 
       {loading ? <div className="empty-state">Đang tải...</div> :
         milestones.length === 0 ? (
-          <EmptyState icon="📍" title="Chưa có milestones"
+          <EmptyState icon=""title="Chưa có milestones"
             desc="Nhấn Regenerate để tự động tạo theo timeline dự án"
             action={<Btn onClick={regenerate} loading={generating}><Zap size={13} /> Tạo milestones</Btn>} />
         ) : (
@@ -662,7 +662,7 @@ function MembersTab({ project }: { project: Project }) {
       </div>
 
       {members.length === 0 ? (
-        <EmptyState icon="👥" title="Chưa có thành viên" desc="Thêm thành viên để dùng alias trong biên bản họp" />
+        <EmptyState icon=""title="Chưa có thành viên"desc="Thêm thành viên để dùng alias trong biên bản họp" />
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
           {members.map(m => (
@@ -807,7 +807,7 @@ function FilesTab({ project }: { project: Project }) {
     } catch (e: unknown) { addToast((e as Error).message, 'error') }
   }
 
-  const FILE_TYPE_ICON: Record<string, string> = { template: '📄', uploaded: '📁', external_url: '🔗' }
+  const FILE_TYPE_ICON: Record<string, string> = { template: '', uploaded: '', external_url: '' }
   const STATUS_COLORS: Record<string, string> = { draft: 'neutral', review: 'warning', approved: 'success', final: 'info' }
   const msName = (id?: string) => milestones.find(m => m.id === id)?.name
 
@@ -838,12 +838,12 @@ function FilesTab({ project }: { project: Project }) {
       </div>
 
       {files.length === 0 ? (
-        <EmptyState icon="📂" title="Chưa có tài liệu" desc="Attach URL (ADO/SharePoint) hoặc upload file mới" />
+        <EmptyState icon=""title="Chưa có tài liệu"desc="Attach URL (ADO/SharePoint) hoặc upload file mới" />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {files.map(f => (
             <div key={f.id} className="card card-pad-sm" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              <span style={{ fontSize: 20 }}>{FILE_TYPE_ICON[f.file_type] || '📄'}</span>
+              <span style={{ fontSize: 20 }}>{FILE_TYPE_ICON[f.file_type] || ''}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                   <span className="txt_r_xxs" style={{ fontWeight: 600 }}>{f.name}</span>
@@ -928,7 +928,7 @@ function FilesTab({ project }: { project: Project }) {
 
       <Modal title={`Versions — ${showVersions?.name}`} open={!!showVersions} onClose={() => setShowVersions(null)}>
         {versions.length === 0 ? (
-          <EmptyState icon="📋" title="Chưa có version nào" />
+          <EmptyState icon=""title="Chưa có version nào" />
         ) : versions.map(v => (
           <div key={v.id} className="card card-pad-sm" style={{ marginBottom: 8 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1010,7 +1010,7 @@ function MeetingsTab({ project }: { project: Project }) {
       </div>
 
       {meetings.length === 0 ? (
-        <EmptyState icon="📝" title="Chưa có biên bản" desc="Nhập note cuộc họp và AI sẽ tạo biên bản chuẩn" />
+        <EmptyState icon=""title="Chưa có biên bản"desc="Nhập note cuộc họp và AI sẽ tạo biên bản chuẩn" />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {meetings.map(m => (
@@ -1066,14 +1066,14 @@ function MeetingsTab({ project }: { project: Project }) {
               <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
                 {gc.attendees.map((a, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'var(--app-neutral-100)', padding: '3px 10px', borderRadius: 16, fontSize: 12 }}>
-                    <span>👤</span><span>{typeof a === 'string' ? a : (a as { display_name?: string }).display_name || String(a)}</span>
+                    <span><User size={14} strokeWidth={1.5} /></span><span>{typeof a === 'string' ? a : (a as { display_name?: string }).display_name || String(a)}</span>
                   </div>
                 ))}
               </div>
             )}
             {gc.decisions && gc.decisions.length > 0 && (
               <div style={{ marginBottom: 16 }}>
-                <div className="txt_r_xxs" style={{ fontWeight: 700, marginBottom: 8 }}>✅ Quyết định</div>
+                <div className="txt_r_xxs" style={{ fontWeight: 700, marginBottom: 8 }}> Quyết định</div>
                 {gc.decisions.map((d, i) => (
                   <div key={i} style={{ padding: '6px 0', borderBottom: '1px solid var(--app-neutral-100)', fontSize: 13 }}>• {d}</div>
                 ))}
@@ -1081,14 +1081,14 @@ function MeetingsTab({ project }: { project: Project }) {
             )}
             {gc.action_items && gc.action_items.length > 0 && (
               <div style={{ marginBottom: 16 }}>
-                <div className="txt_r_xxs" style={{ fontWeight: 700, marginBottom: 8 }}>⚡ Action Items</div>
+                <div className="txt_r_xxs" style={{ fontWeight: 700, marginBottom: 8 }}> Action Items</div>
                 {gc.action_items.map((item, i) => (
                   <div key={i} style={{ display: 'flex', gap: 10, padding: '6px 0', borderBottom: '1px solid var(--app-neutral-100)' }}>
-                    <span style={{ color: 'var(--app-primary)', fontSize: 14 }}>⚡</span>
+                    <span style={{ color: 'var(--app-primary)', fontSize: 14 }}><Zap size={14} strokeWidth={1.5} /></span>
                     <div style={{ flex: 1 }}>
                       <span className="txt_r_xxs">{item.action}</span>
                       {item.assignee && <span className="txt_mono" style={{ fontSize: 11, marginLeft: 8, color: 'var(--app-primary)' }}>→ {item.assignee}</span>}
-                      {item.due_date && <span style={{ fontSize: 11, marginLeft: 8, color: 'var(--app-warning)' }}>📅 {item.due_date}</span>}
+                      {item.due_date && <span style={{ fontSize: 11, marginLeft: 8, color: 'var(--app-warning)' }}> {item.due_date}</span>}
                     </div>
                   </div>
                 ))}
@@ -1096,15 +1096,15 @@ function MeetingsTab({ project }: { project: Project }) {
             )}
             {gc.risks && gc.risks.length > 0 && (
               <div style={{ marginBottom: 16 }}>
-                <div className="txt_r_xxs" style={{ fontWeight: 700, marginBottom: 8 }}>⚠️ Rủi ro</div>
+                <div className="txt_r_xxs" style={{ fontWeight: 700, marginBottom: 8 }}> Rủi ro</div>
                 {gc.risks.map((r, i) => (
-                  <div key={i} style={{ padding: '6px 0', borderBottom: '1px solid var(--app-neutral-100)', fontSize: 13 }}>⚠️ {r}</div>
+                  <div key={i} style={{ padding: '6px 0', borderBottom: '1px solid var(--app-neutral-100)', fontSize: 13 }}> {r}</div>
                 ))}
               </div>
             )}
             {gc.suggestions && gc.suggestions.length > 0 && (
               <div style={{ background: 'var(--app-primary)10', padding: 12, borderRadius: 8, marginTop: 8 }}>
-                <div className="txt_r_xxs" style={{ fontWeight: 700, marginBottom: 6 }}>💡 Đề xuất liên quan</div>
+                <div className="txt_r_xxs" style={{ fontWeight: 700, marginBottom: 6 }}> Đề xuất liên quan</div>
                 {gc.suggestions.map((s, i) => (
                   <div key={i} className="txt_r_xxs" style={{ marginBottom: 4 }}>• {s}</div>
                 ))}
@@ -1122,8 +1122,8 @@ function MeetingsTab({ project }: { project: Project }) {
 // 7. PUBLISH TAB — MkDocs stakeholder portal
 // ══════════════════════════════════════════════════════════════════
 const PUBLISH_CATS: Record<string, string> = {
-  BRD: '📋 BRD', FRD: '📐 BRS/FRD', TestPlan: '🧪 Test Plan',
-  TestCase: '✅ Test Cases', UserGuide: '📘 HDSD', Signoff: '✍️ Sign-off',
+  BRD: 'BRD', FRD: 'BRS/FRD', TestPlan: 'Test Plan',
+  TestCase: 'Test Cases', UserGuide: 'HDSD', Signoff: 'Sign-off',
 }
 
 function PublishTab({ project }: { project: Project }) {
@@ -1180,8 +1180,8 @@ function PublishTab({ project }: { project: Project }) {
   const STATUS_BADGE: Record<string, { color: string; label: string }> = {
     never_published: { color: 'var(--app-neutral-400)', label: 'Chưa publish' },
     building:        { color: 'var(--app-warning)',     label: '⏳ Đang build…' },
-    success:         { color: 'var(--app-success)',     label: '✅ Published' },
-    failed:          { color: 'var(--app-danger)',      label: '❌ Build thất bại' },
+    success:         { color: 'var(--app-success)',     label: 'Published' },
+    failed:          { color: 'var(--app-danger)',      label: 'Build thất bại' },
   }
   const badge = STATUS_BADGE[job?.status ?? 'never_published']
 
@@ -1191,7 +1191,7 @@ function PublishTab({ project }: { project: Project }) {
       <div className="card card-pad" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-            <span style={{ fontSize: 20 }}>📡</span>
+            <span style={{ fontSize: 20 }}><Radio size={14} strokeWidth={1.5} /></span>
             <h3 className="txt_s_xxs" style={{ margin: 0 }}>Stakeholder Documentation Portal</h3>
             <span style={{ fontSize: 12, fontWeight: 700, color: badge.color, background: `${badge.color}18`, padding: '2px 10px', borderRadius: 10 }}>
               {badge.label}
@@ -1245,7 +1245,7 @@ function PublishTab({ project }: { project: Project }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {finalFiles.map(f => (
               <div key={f.id} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '6px 8px', background: 'var(--app-neutral-50)', borderRadius: 6 }}>
-                <span style={{ fontSize: 16 }}>{PUBLISH_CATS[f.doc_category!]?.split(' ')[0] || '📄'}</span>
+                <span style={{ fontSize: 16 }}>{PUBLISH_CATS[f.doc_category!]?.split('')[0] || ''}</span>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, fontWeight: 600 }}>{f.name}</div>
                   <div style={{ fontSize: 11, color: 'var(--app-neutral-500)' }}>
@@ -1286,11 +1286,11 @@ function PublishTab({ project }: { project: Project }) {
 // CHECKLIST TAB — 5-domain governance activity tasks
 // ══════════════════════════════════════════════════════════════════
 const DOMAIN_META: Record<ActivityDomain, { label: string; icon: string; color: string }> = {
-  business_requirements: { label: 'Business Requirements & Product', icon: '📋', color: '#1d4ed8' },
-  architecture_code:     { label: 'Architecture & Code',             icon: '🏗️', color: '#7c3aed' },
-  infrastructure:        { label: 'Infrastructure (AWS)',            icon: '☁️', color: '#0369a1' },
-  security_iam:          { label: 'Security & IAM',                  icon: '🔐', color: '#b91c1c' },
-  compliance_governance: { label: 'Compliance & Governance',         icon: '⚖️', color: '#92400e' },
+  business_requirements: { label: 'Business Requirements & Product', icon: '', color: '#1d4ed8' },
+  architecture_code:     { label: 'Architecture & Code',             icon: '', color: '#7c3aed' },
+  infrastructure:        { label: 'Infrastructure (AWS)',            icon: '', color: '#0369a1' },
+  security_iam:          { label: 'Security & IAM',                  icon: '', color: '#b91c1c' },
+  compliance_governance: { label: 'Compliance & Governance',         icon: '', color: '#92400e' },
 }
 const DOMAIN_ORDER: ActivityDomain[] = [
   'business_requirements', 'architecture_code',
@@ -1415,7 +1415,7 @@ function ChecklistTab({ project }: { project: Project }) {
                         cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}
                     >
-                      {task.status === 'done' && <span style={{ fontSize: 9, color: 'white', fontWeight: 900 }}>✓</span>}
+                      {task.status === 'done'&& <span style={{ fontSize: 9, color:'white', fontWeight: 900 }}></span>}
                     </button>
 
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -1431,7 +1431,7 @@ function ChecklistTab({ project }: { project: Project }) {
                           {sm.label}
                         </span>
                         {task.assignee && (
-                          <span style={{ fontSize: 11, color: 'var(--app-neutral-500)' }}>👤 {task.assignee}</span>
+                          <span style={{ fontSize: 11, color: 'var(--app-neutral-500)' }}> {task.assignee}</span>
                         )}
                       </div>
 
@@ -1470,7 +1470,7 @@ function ChecklistTab({ project }: { project: Project }) {
                         onClick={() => { setEditingId(task.id); setEditNotes(task.notes || ''); setEditAssignee(task.assignee || '') }}
                         style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-neutral-400)', fontSize: 12, padding: '2px 4px' }}
                         title="Sửa notes / assignee"
-                      >✏️</button>
+                      ></button>
                     )}
 
                     {/* Quick status select */}
@@ -1548,15 +1548,15 @@ export default function PPGPage() {
   }
 
   const TABS: { key: Tab; icon: string; label: string; needsProject?: boolean }[] = [
-    { key: 'projects',   icon: '📁', label: 'Danh sách' },
-    { key: 'overview',   icon: '🏠', label: 'Tổng quan',    needsProject: true },
-    { key: 'milestones', icon: '📍', label: 'Timeline',     needsProject: true },
-    { key: 'members',    icon: '👥', label: 'Nguồn lực',    needsProject: true },
-    { key: 'files',      icon: '🗂️', label: 'Tài liệu',     needsProject: true },
-    { key: 'checklist',  icon: '✅', label: 'Checklist',    needsProject: true },
-    { key: 'meetings',   icon: '📝', label: 'Biên bản họp', needsProject: true },
-    { key: 'cr',        icon: '🔄', label: 'CR',          needsProject: true },
-    { key: 'publish',    icon: '📡', label: 'Publish',      needsProject: true },
+    { key: 'projects',   icon: '', label: 'Danh sách' },
+    { key: 'overview',   icon: '', label: 'Tổng quan',    needsProject: true },
+    { key: 'milestones', icon: '', label: 'Timeline',     needsProject: true },
+    { key: 'members',    icon: '', label: 'Nguồn lực',    needsProject: true },
+    { key: 'files',      icon: '', label: 'Tài liệu',     needsProject: true },
+    { key: 'checklist',  icon: '', label: 'Checklist',    needsProject: true },
+    { key: 'meetings',   icon: '', label: 'Biên bản họp', needsProject: true },
+    { key: 'cr',        icon: '', label: 'CR',          needsProject: true },
+    { key: 'publish',    icon: '', label: 'Publish',      needsProject: true },
   ]
 
   const tabStyle = (key: Tab) => ({
@@ -1643,7 +1643,7 @@ export default function PPGPage() {
                     boxShadow: viewMode === mode ? '0 1px 3px rgba(0,0,0,0.12)' : 'none',
                     transition: 'all 0.15s',
                   }}>
-                  {mode === 'grid' ? '⊞' : '☰'}
+                  {mode === 'grid'?'':''}
                 </button>
               ))}
             </div>
@@ -1651,7 +1651,7 @@ export default function PPGPage() {
           {loading ? (
             <div className="empty-state">Đang tải...</div>
           ) : displayProjects.length === 0 ? (
-            <EmptyState icon="📁" title="Chưa có project" action={<Btn onClick={() => setShowCreate(true)}><Plus size={14} /> Tạo Project</Btn>} />
+            <EmptyState icon=""title="Chưa có project" action={<Btn onClick={() => setShowCreate(true)}><Plus size={14} /> Tạo Project</Btn>} />
           ) : viewMode === 'grid' ? (
             /* ── Grid view ── */
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 14 }}>
@@ -1680,7 +1680,7 @@ export default function PPGPage() {
                   )}
                   {p.plan_id && (
                     <div style={{ fontSize: 11, color: 'var(--app-primary)', marginBottom: 8 }}>
-                      📅 {annualPlans.find(pl => pl.id === p.plan_id)?.name || 'Kế hoạch năm'}
+                       {annualPlans.find(pl => pl.id === p.plan_id)?.name || 'Kế hoạch năm'}
                     </div>
                   )}
                   <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>

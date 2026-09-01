@@ -450,7 +450,7 @@ function ProductDetailModal({
                     <td style={{ padding: '6px 8px' }}><Badge variant={statusVariant(e.status)}>{e.status}</Badge></td>
                     <td style={{ padding: '6px 8px' }}>
                       <button onClick={() => handleDeleteEnv(e.id)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-danger)', fontSize: 14 }}>🗑</button>
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-danger)', fontSize: 14 }}><Trash2 size={14} strokeWidth={1.5} /></button>
                     </td>
                   </tr>
                 ))
@@ -864,7 +864,7 @@ function ProductDetailModal({
                     </td>
                     <td style={{ padding: '6px 8px' }}>
                       <button onClick={() => handleDeleteLicense(l.id)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-danger)', fontSize: 14 }}>🗑</button>
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-danger)', fontSize: 14 }}><Trash2 size={14} strokeWidth={1.5} /></button>
                     </td>
                   </tr>
                 ))
@@ -909,11 +909,11 @@ function ProductForm({
   const setBiz    = (fn: (f: BusinessMetadata) => BusinessMetadata)  => setForm(f => ({ ...f, business_metadata: fn(biz) }))
 
   const SECTIONS: { key: FormSection; label: string }[] = [
-    { key: 'basic',        label: '📋 Cơ bản' },
-    { key: 'architecture', label: '🏗️ Kiến trúc' },
-    { key: 'deployment',   label: '🚀 Deployment' },
-    { key: 'security',     label: '🔐 Bảo mật' },
-    { key: 'operations',   label: '📊 Vận hành' },
+    { key: 'basic',        label: 'Cơ bản' },
+    { key: 'architecture', label: 'Kiến trúc' },
+    { key: 'deployment',   label: 'Deployment' },
+    { key: 'security',     label: 'Bảo mật' },
+    { key: 'operations',   label: 'Vận hành' },
   ]
 
   const grid2 = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 16px' } as const
@@ -1106,7 +1106,7 @@ function ProductForm({
       {/* Section: Operations */}
       {section === 'operations' && (
         <div>
-          <SectionTitle>📊 Monitoring</SectionTitle>
+          <SectionTitle> Monitoring</SectionTitle>
           <div style={grid2}>
             <div>
               <Lbl>Logging Tool</Lbl>
@@ -1129,7 +1129,7 @@ function ProductForm({
                 onChange={e => setMon(m => ({ ...m, sla_target: e.target.value || undefined }))} />
             </div>
           </div>
-          <SectionTitle>📦 Resources</SectionTitle>
+          <SectionTitle> Resources</SectionTitle>
           <div style={grid2}>
             <div>
               <Lbl>CPU</Lbl>
@@ -1147,7 +1147,7 @@ function ProductForm({
                 onChange={e => setRes(r => ({ ...r, throughput: e.target.value || undefined }))} />
             </div>
           </div>
-          <SectionTitle>🧾 Business</SectionTitle>
+          <SectionTitle> Business</SectionTitle>
           <div style={grid2}>
             <div>
               <Lbl>Critical Level</Lbl>
@@ -1287,7 +1287,7 @@ function ProductsTab({ domains }: { domains: CatalogDomain[] }) {
         <div style={{ flex: 1 }} />
         {/* View toggle */}
         <div style={{ display: 'flex', gap: 2, background: 'var(--app-neutral-100)', padding: '3px 4px', borderRadius: 8 }}>
-          {([['grid', '⊞'], ['list', '☰']] as const).map(([mode, icon]) => (
+          {([['grid', ''], ['list', '']] as const).map(([mode, icon]) => (
             <button key={mode} onClick={() => setViewMode(mode)}
               title={mode === 'grid' ? 'Dạng thẻ' : 'Dạng bảng'}
               style={{
@@ -1386,13 +1386,18 @@ function ProductsTab({ domains }: { domains: CatalogDomain[] }) {
                     </div>
 
                     <div style={{ fontSize: 11, color: 'var(--app-neutral-500)', display: 'flex', gap: 12 }}>
-                      {p.business_owner && <span>👤 {p.business_owner}</span>}
-                      {p.owner_team     && <span>🏷 {p.owner_team}</span>}
+                      {p.business_owner && <span> {p.business_owner}</span>}
+                      {p.owner_team     && <span> {p.owner_team}</span>}
                     </div>
 
                     <div style={{ marginTop: 10, display: 'flex', gap: 6, justifyContent: 'flex-end' }} onClick={e => e.stopPropagation()}>
-                      <Btn size="sm" variant="ghost" onClick={() => openEdit(p)}>Sửa</Btn>
-                      <Btn size="sm" variant="danger" onClick={() => handleDelete(p)}>Xóa</Btn>
+                      <button className="btn-icon" title="Sửa" onClick={() => openEdit(p)}>
+                        <Pencil size={14} strokeWidth={1.5} />
+                      </button>
+                      <button className="btn-icon" title="Xóa" style={{ color: 'var(--app-danger)' }}
+                        onClick={() => handleDelete(p)}>
+                        <Trash2 size={14} strokeWidth={1.5} />
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -1467,8 +1472,13 @@ function ProductsTab({ domains }: { domains: CatalogDomain[] }) {
                         )}
                       </td>
                       <td style={{ padding: '9px 12px', whiteSpace: 'nowrap' }} onClick={e => e.stopPropagation()}>
-                        <Btn size="sm" variant="ghost" onClick={() => openEdit(p)}>Sửa</Btn>
-                        <Btn size="sm" variant="danger" onClick={() => handleDelete(p)}>Xóa</Btn>
+                        <button className="btn-icon" title="Sửa" onClick={() => openEdit(p)}>
+                          <Pencil size={14} strokeWidth={1.5} />
+                        </button>
+                        <button className="btn-icon" title="Xóa" style={{ color: 'var(--app-danger)' }}
+                          onClick={() => handleDelete(p)}>
+                          <Trash2 size={14} strokeWidth={1.5} />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -1653,9 +1663,9 @@ function UsersTab({ roles, domains }: { roles: CatalogRole[]; domains: CatalogDo
                               {roles.filter(r => r.is_active).map(r => <option key={r.id} value={r.id}>{r.role_code}</option>)}
                             </select>
                             <button onClick={() => handleAssignRole(u.id)}
-                              style={{ background: 'var(--app-success)', color: '#fff', border: 'none', borderRadius: 4, padding: '0 6px', cursor: 'pointer', fontSize: 11 }}>✓</button>
+                              style={{ background: 'var(--app-success)', color: '#fff', border: 'none', borderRadius: 4, padding: '0 6px', cursor: 'pointer', fontSize: 11 }}></button>
                             <button onClick={() => setAssignUserId(null)}
-                              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11 }}>✕</button>
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11 }}></button>
                           </span>
                         ) : (
                           <button onClick={() => { setAssignUserId(u.id); setAssignRoleId('') }}
@@ -1669,7 +1679,7 @@ function UsersTab({ roles, domains }: { roles: CatalogRole[]; domains: CatalogDo
                       <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                         {(u.domains ?? []).map(d => (
                           <span key={d.domain_code} style={{ display: 'inline-flex', alignItems: 'center', gap: 2, background: '#e0f2fe', color: '#0369a1', borderRadius: 10, padding: '2px 8px', fontSize: 11, fontWeight: d.is_primary ? 700 : 400 }}>
-                            {d.is_primary ? '⭐' : ''}{d.domain_code}
+                            {d.is_primary && <Star size={12} strokeWidth={1.5} style={{ verticalAlign: '-2px', marginRight: 2 }} />}{d.domain_code}
                             {d.role_in_domain ? <span style={{ opacity: 0.7, marginLeft: 2 }}>· {d.role_in_domain}</span> : null}
                             <button onClick={() => handleRemoveDomain(u.id, d.domain_code)}
                               style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: 0, fontSize: 11, marginLeft: 2 }}>×</button>
@@ -1689,9 +1699,9 @@ function UsersTab({ roles, domains }: { roles: CatalogRole[]; domains: CatalogDo
                               {DOMAIN_ROLE_OPTIONS.map(r => <option key={r} value={r}>{r}</option>)}
                             </select>
                             <button onClick={() => handleAssignDomain(u.id)}
-                              style={{ background: 'var(--app-success)', color: '#fff', border: 'none', borderRadius: 4, padding: '0 6px', cursor: 'pointer', fontSize: 11 }}>✓</button>
+                              style={{ background: 'var(--app-success)', color: '#fff', border: 'none', borderRadius: 4, padding: '0 6px', cursor: 'pointer', fontSize: 11 }}></button>
                             <button onClick={() => setAssignDomainUserId(null)}
-                              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11 }}>✕</button>
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11 }}></button>
                           </span>
                         ) : (
                           <button onClick={() => { setAssignDomainUserId(u.id); setAssignDomainCode(''); setAssignDomainRole('') }}
@@ -1702,8 +1712,8 @@ function UsersTab({ roles, domains }: { roles: CatalogRole[]; domains: CatalogDo
                       </div>
                     </td>
                     <td style={{ padding: '8px 10px', whiteSpace: 'nowrap' }}>
-                      <Btn size="sm" variant="ghost" onClick={() => openEdit(u)}>✏️</Btn>
-                      <Btn size="sm" variant="ghost" onClick={() => handleDelete(u)}>🗑</Btn>
+                      <Btn size="sm"variant="ghost" onClick={() => openEdit(u)}></Btn>
+                      <Btn size="sm"variant="ghost" onClick={() => handleDelete(u)}><Trash2 size={14} strokeWidth={1.5} /></Btn>
                     </td>
                   </tr>
                 ))
@@ -1790,7 +1800,7 @@ function RolesTab({ roles, onReload }: { roles: CatalogRole[]; onReload: () => v
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         {/* View mode toggle */}
         <div style={{ display: 'flex', gap: 2, background: 'var(--app-neutral-100)', padding: '3px 4px', borderRadius: 8 }}>
-          {([['grid', '⊞'], ['list', '☰']] as const).map(([mode, icon]) => (
+          {([['grid', ''], ['list', '']] as const).map(([mode, icon]) => (
             <button key={mode} onClick={() => setViewMode(mode)}
               title={mode === 'grid' ? 'Dạng thẻ' : 'Dạng bảng'}
               style={{
@@ -2041,7 +2051,7 @@ function DomainsTab({ allUsers }: { allUsers: CatalogUser[] }) {
         <div style={{ flex: 1 }} />
         {/* View mode toggle */}
         <div style={{ display: 'flex', gap: 2, background: 'var(--app-neutral-100)', padding: '3px 4px', borderRadius: 8 }}>
-          {([['grid', '⊞'], ['list', '☰']] as const).map(([mode, icon]) => (
+          {([['grid', ''], ['list', '']] as const).map(([mode, icon]) => (
             <button key={mode} onClick={() => setViewMode(mode)}
               title={mode === 'grid' ? 'Dạng thẻ' : 'Dạng bảng'}
               style={{
@@ -2082,7 +2092,7 @@ function DomainsTab({ allUsers }: { allUsers: CatalogUser[] }) {
                     <span style={{ fontWeight: 700, fontSize: 14 }}>{d.name}</span>
                   </div>
                   <button onClick={e => openEdit(d, e)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-neutral-400)', fontSize: 14, padding: 2 }}>✏️</button>
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-neutral-400)', fontSize: 14, padding: 2 }}></button>
                 </div>
 
                 {d.description && (
@@ -2090,7 +2100,7 @@ function DomainsTab({ allUsers }: { allUsers: CatalogUser[] }) {
                 )}
 
                 <div style={{ fontSize: 11, color: 'var(--app-neutral-500)', marginBottom: d.personnel.length ? 6 : 0 }}>
-                  👤 {d.user_count} nhân sự phụ trách
+                   {d.user_count} nhân sự phụ trách
                 </div>
 
                 {d.personnel.length > 0 && (
@@ -2100,7 +2110,7 @@ function DomainsTab({ allUsers }: { allUsers: CatalogUser[] }) {
                         fontSize: 11, background: 'var(--app-neutral-100)', color: 'var(--app-neutral-700)',
                         padding: '2px 8px', borderRadius: 10, fontWeight: p.is_primary ? 700 : 400,
                       }}>
-                        {p.is_primary ? '⭐ ' : ''}{p.full_name.split(' ').slice(-1)[0]}
+                        {p.is_primary && <Star size={12} strokeWidth={1.5} style={{ verticalAlign: '-2px', marginRight: 2 }} />}{p.full_name.split(' ').slice(-1)[0]}
                         {p.role_in_domain ? ` · ${p.role_in_domain}` : ''}
                       </span>
                     ))}
@@ -2151,7 +2161,7 @@ function DomainsTab({ allUsers }: { allUsers: CatalogUser[] }) {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                           {d.personnel.map(p => (
                             <div key={p.user_id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
-                              {p.is_primary && <span title="Domain chính" style={{ fontSize: 12 }}>⭐</span>}
+                              {p.is_primary && <span title="Domain chính" style={{ display: 'inline-flex' }}><Star size={12} strokeWidth={1.5} /></span>}
                               <span style={{ fontWeight: p.is_primary ? 700 : 400 }}>{p.full_name}</span>
                               {p.role_in_domain && (
                                 <span style={{ fontSize: 11, background: fgColor(d.code) + '18', color: fgColor(d.code), padding: '1px 7px', borderRadius: 8, fontWeight: 600 }}>
@@ -2178,7 +2188,7 @@ function DomainsTab({ allUsers }: { allUsers: CatalogUser[] }) {
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-neutral-400)', fontSize: 14, padding: '2px 6px', borderRadius: 4 }}
                       onMouseEnter={e => (e.currentTarget.style.background = 'var(--app-neutral-100)')}
                       onMouseLeave={e => (e.currentTarget.style.background = 'none')}>
-                      ✏️
+                      
                     </button>
                   </td>
                 </tr>
@@ -2191,14 +2201,14 @@ function DomainsTab({ allUsers }: { allUsers: CatalogUser[] }) {
       {/* ── Domain Detail Modal ─────────────────────────────── */}
       {selected && (
         <Modal
-          title={`🏷 ${selected.name} (${selected.code})`}
+          title={` ${selected.name} (${selected.code})`}
           open onClose={() => setSelected(null)} width="700px"
         >
           {selected.description && (
             <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--app-neutral-600)' }}>{selected.description}</p>
           )}
 
-          <SectionTitle>👥 Nhân sự phụ trách ({selected.user_count})</SectionTitle>
+          <SectionTitle> Nhân sự phụ trách ({selected.user_count})</SectionTitle>
 
           {selected.personnel.length === 0 ? (
             <div style={{ padding: '16px 0', color: 'var(--app-neutral-400)', fontSize: 13, textAlign: 'center' }}>
@@ -2217,7 +2227,7 @@ function DomainsTab({ allUsers }: { allUsers: CatalogUser[] }) {
                 {selected.personnel.map(p => (
                   <tr key={p.user_id} style={{ borderBottom: '1px solid var(--app-neutral-100)' }}>
                     <td style={{ padding: '7px 10px', width: 28 }}>
-                      {p.is_primary && <span title="Domain chính" style={{ fontSize: 14 }}>⭐</span>}
+                      {p.is_primary && <span title="Domain chính" style={{ display: 'inline-flex' }}><Star size={14} strokeWidth={1.5} /></span>}
                     </td>
                     <td style={{ padding: '7px 10px', fontWeight: 600 }}>
                       {p.full_name}
@@ -2237,7 +2247,7 @@ function DomainsTab({ allUsers }: { allUsers: CatalogUser[] }) {
                     </td>
                     <td style={{ padding: '7px 10px' }}>
                       <button onClick={() => handleRemoveUser(selected.code, p.user_id)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-danger)', fontSize: 14 }}>🗑</button>
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-danger)', fontSize: 14 }}><Trash2 size={14} strokeWidth={1.5} /></button>
                     </td>
                   </tr>
                 ))}
@@ -2266,7 +2276,7 @@ function DomainsTab({ allUsers }: { allUsers: CatalogUser[] }) {
             <div style={{ paddingBottom: 4 }}>
               <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 <input type="checkbox" checked={assignPrimary} onChange={e => setAssignPrimary(e.target.checked)} />
-                ⭐ Domain chính
+                <Star size={12} strokeWidth={1.5} style={{ verticalAlign: '-2px' }} /> Domain chính
               </label>
             </div>
             <div style={{ paddingBottom: 2 }}>
@@ -2289,7 +2299,7 @@ function DomainsTab({ allUsers }: { allUsers: CatalogUser[] }) {
               />
               {editForm.code !== editDomain.code && (
                 <div style={{ fontSize: 11, color: '#d97706', marginTop: 4 }}>
-                  ⚠️ Đổi mã sẽ cập nhật tất cả project và phân công nhân sự liên quan (ON UPDATE CASCADE)
+                   Đổi mã sẽ cập nhật tất cả project và phân công nhân sự liên quan (ON UPDATE CASCADE)
                 </div>
               )}
             </div>
@@ -2372,10 +2382,10 @@ export default function CatalogPage() {
   useEffect(() => { loadRoles(); loadUsers(); loadDomains() }, [loadRoles, loadUsers, loadDomains])
 
   const TABS = [
-    { key: 'products' as const, label: 'Danh mục sản phẩm', icon: '📦' },
-    { key: 'users'    as const, label: 'Danh mục nhân sự',  icon: '👥' },
-    { key: 'domains'  as const, label: 'Danh mục Domain',   icon: '🏷' },
-    { key: 'roles'    as const, label: 'Vai trò & Quyền',   icon: '🔐' },
+    { key: 'products'as const, label:'Danh mục sản phẩm', icon: '' },
+    { key: 'users'as const, label:'Danh mục nhân sự',  icon: '' },
+    { key: 'domains'as const, label:'Danh mục Domain',   icon: '' },
+    { key: 'roles'as const, label:'Vai trò & Quyền',   icon: '' },
   ]
 
   return (

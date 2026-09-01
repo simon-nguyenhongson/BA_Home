@@ -197,7 +197,7 @@ function DocumentDetailModal({ doc, open, onClose, onUpdated }: {
       )}
       {doc.pushed_at && (
         <div className="state-banner state-banner-ok" style={{ marginBottom: 16 }}>
-          ✓ Đã push sang PPG{doc.doc_type === 'BRS' ? ' & Test Platform' : ''} lúc {new Date(doc.pushed_at).toLocaleString('vi-VN')}
+           Đã push sang PPG{doc.doc_type === 'BRS'?' & Test Platform':''} lúc {new Date(doc.pushed_at).toLocaleString('vi-VN')}
         </div>
       )}
       <div style={{ display: 'flex', gap: 8 }}>
@@ -280,7 +280,7 @@ function BaTasksTab({ projectId }: { projectId: string }) {
       {loading ? (
         <div className="empty-state"><div>Đang tải...</div></div>
       ) : tasks.length === 0 ? (
-        <EmptyState icon="✅" title="Chưa có BA task nào" action={<Btn onClick={() => setShowCreate(true)}><Plus size={14} /> Tạo Task</Btn>} />
+        <EmptyState icon=""title="Chưa có BA task nào" action={<Btn onClick={() => setShowCreate(true)}><Plus size={14} /> Tạo Task</Btn>} />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {tasks.map(t => (
@@ -296,8 +296,8 @@ function BaTasksTab({ projectId }: { projectId: string }) {
                 </div>
                 {t.description && <p style={{ fontSize: 12, color: 'var(--app-neutral-600)', marginBottom: 6 }}>{t.description}</p>}
                 <div style={{ display: 'flex', gap: 12, fontSize: 11, color: 'var(--app-neutral-400)' }}>
-                  {t.assigned_to && <span>👤 {t.assigned_to}</span>}
-                  {t.due_date && <span>📅 {new Date(t.due_date).toLocaleDateString('vi-VN')}</span>}
+                  {t.assigned_to && <span> {t.assigned_to}</span>}
+                  {t.due_date && <span> {new Date(t.due_date).toLocaleDateString('vi-VN')}</span>}
                 </div>
               </div>
               {statusTransitions[t.status] && (
@@ -409,7 +409,7 @@ function DiscussionsTab({ projectId }: { projectId: string }) {
       {loading ? (
         <div className="empty-state"><div>Đang tải...</div></div>
       ) : discussions.length === 0 ? (
-        <EmptyState icon="💬" title="Chưa có discussion nào"
+        <EmptyState icon=""title="Chưa có discussion nào"
           desc="Ghi nhận các vấn đề / câu hỏi của stakeholder tại đây"
           action={<Btn onClick={() => setShowCreate(true)}><Plus size={14} /> Mở Discussion</Btn>} />
       ) : (
@@ -431,13 +431,13 @@ function DiscussionsTab({ projectId }: { projectId: string }) {
                   <p style={{ fontSize: 13, color: 'var(--app-neutral-700)', marginBottom: 8, lineHeight: 1.5 }}>{d.content}</p>
                   {d.resolution && (
                     <div style={{ padding: '8px 12px', borderRadius: 8, background: 'var(--app-success-bg)', marginBottom: 8 }}>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--app-success)' }}>✓ Giải quyết: </span>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--app-success)' }}> Giải quyết: </span>
                       <span style={{ fontSize: 12, color: 'var(--app-neutral-700)' }}>{d.resolution}</span>
                       {d.resolved_by && <span style={{ fontSize: 11, color: 'var(--app-neutral-500)' }}> — {d.resolved_by}</span>}
                     </div>
                   )}
                   <div style={{ fontSize: 11, color: 'var(--app-neutral-400)' }}>
-                    {d.raised_by && <span>👤 {d.raised_by} · </span>}
+                    {d.raised_by && <span> {d.raised_by} · </span>}
                     {d.created_at && new Date(d.created_at).toLocaleString('vi-VN')}
                   </div>
                 </div>
@@ -506,7 +506,7 @@ function TimelineTab({ projectId }: { projectId: string }) {
 
   if (loading) return <div className="empty-state"><div>Đang tải timeline...</div></div>
   if (timeline.length === 0) return (
-    <EmptyState icon="📅" title="Chưa có timeline" desc="Tạo milestones cho project trong PPG để xem timeline BA tại đây" />
+    <EmptyState icon=""title="Chưa có timeline"desc="Tạo milestones cho project trong PPG để xem timeline BA tại đây" />
   )
 
   return (
@@ -555,7 +555,7 @@ function TimelineTab({ projectId }: { projectId: string }) {
                     <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 8, background: TASK_STATUS_COLOR[t.status] + '22', color: TASK_STATUS_COLOR[t.status], fontWeight: 600 }}>
                       {t.status?.replace('_', ' ')}
                     </span>
-                    {t.assigned_to && <span style={{ fontSize: 11, color: 'var(--app-neutral-400)' }}>👤 {t.assigned_to}</span>}
+                    {t.assigned_to && <span style={{ fontSize: 11, color: 'var(--app-neutral-400)' }}> {t.assigned_to}</span>}
                   </div>
                 ))}
               </div>
@@ -618,7 +618,7 @@ export default function BAPage() {
 
       {selectedProject && (
         <div className="state-banner state-banner-ok" style={{ marginBottom: 16 }}>
-          📁 Project: <strong>{selectedProject.name}</strong> — Đang xem dữ liệu theo project này
+           Project: <strong>{selectedProject.name}</strong> — Đang xem dữ liệu theo project này
         </div>
       )}
 
@@ -690,7 +690,7 @@ export default function BAPage() {
           {loading ? (
             <div className="empty-state"><div>Đang tải...</div></div>
           ) : displayDocs.length === 0 ? (
-            <EmptyState icon="📄" title="Chưa có document nào" action={<Btn onClick={() => setShowDocModal(true)}><Plus size={14} /> Tạo Document</Btn>} />
+            <EmptyState icon=""title="Chưa có document nào" action={<Btn onClick={() => setShowDocModal(true)}><Plus size={14} /> Tạo Document</Btn>} />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {displayDocs.map(doc => (
@@ -708,10 +708,10 @@ export default function BAPage() {
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--app-neutral-500)' }}>
                       {doc.version} · {doc.created_at ? new Date(doc.created_at).toLocaleDateString('vi-VN') : ''}
-                      {doc.approved_by && <span> · ✓ {doc.approved_by}</span>}
+                      {doc.approved_by && <span> ·  {doc.approved_by}</span>}
                     </div>
                   </div>
-                  {doc.pushed_at && <div style={{ fontSize: 11, color: 'var(--app-success)', flexShrink: 0 }}>📤 Pushed</div>}
+                  {doc.pushed_at && <div style={{ fontSize: 11, color: 'var(--app-success)', flexShrink: 0 }}> Pushed</div>}
                   <div style={{ color: 'var(--app-neutral-400)' }}><ArrowRight size={16} /></div>
                 </div>
               ))}
@@ -723,7 +723,7 @@ export default function BAPage() {
 
       {activeTab === 'reqs' && (
         requirements.length === 0 ? (
-          <EmptyState icon="📝" title="Chưa có requirement nào" action={<Btn onClick={() => setShowReqModal(true)}><Plus size={14} /> Tạo Requirement</Btn>} />
+          <EmptyState icon=""title="Chưa có requirement nào" action={<Btn onClick={() => setShowReqModal(true)}><Plus size={14} /> Tạo Requirement</Btn>} />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {requirements.map(r => (

@@ -109,7 +109,7 @@ export function BADocumentList({
         <div className="empty-state">Đang tải...</div>
       ) : filtered.length === 0 ? (
         <EmptyState
-          icon="📄"
+          icon=""
           title="Không có tài liệu"
           desc="Chưa có tài liệu BA nào"
           action={

@@ -686,7 +686,7 @@ function CRTab() {
                 </span>
                 <h3 style={{ margin: '4px 0 0', fontSize: 16 }}>{selected.title}</h3>
               </div>
-              <button className="btn btn-ghost btn-sm" onClick={() => setSelected(null)}>✕</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => setSelected(null)}></button>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1277,7 +1277,7 @@ function SRTab() {
                 </span>
                 <h3 style={{ margin: '4px 0 0', fontSize: 16 }}>{selected.title}</h3>
               </div>
-              <button className="btn btn-ghost btn-sm" onClick={() => setSelected(null)}>✕</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => setSelected(null)}></button>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1525,7 +1525,7 @@ function SRCreateModal({
                       <span style={{ fontSize: 12, color: 'var(--app-neutral-500)' }}>· {selectedProduct.technical_owner}</span>
                     )}
                     <button type="button" style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--app-neutral-400)', background: 'none', border: 'none', cursor: 'pointer' }}
-                      onClick={() => setForm(f => ({ ...f, product_id: undefined }))}>✕ Bỏ chọn</button>
+                      onClick={() => setForm(f => ({ ...f, product_id: undefined }))}> Bỏ chọn</button>
                   </div>
                 )}
               </div>
@@ -1645,8 +1645,8 @@ export default function RequestsPage() {
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid var(--app-neutral-200)', marginBottom: 16 }}>
         {([
-          { key: 'cr' as Tab, label: '🔄 Project Change Request', desc: 'Thay đổi trong dự án đang chạy' },
-          { key: 'sr'  as Tab, label: '🎫 Service Request',        desc: 'Yêu cầu với ứng dụng vận hành' },
+          { key: 'cr'as Tab, label:' Project Change Request', desc: 'Thay đổi trong dự án đang chạy' },
+          { key: 'sr'as Tab, label:' Service Request',        desc: 'Yêu cầu với ứng dụng vận hành' },
         ] as const).map(t => (
           <button
             key={t.key}

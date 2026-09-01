@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, CalendarRange, Building2, FileText, FlaskConical, Bot,
@@ -43,6 +43,15 @@ function Shell() {
   const location = useLocation()
 
   const currentApp = APPS.find(a => location.pathname.startsWith(a.path)) || APPS[0]
+  const segRef = useRef<HTMLDivElement>(null)
+
+  // Cuộn mục đang chọn vào tầm nhìn (thanh chuyển trang có thể dài hơn màn hình)
+  useEffect(() => {
+    const active = segRef.current?.querySelector('.ds-seg__item.active')
+    if (active && typeof active.scrollIntoView === 'function') {
+      active.scrollIntoView({ inline: 'center', block: 'nearest' })
+    }
+  }, [currentApp.key])
 
   return (
     <div className="shell">
@@ -91,11 +100,11 @@ function Shell() {
         <header className="topbar">
           <div className="topbar__search-wrap">
             <span className="topbar__search-icon"><Search size={14} strokeWidth={1.5} /></span>
-            <input className="topbar__search" type="text" placeholder="Tìm project, document, test case" />
+            <input className="topbar__search" type="text" placeholder="Tìm kiếm" />
           </div>
           <div className="topbar__spacer" />
           <div className="topbar__actions">
-            <div className="ds-seg">
+            <div className="ds-seg" ref={segRef}>
               {APPS.map(a => (
                 <button key={a.key}
                   className={`ds-seg__item${currentApp.key === a.key ? ' active' : ''}`}

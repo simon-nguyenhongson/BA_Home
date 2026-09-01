@@ -78,14 +78,15 @@ describe('ProjectObjectTable', () => {
 
   it('shows object type icons and labels', () => {
     render(<ProjectObjectTable objects={mockObjects} />)
-    expect(screen.getByText('Web App')).toBeTruthy()
-    expect(screen.getByText('API')).toBeTruthy()
-    expect(screen.getByText('ELT')).toBeTruthy()
+    // Nhãn loại đối tượng xuất hiện cả ở thanh filter và trong bảng
+    expect(screen.getAllByText('Web App').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('API').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('ELT').length).toBeGreaterThan(0)
   })
 
   it('filters by object type', () => {
     render(<ProjectObjectTable objects={mockObjects} />)
-    const apiBtn = screen.getByText('🔌 API')
+    const apiBtn = screen.getAllByText('API')[0]
     fireEvent.click(apiBtn)
     expect(screen.queryByText('Customer Portal')).toBeNull()
     expect(screen.getByText('Customer API')).toBeTruthy()

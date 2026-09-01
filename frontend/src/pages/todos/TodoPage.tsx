@@ -55,7 +55,7 @@ function ComboSelect({
           ? <span style={{ flex: 1, fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selectedLabel}</span>
           : <span style={{ flex: 1, fontSize: 12, color: 'var(--app-neutral-400)' }}>{loading ? 'Đang tải...' : placeholder}</span>}
         {value && (
-          <span onClick={e => { e.stopPropagation(); onChange('', '') }} style={{ color: 'var(--app-neutral-400)', fontSize: 11, lineHeight: 1, cursor: 'pointer' }}>✕</span>
+          <span onClick={e => { e.stopPropagation(); onChange('', '') }} style={{ color: 'var(--app-neutral-400)', fontSize: 11, lineHeight: 1, cursor: 'pointer' }}></span>
         )}
         <span style={{ color: 'var(--app-neutral-400)', fontSize: 10 }}>{open ? '▲' : '▼'}</span>
       </div>
@@ -126,13 +126,13 @@ const PRIORITY_META: Record<TodoPriority, { label: string; color: string }> = {
 }
 
 const TYPE_META: Record<TodoType, string> = {
-  feature:       '✨ Feature',
-  bug:           '🐛 Bug',
-  review:        '👁 Review',
-  meeting:       '📅 Meeting',
-  documentation: '📝 Docs',
-  deployment:    '🚀 Deploy',
-  other:         '📌 Other',
+  feature:       'Feature',
+  bug:           'Bug',
+  review:        'Review',
+  meeting:       'Meeting',
+  documentation: 'Docs',
+  deployment:    'Deploy',
+  other:         'Other',
 }
 
 const TRANSITIONS: Record<TodoStatus, TodoStatus[]> = {
@@ -835,7 +835,7 @@ export default function TodoPage() {
       <div style={{ background: '#fff', borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
         <div style={{ padding: '10px 20px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
           {/* Title */}
-          <span style={{ fontSize: 15, fontWeight: 700, color: C.text, marginRight: 4 }}>📋 To-do List</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: C.text, marginRight: 4 }}> To-do List</span>
           <span style={{ fontSize: 12, color: C.muted }}>
             {todos.length} task
             {(stats?.overdue_count ?? 0) > 0 && <> · <span style={{ color: '#dc2626' }}>{stats!.overdue_count} trễ</span></>}
@@ -953,7 +953,7 @@ export default function TodoPage() {
 
               {view === 'list' && (
                 visibleTodos.length === 0 ? (
-                  <EmptyState icon="📋" title="Chưa có task nào" desc="Tạo task đầu tiên để bắt đầu." action={<Btn onClick={() => setShowCreate(true)}><Plus size={14} /> Tạo task</Btn>} />
+                  <EmptyState icon=""title="Chưa có task nào"desc="Tạo task đầu tiên để bắt đầu." action={<Btn onClick={() => setShowCreate(true)}><Plus size={14} /> Tạo task</Btn>} />
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     {(Object.keys(STATUS_META) as TodoStatus[]).map(s => {
@@ -980,7 +980,7 @@ export default function TodoPage() {
 
               {view === 'board' && (
                 visibleTodos.length === 0 ? (
-                  <EmptyState icon="📋" title="Chưa có task nào" desc="Tạo task đầu tiên để bắt đầu." action={<Btn onClick={() => setShowCreate(true)}><Plus size={14} /> Tạo task</Btn>} />
+                  <EmptyState icon=""title="Chưa có task nào"desc="Tạo task đầu tiên để bắt đầu." action={<Btn onClick={() => setShowCreate(true)}><Plus size={14} /> Tạo task</Btn>} />
                 ) : (
                   <BoardView todos={visibleTodos} selectedId={selectedId} onSelect={id => setSelectedId(id === selectedId ? null : id)} onStatusChange={handleStatusChange} />
                 )
