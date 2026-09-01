@@ -280,8 +280,8 @@ function CrBrsSection({ product }: { product: CatalogProduct }) {
     setLoading(true)
     Promise.all([
       crApi.list({ product_id: product.id }),
-      // Một lượt gọi cho toàn bộ BRS rồi map theo cr_id — tránh N+1 khi sản phẩm có nhiều CR
-      listBrs().then(r => r.data).catch(() => []),
+      // Một lượt gọi cho BRS của đúng sản phẩm này rồi map theo cr_id — tránh N+1
+      listBrs({ product_id: product.id }).then(r => r.data).catch(() => []),
     ])
       .then(([crList, brsList]) => {
         setCrs(crList)

@@ -1,0 +1,9 @@
+# Phụ thuộc chỉ dùng để chạy test — không cài trên môi trường chạy thật.
+#   pip install -r requirements-dev.txt
+#
+# pytest-asyncio: 2 test của audit service dùng @pytest.mark.asyncio. Thiếu gói này thì
+# pytest báo "async def functions are not natively supported" và 2 test FAIL âm thầm
+# như lỗi nghiệp vụ (đã từng nằm trong nhóm 13 test fail baseline).
+pytest==9.1.1
+pytest-asyncio==1.4.0
+httpx==0.28.1

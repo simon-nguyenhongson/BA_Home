@@ -37,22 +37,40 @@ def ppg_client():
 
 
 def make_product_record(product_id: str | None = None, product_type: str = "web_app") -> dict:
+    """
+    Bản ghi giả của catalog_products.
+
+    Hai chỗ dễ sai (đã từng làm 7 test fail):
+    - `tags` và các cột JSONB phải là list/dict Python, KHÔNG phải chuỗi. Ở môi trường thật
+      asyncpg đã đăng ký codec JSONB nên router nhận về object; giả bằng chuỗi thì Pydantic
+      từ chối response.
+    - 6 cột JSONB thêm ở V026 (architecture_info … business_metadata) là bắt buộc trong
+      response model — thiếu là ResponseValidationError.
+    """
     return {
         "id": product_id or str(uuid4()),
         "product_name": "Customer Portal",
         "product_code": "PORTAL_FE",
         "product_type": product_type,
+        "domain_code": None,
         "department": "Digital",
         "owner_team": "Frontend",
         "description": "Frontend portal",
         "status": "active",
-        "tags": "[]",
+        "tags": [],
         "business_owner": "TL Nguyen",
         "technical_owner": None,
         "notes": None,
         "created_by": None,
         "created_at": "2026-01-01T00:00:00Z",
         "updated_at": "2026-01-01T00:00:00Z",
+        # 6 section JSONB thêm ở V026
+        "architecture_info": {"tech_stack": [], "dependency_systems": []},
+        "deployment_info": {},
+        "security_info": {"compliance": []},
+        "monitoring_info": {},
+        "resource_info": {},
+        "business_metadata": {},
     }
 
 
@@ -305,7 +323,8 @@ def test_create_environment_success(ppg_client):
         "product_id": pid,
         "env_name": "PROD",
         "url": "https://portal.example.local",
-        "server_info": "{}",
+        # JSONB → dict, không phải chuỗi (asyncpg codec đã decode ở môi trường thật)
+        "server_info": {},
         "status": "active",
         "version": None,
         "deploy_date": None,
@@ -358,8 +377,8 @@ def test_list_users_filter_by_type(ppg_client):
 
     async def fake_db():
         db = MagicMock()
-        # list_users makes a second db.fetch call to attach role assignments
-        db.fetch = AsyncMock(side_effect=[users, []])
+        # list_users gọi db.fetch 3 lần: danh sách user → vai trò → domain của user
+        db.fetch = AsyncMock(side_effect=[users, [], []])
         yield db
 
     app.dependency_overrides[get_db] = fake_db

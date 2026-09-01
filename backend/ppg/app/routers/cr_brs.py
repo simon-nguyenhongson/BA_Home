@@ -56,9 +56,12 @@ class BrsStatusRequest(BaseModel):
 async def _get_cr_or_404(db: asyncpg.Connection, cr_id: str) -> asyncpg.Record:
     row = await db.fetchrow(
         """
-        SELECT cr.*, p.name AS project_name, p.code AS project_code
+        SELECT cr.*,
+               p.name AS project_name, p.code AS project_code,
+               cp.product_name, cp.product_code
         FROM change_requests cr
-        LEFT JOIN projects p ON p.id = cr.project_id
+        LEFT JOIN projects p          ON p.id  = cr.project_id
+        LEFT JOIN catalog_products cp ON cp.id = cr.product_id
         WHERE cr.id = $1
         """,
         cr_id,
@@ -76,9 +79,24 @@ async def _get_brs_or_404(db: asyncpg.Connection, brs_id: str) -> asyncpg.Record
 
 
 async def _master_doc_context(db: asyncpg.Connection, product_id: Optional[str]) -> str:
-    """Nội dung Master Doc hiện hành của hệ thống bị tác động — bối cảnh AS-IS cho AI."""
+    """
+    Nội dung Master Doc hiện hành của sản phẩm bị tác động — bối cảnh AS-IS cho AI.
+
+    Raise nếu thiếu, KHÔNG trả chuỗi rỗng. Trước V052 hàm này trả "" khi CR chưa gắn
+    sản phẩm hoặc sản phẩm chưa có Master Doc, nên AI vẫn sinh BRS nhưng phần AS-IS là
+    suy đoán — tài liệu trông đúng mà nội dung hiện trạng bịa ra. Với ngân hàng đó là
+    lỗi nặng hơn hẳn việc báo lỗi và dừng lại.
+    """
     if not product_id:
-        return ""
+        raise HTTPException(
+            409,
+            detail={
+                "code": "CR_NO_PRODUCT",
+                "message": "CR chưa gắn sản phẩm. BRS phải nêu AS-IS → TO-BE, mà AS-IS lấy từ "
+                           "Master Doc của sản phẩm — chưa có thì AI sẽ phải suy đoán hiện trạng. "
+                           "Mở CR ở màn Requests và chọn sản phẩm bị tác động trước.",
+            },
+        )
     row = await db.fetchrow(
         """
         SELECT md.title, md.content, md.current_version, cp.product_name
@@ -89,7 +107,19 @@ async def _master_doc_context(db: asyncpg.Connection, product_id: Optional[str])
         product_id,
     )
     if not row or not (row["content"] or "").strip():
-        return ""
+        product_name = await db.fetchval(
+            "SELECT product_name FROM catalog_products WHERE id = $1", product_id
+        )
+        raise HTTPException(
+            409,
+            detail={
+                "code": "MASTER_DOC_MISSING",
+                "message": f"Sản phẩm «{product_name or product_id}» chưa có Master Doc "
+                           "(hoặc Master Doc đang rỗng). Vào Tài liệu → Sản phẩm → Master Doc "
+                           "để khởi tạo bản v1.0 bằng cách import tài liệu đặc tả sẵn có, "
+                           "rồi quay lại sinh BRS.",
+            },
+        )
     return (
         f"=== MASTER DOC HIỆN HÀNH — {row['product_name'] or ''} "
         f"({row['title']}, {row['current_version']}) ===\n{row['content']}\n"
@@ -97,13 +127,19 @@ async def _master_doc_context(db: asyncpg.Connection, product_id: Optional[str])
 
 
 def _cr_block(cr: asyncpg.Record) -> str:
+    # Sản phẩm là chủ sở hữu CR nên phải đứng trước; dự án chỉ là nguồn tài trợ và có thể trống
+    project = (
+        f"{cr['project_code'] or ''} — {cr['project_name'] or ''}".strip(" —")
+        or "không thuộc dự án nào"
+    )
     return (
         f"=== CHANGE REQUEST ===\n"
         f"Mã CR: {cr['request_code']}\n"
         f"Tiêu đề: {cr['title']}\n"
+        f"Sản phẩm bị tác động: {cr.get('product_name') or ''}\n"
         f"Loại thay đổi: {cr.get('change_type') or ''}\n"
         f"Độ ưu tiên: {cr.get('priority') or ''}\n"
-        f"Dự án: {cr['project_code'] or ''} — {cr['project_name'] or ''}\n"
+        f"Dự án tài trợ: {project}\n"
         f"Mô tả:\n{cr.get('description') or ''}\n"
         f"Ghi chú: {cr.get('notes') or ''}\n"
     )
@@ -438,6 +474,7 @@ async def list_brs(
     user: CurrentUser,
     status: Optional[str] = None,
     project_id: Optional[str] = None,
+    product_id: Optional[str] = None,
     db: asyncpg.Connection = Depends(get_db),
 ) -> dict:
     conditions: list[str] = []
@@ -448,6 +485,9 @@ async def list_brs(
     if project_id:
         params.append(project_id)
         conditions.append(f"cr.project_id = ${len(params)}")
+    if product_id:
+        params.append(product_id)
+        conditions.append(f"cr.product_id = ${len(params)}")
     where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
     rows = await db.fetch(
         f"""

@@ -220,10 +220,11 @@ export const getBrsHistory = (brsId: string) =>
   req<{ data: BrsHistoryItem[] }>('GET', `/brs/${brsId}/history`)
 export const getBrsHistoryContent = (brsId: string, historyId: string) =>
   req<{ data: BrsHistoryItem & { content: string } }>('GET', `/brs/${brsId}/history/${historyId}`)
-export const listBrs = (params?: { status?: string; project_id?: string }) => {
+export const listBrs = (params?: { status?: string; project_id?: string; product_id?: string }) => {
   const qs = new URLSearchParams()
   if (params?.status) qs.set('status', params.status)
   if (params?.project_id) qs.set('project_id', params.project_id)
+  if (params?.product_id) qs.set('product_id', params.product_id)
   const q = qs.toString()
   return req<{ data: (BrsDocument & { request_code: string; cr_title: string })[] }>(
     'GET', `/brs${q ? `?${q}` : ''}`,

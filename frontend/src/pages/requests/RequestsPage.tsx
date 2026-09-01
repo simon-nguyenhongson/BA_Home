@@ -480,7 +480,7 @@ function CRTab() {
 
   const displayed = (() => {
     let rows = byTab
-    if (filterText) rows = applyTextFilter(rows, filterText, ['request_code', 'title', 'requested_by', 'project_name', 'assigned_to'])
+    if (filterText) rows = applyTextFilter(rows, filterText, ['request_code', 'title', 'requested_by', 'product_name', 'project_name', 'assigned_to'])
     rows = applyDateFilter(rows, 'created_at', filterFrom, filterTo)
     return rows
   })()
@@ -643,7 +643,11 @@ function CRTab() {
                     </div>
                     <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>{cr.title}</div>
                     <div style={{ fontSize: 12, color: 'var(--app-neutral-500)' }}>
-                      {cr.project_name || cr.project_id} · {cr.requested_by}
+                      {cr.product_name
+                        ? cr.product_name
+                        : <span style={{ color: '#B54708' }}>chưa gắn sản phẩm</span>}
+                      {cr.project_code && ` · dự án ${cr.project_code}`}
+                      {' · '}{cr.requested_by}
                       {cr.target_date && (
                         <span style={{ marginLeft: 8, color: 'var(--app-neutral-400)' }}>
                           · Mục tiêu: {cr.target_date}
@@ -713,8 +717,17 @@ function CRTab() {
                 </span>
               </div>
               <div>
-                <div className="form-label">Project</div>
-                <div style={{ fontSize: 13 }}>{selected.project_name || selected.project_id}</div>
+                <div className="form-label">Sản phẩm bị tác động</div>
+                <div style={{ fontSize: 13 }}>
+                  {selected.product_name
+                    ?? <span style={{ color: '#B54708' }}>chưa gắn — chưa sinh được BRS</span>}
+                </div>
+              </div>
+              <div>
+                <div className="form-label">Dự án tài trợ</div>
+                <div style={{ fontSize: 13 }}>
+                  {selected.project_name ?? <span style={{ color: 'var(--app-neutral-400)' }}>—</span>}
+                </div>
               </div>
               <div>
                 <div className="form-label">Người yêu cầu</div>

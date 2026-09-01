@@ -187,7 +187,7 @@ class TestBADocumentsV2:
         assert resp.status_code == 422
 
     def test_all_valid_doc_types_accepted(self):
-        """FR-029: verify all 8 doc types are in VALID_DOC_TYPES."""
+        """FR-029: đủ 9 loại tài liệu BA trong VALID_DOC_TYPES (MASTER_DOC thêm ở V047)."""
         import sys
         import os
 
@@ -200,6 +200,7 @@ class TestBADocumentsV2:
         expected = {
             "BRD", "BRS", "FSD", "API_SPEC", "ERD",
             "DATA_DICT", "WIREFRAME", "PROCESS_FLOW",
+            "MASTER_DOC",
         }
         assert expected == VALID_DOC_TYPES
 

@@ -453,7 +453,7 @@ def test_self_loop_connection_rejected(ppg_client):
 
 def test_connection_report_requires_param(ppg_client):
     app, client = ppg_client
-    resp = client.get("/api/v1/reports/connections")
+    resp = client.get("/reports/connections")
     assert resp.status_code == 422
 
 
@@ -471,7 +471,7 @@ def test_connection_report_by_object_id(ppg_client):
         yield db
 
     app.dependency_overrides[get_db] = fake_db
-    resp = client.get(f"/api/v1/reports/connections?object_id={obj_id}")
+    resp = client.get(f"/reports/connections?object_id={obj_id}")
     assert resp.status_code == 200
     body = resp.json()
     assert "outbound_connections" in body["data"]
@@ -490,7 +490,7 @@ def test_connection_report_object_not_found(ppg_client):
         yield db
 
     app.dependency_overrides[get_db] = fake_db
-    resp = client.get(f"/api/v1/reports/connections?object_id={obj_id}")
+    resp = client.get(f"/reports/connections?object_id={obj_id}")
     assert resp.status_code == 404
 
 

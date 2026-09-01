@@ -433,13 +433,20 @@ class TestProjectTemplate:
         assert all(r["sort_order"] > 0 for r in records)
 
     def test_folder_paths_contain_track_prefix(self):
+        """
+        folder_path bắt đầu bằng THƯ MỤC của track, không phải mã track.
+        Quy ước trong project_template.py: project→'project', ba→'BA', test→'Tester'
+        (tên thư mục dạng hiển thị để người dùng mở bằng file explorer đọc được).
+        """
         from app.services.project_template import build_folder_records  # type: ignore[import]
+        track_dir = {"project": "project", "ba": "BA", "test": "Tester"}
         records = build_folder_records("proj-1", "PRJ_001")
         for record in records:
             track = record["track"]
             path = record["folder_path"]
-            assert path.startswith(track + "/"), \
-                f"folder_path '{path}' should start with track '{track}/'"
+            expected = track_dir.get(track, track) + "/"
+            assert path.startswith(expected), \
+                f"folder_path '{path}' phải bắt đầu bằng '{expected}' (track '{track}')"
 
 
 # ===========================================================================
