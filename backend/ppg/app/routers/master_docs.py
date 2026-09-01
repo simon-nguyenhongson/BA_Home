@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import difflib
 import re
+from datetime import datetime
 from typing import Optional
 from uuid import uuid4
 
@@ -35,7 +36,9 @@ class MasterDocCreate(BaseModel):
 class MasterDocUpdate(BaseModel):
     title: Optional[str] = Field(None, max_length=300)
     content: Optional[str] = None
-    change_summary: str = "Cập nhật thủ công"
+    # Không có giá trị mặc định: sửa tay Master Doc bắt buộc nêu lý do, lý do đi vào
+    # hồ sơ kiểm toán. Trước đây mặc định "Cập nhật thủ công" nên hồ sơ vô nghĩa.
+    change_summary: str = ""
 
 
 class MergeRequest(BaseModel):
@@ -234,38 +237,125 @@ async def update_master_doc_manual(
     body: MasterDocUpdate,
     db: asyncpg.Connection = Depends(get_db),
 ) -> dict:
-    """Sửa tay Master Doc — tạo version approved luôn (không qua duyệt)."""
-    doc = await _get_doc_or_404(db, doc_id)
-    new_content = body.content if body.content is not None else doc["content"]
-    new_title = body.title or doc["title"]
-    new_no = doc["current_version_no"] + 1
-    new_version = f"v{new_no}.0"
+    """
+    Sửa tay Master Doc — tạo CR NỘI BỘ và bản ĐỀ XUẤT chờ duyệt.
 
-    async with db.transaction():
-        row = await db.fetchrow(
-            """
-            UPDATE master_documents
-            SET title = $2, content = $3, current_version = $4, current_version_no = $5,
-                updated_by = $6, updated_at = NOW()
-            WHERE id = $1 RETURNING *
-            """,
-            doc_id, new_title, new_content, new_version, new_no, user.sub,
+    Quyết định của PO (2026-09-01): "sửa tay masterdoc đều phải qua duyệt. vẫn là CR nhưng
+    là CR nội bộ có thể bypass BRS, test case và update thẳng vào masterdoc."
+
+    Trước V052 endpoint này ghi đè Master Doc ngay và tự đánh dấu 'approved' — một người
+    vừa sửa vừa tự duyệt tài liệu đặc tả hệ thống, trái maker-checker. Nay:
+      1. Sinh CR nội bộ (cr_kind='internal') gắn với sản phẩm của Master Doc — có mã CR
+         để truy vết, KHÔNG cần BRS, KHÔNG sinh task test.
+      2. Tạo version 'manual' ở trạng thái 'pending', chưa đụng vào nội dung Master Doc.
+      3. Nội dung chỉ thay đổi khi ai đó gọi /master-docs/versions/{id}/approve.
+
+    Trả về bản đề xuất, KHÔNG trả Master Doc đã đổi — vì nó chưa đổi.
+    """
+    doc = await _get_doc_or_404(db, doc_id)
+
+    if body.content is None and body.title is None:
+        raise HTTPException(
+            400,
+            detail={
+                "code": "NOTHING_TO_CHANGE",
+                "message": "Không có nội dung nào được sửa.",
+            },
         )
+
+    reason = (body.change_summary or "").strip()
+    if len(reason) < 5:
+        raise HTTPException(
+            400,
+            detail={
+                "code": "REASON_REQUIRED",
+                "message": "Sửa tay Master Doc phải nêu lý do (ít nhất 5 ký tự) — "
+                           "lý do này đi vào hồ sơ kiểm toán của tài liệu.",
+            },
+        )
+
+    new_content = body.content if body.content is not None else doc["content"]
+    if new_content == doc["content"] and (body.title or doc["title"]) == doc["title"]:
+        raise HTTPException(
+            400,
+            detail={
+                "code": "NOTHING_TO_CHANGE",
+                "message": "Nội dung không khác bản hiện tại.",
+            },
+        )
+
+    version_id = str(uuid4())
+    async with db.transaction():
+        # 1. CR nội bộ — dùng cùng bộ đếm mã CR để mã không trùng và tra được cùng một chỗ
+        seq = await db.fetchval("SELECT nextval('cr_seq')")
+        cr_code = f"CR-{datetime.now().year}-{seq:03d}"
+        cr_id = await db.fetchval(
+            """
+            INSERT INTO change_requests
+                (request_code, product_id, cr_kind, title, description, change_type,
+                 priority, status, requested_by, notes)
+            VALUES ($1, $2, 'internal', $3, $4, 'process', 'medium', 'approved', $5,
+                    'CR nội bộ sinh tự động khi sửa tay Master Doc')
+            RETURNING id
+            """,
+            cr_code, doc["product_id"],
+            f"Sửa tay Master Doc: {reason[:180]}",
+            reason, user.sub,
+        )
+        await db.execute(
+            """
+            INSERT INTO request_history
+                (ref_type, ref_id, action, actor, from_status, to_status, comment)
+            VALUES ('cr', $1, 'created_internal', $2, NULL, 'approved', $3)
+            """,
+            cr_id, user.sub, reason,
+        )
+
+        # 2. Bản đề xuất — version_no để NULL cho tới khi được duyệt (giống luồng merge BRS)
         await db.execute(
             """
             INSERT INTO master_doc_versions
                 (id, master_doc_id, version_no, version, content, change_summary,
-                 source, status, base_version_no, approved_by, approved_at, created_by)
-            VALUES ($1, $2, $3, $4, $5, $6, 'manual', 'approved', $7, $8, NOW(), $8)
+                 source, status, base_version_no, internal_cr_id, created_by)
+            VALUES ($1, $2, NULL, 'pending', $3, $4, 'manual', 'pending', $5, $6, $7)
             """,
-            str(uuid4()), doc_id, new_no, new_version, new_content,
-            body.change_summary, doc["current_version_no"], user.sub,
+            version_id, doc_id, new_content, reason,
+            doc["current_version_no"], cr_id, user.sub,
         )
+
+        # Tiêu đề không phải nội dung đặc tả → đổi được ngay, không cần duyệt
+        if body.title and body.title != doc["title"]:
+            await db.execute(
+                "UPDATE master_documents SET title=$2, updated_by=$3, updated_at=NOW() "
+                "WHERE id=$1",
+                doc_id, body.title, user.sub,
+            )
+
     await log_audit(
         db=db, entity_type="master_documents", entity_id=doc_id, action="UPDATE",
-        changed_by=user.sub, new_values={"version": new_version, "mode": "manual"},
+        changed_by=user.sub,
+        new_values={"mode": "manual_proposal", "version_id": version_id,
+                    "internal_cr": cr_code},
+        notes=reason,
     )
-    return {"data": dict(row)}
+
+    diff = build_diff(doc["content"], new_content)
+    return {
+        "data": {
+            "version_id": version_id,
+            "master_doc_id": doc_id,
+            "status": "pending",
+            "change_summary": reason,
+            "internal_cr_id": str(cr_id),
+            "internal_cr_code": cr_code,
+            "base_version_no": doc["current_version_no"],
+        },
+        "diff": diff,
+        "meta": {
+            "message": "Đã tạo bản đề xuất chờ duyệt. Master Doc CHƯA thay đổi — "
+                       f"cần duyệt bản này (CR nội bộ {cr_code}) để nội dung có hiệu lực.",
+        },
+    }
 
 
 # ── Version & merge ──────────────────────────────────────────────────────────

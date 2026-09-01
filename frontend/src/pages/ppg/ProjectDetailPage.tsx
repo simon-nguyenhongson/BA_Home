@@ -47,6 +47,7 @@ import {
   type RagStatus,
 } from '../../api/ppg'
 import ProjectCRTab from './ProjectCRTab'
+import { DiagramsPanel } from '../../features/diagrams/DiagramsPanel'
 import { X } from 'lucide-react'
 import { StatusBadge } from '../../components/StatusBadge'
 import { KpiCard } from '../../components/KpiCard'
@@ -64,7 +65,7 @@ const LINK_TYPES = ['ba_doc', 'qa_doc', 'backlog', 'feedback', 'monitoring', 'ot
 type TabKey =
   | 'overview' | 'milestones' | 'members' | 'files' | 'meetings' | 'registry'
   | 'management' | 'products' | 'licenses' | 'contracts' | 'handover' | 'integrations'
-  | 'requests'
+  | 'requests' | 'diagrams'
 
 function RagBadge({ rag }: { rag?: RagStatus | null }) {
   if (!rag) return <span className="text-gray-300 text-xs">—</span>
@@ -627,6 +628,8 @@ export default function ProjectDetailPage() {
     { key: 'integrations', label: `Links (${integrationLinks.length})`, group: 'comp' },
     // Requests
     { key: 'requests', label: 'CR' },
+    // Sơ đồ (QĐ-9)
+    { key: 'diagrams', label: 'Sơ đồ' },
   ]
 
   const ragOptions: RagStatus[] = ['green', 'amber', 'red']
@@ -2331,6 +2334,10 @@ export default function ProjectDetailPage() {
           projectId={id}
           projectLabel={`${project.code} — ${project.name}`}
         />
+      )}
+
+      {tab === 'diagrams' && id && (
+        <DiagramsPanel ownerType="project" ownerId={id} ownerLabel={project.name} />
       )}
 
       {/* ── MODALS ───────────────────────────────────────────────────────── */}

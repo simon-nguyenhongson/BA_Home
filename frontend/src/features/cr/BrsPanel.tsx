@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
-  CheckCircle2, GitMerge, History, Pencil, RefreshCw, Rocket, Send, Sparkles, X,
+  CheckCircle2, GitMerge, History, Pencil, RefreshCw, Rocket, Send, Sparkles, X, Shapes,
 } from 'lucide-react'
 import {
   generateBrs, getBrsOfCr, reviseBrs, updateBrs, changeBrsStatus, getBrsHistory,
@@ -11,6 +11,7 @@ import {
 import { Badge, Btn, Field, AppTextarea, Modal, EmptyState } from '../../components/ui'
 import { useStore } from '../../stores/auth'
 import { DiffView } from './DiffView'
+import { DiagramsPanel } from '../diagrams/DiagramsPanel'
 
 const BRS_STATUS_LABEL: Record<string, string> = {
   draft: 'Nháp',
@@ -310,6 +311,17 @@ export function BrsPanel({ crId, crStatus, crCode }: { crId: string; crStatus: s
       <Modal title="Lịch sử thay đổi BRS" open={historyOpen} onClose={() => setHistoryOpen(false)} width="760px">
         <BrsHistoryList brsId={brs.id} items={history} />
       </Modal>
+
+      {/* Sơ đồ của BRS (QĐ-9) — mỗi CR có sơ đồ luồng riêng, gắn vào BRS */}
+      <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--app-neutral-200)' }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600,
+          color: 'var(--app-neutral-800)', marginBottom: 10,
+        }}>
+          <Shapes size={15} strokeWidth={1.5} /> Sơ đồ của BRS này
+        </div>
+        <DiagramsPanel ownerType="brs" ownerId={brs.id} ownerLabel={crCode} />
+      </div>
 
       {/* Modal: duyệt bản đề xuất Master Doc */}
       <Modal

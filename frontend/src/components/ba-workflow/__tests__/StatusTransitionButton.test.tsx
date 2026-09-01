@@ -145,10 +145,11 @@ describe('StatusTransitionButton — state machine visual', () => {
         onTransition={vi.fn()}
       />,
     )
-    expect(screen.getByText('draft')).toBeTruthy()
-    expect(screen.getByText('review')).toBeTruthy()
-    expect(screen.getByText('approved')).toBeTruthy()
-    expect(screen.getByText('archived')).toBeTruthy()
+    // Bước đã qua render kèm dấu ✓ trong cùng thẻ nên text bị tách node → khớp theo regex
+    expect(screen.getByText(/draft/)).toBeTruthy()
+    expect(screen.getByText(/review/)).toBeTruthy()
+    expect(screen.getByText(/approved/)).toBeTruthy()
+    expect(screen.getByText(/archived/)).toBeTruthy()
   })
 
   it('marks previous states with checkmark', () => {

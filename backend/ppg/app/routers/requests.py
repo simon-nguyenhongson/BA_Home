@@ -29,6 +29,7 @@ CR_CHANGE_TYPES = {"scope", "timeline", "resource", "budget", "technical", "proc
 CR_STATUSES     = {"submitted", "reviewing", "approved", "rejected", "implementing", "implemented", "cancelled"}
 SR_REQUEST_TYPES = {"bug_fix", "enhancement", "support", "incident", "access_request", "data_request", "other"}
 SR_STATUSES      = {"submitted", "reviewing", "approved", "in_progress", "resolved", "rejected", "cancelled"}
+CR_KINDS         = {"standard", "internal"}
 PRIORITIES       = {"critical", "high", "medium", "low"}
 SEVERITIES       = {"critical", "high", "medium", "low"}
 ENVIRONMENTS     = {"DEV", "SIT", "UAT", "PROD", "DR", "STAGING"}
@@ -36,8 +37,12 @@ ENVIRONMENTS     = {"DEV", "SIT", "UAT", "PROD", "DR", "STAGING"}
 # ── Schemas ───────────────────────────────────────────────────────────────────
 
 class CRCreate(BaseModel):
-    project_id:    str  = Field(..., min_length=1)
-    product_id:    Optional[str]  = None   # hệ thống bị tác động — dùng để merge vào MasterDoc
+    # QUYỀN SỞ HỮU — sản phẩm mà CR thay đổi. Bắt buộc với CR tạo mới (V052).
+    product_id:    str  = Field(..., min_length=1)
+    # QUY KẾT NGUỒN — dự án tài trợ, tùy chọn. Trống với CR phát sinh sau khi dự án đóng.
+    project_id:    Optional[str]  = None
+    # standard = CR nghiệp vụ (phải qua BRS + test) | internal = CR nội bộ sửa tay Master Doc
+    cr_kind:       str  = Field("standard")
     title:         str  = Field(..., min_length=1, max_length=255)
     description:   Optional[str]  = None
     change_type:   str  = Field("other")
@@ -110,6 +115,8 @@ def _validate_cr_create(body: CRCreate) -> None:
         raise HTTPException(400, f"change_type không hợp lệ: {body.change_type}")
     if body.priority not in PRIORITIES:
         raise HTTPException(400, f"priority không hợp lệ: {body.priority}")
+    if body.cr_kind not in CR_KINDS:
+        raise HTTPException(400, f"cr_kind không hợp lệ: {body.cr_kind}")
 
 
 def _validate_cr_patch(body: CRPatch) -> None:
@@ -214,9 +221,21 @@ async def create_project_change(
     db: asyncpg.Connection = Depends(get_db),
 ):
     _validate_cr_create(body)
-    exists = await db.fetchval("SELECT id FROM projects WHERE id=$1::uuid", body.project_id)
-    if not exists:
-        raise HTTPException(404, f"Project '{body.project_id}' không tồn tại")
+
+    # Quyền sở hữu: sản phẩm bắt buộc tồn tại (V052)
+    product = await db.fetchval(
+        "SELECT id FROM catalog_products WHERE id=$1::uuid", body.product_id
+    )
+    if not product:
+        raise HTTPException(404, f"Sản phẩm '{body.product_id}' không tồn tại")
+
+    # Quy kết nguồn: dự án tùy chọn, nhưng nếu có thì phải tồn tại
+    if body.project_id:
+        exists = await db.fetchval(
+            "SELECT id FROM projects WHERE id=$1::uuid", body.project_id
+        )
+        if not exists:
+            raise HTTPException(404, f"Project '{body.project_id}' không tồn tại")
 
     code = await _next_cr_code(db)
     target = date.fromisoformat(body.target_date) if body.target_date else None
@@ -224,12 +243,13 @@ async def create_project_change(
     row = await db.fetchrow(
         """
         INSERT INTO change_requests
-            (request_code, project_id, product_id, title, description, change_type, priority,
-             impact_scope, impact_effort, requested_by, assigned_to, target_date, notes)
-        VALUES ($1,$2::uuid,$3::uuid,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+            (request_code, project_id, product_id, cr_kind, title, description,
+             change_type, priority, impact_scope, impact_effort, requested_by,
+             assigned_to, target_date, notes)
+        VALUES ($1,$2::uuid,$3::uuid,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
         RETURNING *
         """,
-        code, body.project_id, body.product_id, body.title, body.description,
+        code, body.project_id, body.product_id, body.cr_kind, body.title, body.description,
         body.change_type, body.priority,
         body.impact_scope, body.impact_effort,
         body.requested_by, body.assigned_to, target, body.notes,
@@ -361,9 +381,12 @@ async def get_project_change(
 ):
     row = await db.fetchrow(
         """
-        SELECT cr.*, p.name AS project_name, p.code AS project_code
+        SELECT cr.*,
+               p.name  AS project_name, p.code AS project_code,
+               cp.product_name, cp.product_code, cp.product_type, cp.domain_code
         FROM change_requests cr
-        LEFT JOIN projects p ON p.id = cr.project_id
+        LEFT JOIN projects p           ON p.id  = cr.project_id
+        LEFT JOIN catalog_products cp  ON cp.id = cr.product_id
         WHERE cr.id = $1::uuid
         """,
         cr_id,

@@ -830,18 +830,24 @@ function CRCreateModal({
   dialogRef: React.RefObject<HTMLDialogElement>
   onCreated: () => void
 }) {
-  const BLANK: CRCreate = { project_id: '', title: '', change_type: 'other', priority: 'medium', requested_by: '' }
+  // product_id là quyền sở hữu CR (V052, bắt buộc); project_id chỉ quy kết nguồn (tùy chọn)
+  const BLANK: CRCreate = { product_id: '', project_id: '', title: '', change_type: 'other', priority: 'medium', requested_by: '' }
   const [form, setForm]           = useState<CRCreate>(BLANK)
   const [projects, setProjects]   = useState<Project[]>([])
+  const [products, setProducts]   = useState<CatalogProduct[]>([])
   const [lovLoading, setLovLoading] = useState(true)
   const [saving, setSaving]       = useState(false)
   const [error, setError]         = useState<string | null>(null)
   const [queuedFiles, setQueuedFiles] = useState<File[]>([])
 
   useEffect(() => {
-    getProjects({ all_years: true })
-      .then(data => setProjects(data.filter(p => p.status !== 'archived')))
-      .catch(() => setProjects([]))
+    Promise.all([
+      getProjects({ all_years: true })
+        .then(data => data.filter(p => p.status !== 'archived'))
+        .catch(() => [] as Project[]),
+      getProducts().catch(() => [] as CatalogProduct[]),
+    ])
+      .then(([prjs, prods]) => { setProjects(prjs); setProducts(prods) })
       .finally(() => setLovLoading(false))
   }, [])
 
@@ -853,6 +859,14 @@ function CRCreateModal({
       meta:  `${p.code}${p.domain_code ? ' · ' + p.domain_code : ''} · ${p.status}`,
     }))
 
+  const productOptions: ComboOption[] = [...products]
+    .sort((a, b) => a.product_name.localeCompare(b.product_name))
+    .map(pr => ({
+      value: pr.id,
+      label: pr.product_name,
+      meta:  `${pr.product_code} · ${pr.product_type}${pr.domain_code ? ' · ' + pr.domain_code : ''}`,
+    }))
+
   function set(k: keyof CRCreate, v: string) { setForm(f => ({ ...f, [k]: v })) }
 
   function closeDialog() {
@@ -862,8 +876,8 @@ function CRCreateModal({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.project_id || !form.title || !form.requested_by) {
-      setError('Vui lòng chọn Project, điền Tiêu đề và Người yêu cầu'); return
+    if (!form.product_id || !form.title || !form.requested_by) {
+      setError('Vui lòng chọn Sản phẩm, điền Tiêu đề và Người yêu cầu'); return
     }
     setSaving(true); setError(null)
     try {
@@ -898,13 +912,33 @@ function CRCreateModal({
             <div style={{ padding: '20px 24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
                 <label className="form-label" style={{ marginBottom: 6, display: 'block' }}>
-                  Project <span style={{ color: 'var(--app-danger)' }}>*</span>
+                  Sản phẩm bị tác động <span style={{ color: 'var(--app-danger)' }}>*</span>
+                </label>
+                <ComboSelect
+                  options={productOptions}
+                  value={form.product_id}
+                  onChange={val => set('product_id', val)}
+                  placeholder={lovLoading ? 'Đang tải...' : `Chọn sản phẩm (${productOptions.length} sản phẩm)`}
+                  loading={lovLoading}
+                />
+                <div style={{ marginTop: 6, fontSize: 12, color: 'var(--app-neutral-500)' }}>
+                  CR thuộc về sản phẩm và sống cùng sản phẩm. Master Doc của sản phẩm là bối cảnh
+                  AS-IS để AI sinh BRS.
+                </div>
+              </div>
+
+              <div>
+                <label className="form-label" style={{ marginBottom: 6, display: 'block' }}>
+                  Dự án tài trợ
+                  <span style={{ marginLeft: 6, fontWeight: 400, color: 'var(--app-neutral-500)' }}>
+                    (tùy chọn — để báo cáo công việc theo kỳ)
+                  </span>
                 </label>
                 <ComboSelect
                   options={projectOptions}
-                  value={form.project_id}
+                  value={form.project_id ?? ''}
                   onChange={val => set('project_id', val)}
-                  placeholder={lovLoading ? 'Đang tải...' : `Chọn project (${projectOptions.length} dự án)`}
+                  placeholder={lovLoading ? 'Đang tải...' : 'Không thuộc dự án nào'}
                   loading={lovLoading}
                 />
                 {selectedProject && (

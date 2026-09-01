@@ -21,15 +21,6 @@ vi.mock('../pages/dashboard/DashboardPage', () => ({
 vi.mock('../pages/ppg/PPGPage', () => ({
   default: () => React.createElement('div', { 'data-testid': 'ppg-page' }, 'PPGPage'),
 }))
-vi.mock('../pages/ba/BAPage', () => ({
-  default: () => React.createElement('div', { 'data-testid': 'ba-page' }, 'BAPage'),
-}))
-vi.mock('../pages/test/TestPage', () => ({
-  default: () => React.createElement('div', { 'data-testid': 'test-page' }, 'TestPage'),
-}))
-vi.mock('../pages/projects/ProjectObjectsPage', () => ({
-  default: () => React.createElement('div', { 'data-testid': 'project-objects-page' }, 'ProjectObjectsPage'),
-}))
 vi.mock('../pages/ba-workflow/BAWorkflowPage', () => ({
   default: () => React.createElement('div', { 'data-testid': 'ba-workflow-page' }, 'BAWorkflowPage'),
 }))
@@ -83,12 +74,11 @@ import App from '../App'
 
 const APPS = [
   { key: 'dashboard'     as const, label: 'Dashboard',   path: '/dashboard' },
-  { key: 'ppg'           as const, label: 'PPG System',  path: '/ppg' },
+  { key: 'ppg'           as const, label: 'Project',     path: '/ppg' },
   { key: 'ba-workflow'   as const, label: 'BA',          path: '/ba-workflow' },
   { key: 'test-workflow' as const, label: 'Test',        path: '/test-workflow' },
   { key: 'automation'    as const, label: 'Automation',  path: '/automation' },
   { key: 'docs'          as const, label: 'Tài liệu',    path: '/docs' },
-  { key: 'catalog'       as const, label: 'Danh mục',    path: '/catalog' },
   { key: 'requests'      as const, label: 'Requests',    path: '/requests' },
   { key: 'todos'         as const, label: 'To-do',       path: '/todos' },
   { key: 'settings'      as const, label: 'Cài đặt',     path: '/settings' },
@@ -103,8 +93,8 @@ describe('App — APPS array structure', () => {
     vi.clearAllMocks()
   })
 
-  it('has exactly 10 items', () => {
-    expect(APPS.length).toBe(10)
+  it('has exactly 9 items — Danh mục đã chuyển vào Cài đặt', () => {
+    expect(APPS.length).toBe(9)
   })
 
   it('first item is "Dashboard" with path /dashboard', () => {
@@ -113,8 +103,8 @@ describe('App — APPS array structure', () => {
     expect(APPS[0].key).toBe('dashboard')
   })
 
-  it('second item (index 1) is "PPG System"', () => {
-    expect(APPS[1].label).toBe('PPG System')
+  it('second item (index 1) is "Project" (đổi tên từ PPG System)', () => {
+    expect(APPS[1].label).toBe('Project')
     expect(APPS[1].key).toBe('ppg')
     expect(APPS[1].path).toBe('/ppg')
   })
@@ -228,7 +218,7 @@ describe('App — routing (authenticated)', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Sidebar structure test — shell renders sidebar nav with all 5 apps
+// Sidebar structure test — sidebar là thanh điều hướng duy nhất
 // ---------------------------------------------------------------------------
 
 describe('App — Shell sidebar', () => {
@@ -241,14 +231,14 @@ describe('App — Shell sidebar', () => {
     expect(screen.getByText('BA_HOME')).toBeInTheDocument()
   })
 
-  it('renders app labels in the topbar navigation', () => {
+  it('renders app labels in the sidebar navigation', () => {
     render(
       React.createElement(MemoryRouter, { initialEntries: ['/ppg'] },
         React.createElement(App)
       )
     )
-    // Nhãn app xuất hiện ở thanh điều hướng trên
-    expect(screen.getAllByText('PPG System').length).toBeGreaterThanOrEqual(1)
+    // Menu trên đã bỏ — nhãn app chỉ còn ở sidebar
+    expect(screen.getAllByText('Project').length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText('BA').length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText('Test').length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText('Tài liệu').length).toBeGreaterThanOrEqual(1)

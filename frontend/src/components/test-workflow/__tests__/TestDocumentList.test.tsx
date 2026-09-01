@@ -50,16 +50,18 @@ describe('TestDocumentList', () => {
     expect(screen.getByText('UAT Sign-off — Phase 1')).toBeTruthy()
   })
 
+  // Mỗi nhãn loại tài liệu xuất hiện 2 lần: nút lọc và badge trong bảng → getAllByText
   it('renders doc type badges', () => {
     render(<TestDocumentList documents={mockDocuments} />)
-    expect(screen.getByText('Test Plan')).toBeTruthy()
-    expect(screen.getByText('Bug Report')).toBeTruthy()
-    expect(screen.getByText('UAT Sign-off')).toBeTruthy()
+    expect(screen.getAllByText('Test Plan').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Bug Report').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('UAT Sign-off').length).toBeGreaterThan(0)
   })
 
   it('renders severity badge for bug report', () => {
     render(<TestDocumentList documents={mockDocuments} />)
-    expect(screen.getByText('HIGH')).toBeTruthy()
+    // Badge hiển thị IN HOA bằng CSS text-transform; DOM vẫn giữ giá trị gốc 'high'
+    expect(screen.getAllByText('high').length).toBeGreaterThan(0)
   })
 
   it('renders approver for UAT sign-off', () => {

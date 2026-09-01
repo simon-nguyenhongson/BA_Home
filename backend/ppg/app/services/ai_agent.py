@@ -98,9 +98,14 @@ async def run_skill(
     user_prompt: str,
     extra_system: str = "",
     max_tokens: Optional[int] = None,
+    cached_prefix: Optional[list[str]] = None,
 ) -> str:
     """
     Chạy một skill của kho skill với nội dung yêu cầu cụ thể, trả về text kết quả.
+
+    cached_prefix: các khối system lớn và ổn định nạp TRƯỚC nội dung skill — dùng cho
+    skill có tài liệu kỹ thuật nằm trên đĩa thay vì trong DB (hiện tại: gen_diagram nạp
+    SKILL.md + reference của skill diagram-design). Mỗi khối được đánh dấu cache riêng.
 
     Raise HTTPException khi thiếu key / skill không tồn tại / Claude API lỗi.
     """
@@ -131,14 +136,21 @@ async def run_skill(
         except ValueError:
             max_tokens = DEFAULT_MAX_TOKENS
 
-    system_blocks: list[dict] = [
-        {
-            "type": "text",
-            "text": skill_content,
-            # Skill là phần ổn định → cache để giảm chi phí khi gọi lặp lại
-            "cache_control": {"type": "ephemeral"},
-        }
-    ]
+    system_blocks: list[dict] = []
+    # Anthropic cho tối đa 4 điểm cắt cache — giữ 1 chỗ cho skill_content bên dưới.
+    for block in (cached_prefix or [])[:3]:
+        if block.strip():
+            system_blocks.append({
+                "type": "text",
+                "text": block,
+                "cache_control": {"type": "ephemeral"},
+            })
+    system_blocks.append({
+        "type": "text",
+        "text": skill_content,
+        # Skill là phần ổn định → cache để giảm chi phí khi gọi lặp lại
+        "cache_control": {"type": "ephemeral"},
+    })
     if extra_system.strip():
         system_blocks.append({"type": "text", "text": extra_system})
 

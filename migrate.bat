@@ -17,7 +17,7 @@ if errorlevel 1 echo [WARN] migrate_annual_plans_v2.sql had errors (may be ok if
 REM  LUU Y thu tu cac cap trung version (KHONG duoc dao):
 REM  V030 seed_internal_webapps TRUOC V031 product_domain_fk (seed INSERT cot `domain`, V031 DROP cot do);
 REM  V041 test_documents TRUOC V042 test_documents_updated_by.
-echo [1] Running migrations V017 - V050...
+echo [1] Running migrations V017 - V052...
 for %%f in (
   migrations\V017__publish_jobs.sql
   migrations\V018__annual_plan_extended.sql
@@ -57,6 +57,8 @@ for %%f in (
   migrations\V048__ai_skills_brs_automation.sql
   migrations\V049__fix_audit_log_table.sql
   migrations\V050__remove_annual_plan_module.sql
+  migrations\V051__diagrams.sql
+  migrations\V052__cr_product_ownership.sql
 ) do (
   echo   Running %%f ...
   %PSQL% -f %%f

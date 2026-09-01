@@ -1,149 +1,105 @@
 /**
- * Unit tests for DocsPage — tab navigation, default tab, sub-description.
+ * Unit tests cho DocsPage — cây Domain → (Dự án | Sản phẩm) → nội dung tài liệu.
+ *
+ * Viết lại 2026-09-01: bộ test cũ kiểm tra 3 tab "Tài liệu dự án / BA / Test" đã bị gỡ
+ * từ lâu (10/15 test fail vì mô tả giao diện không còn tồn tại). Nay kiểm đúng cấu trúc
+ * hiện tại, gồm nhánh Sản phẩm mới thêm theo yêu cầu PO.
  */
 
 import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
 
-// ---------------------------------------------------------------------------
-// Mock child pages to keep tests fast and isolated
-// ---------------------------------------------------------------------------
+const DOMAINS = [
+  { code: 'FS', name: 'Financial Services' },
+  { code: 'IT', name: 'Information Technology' },
+]
+const PROJECTS = [
+  { id: 'p1', code: 'PRJ-01', name: 'OMS', status: 'active', domain_code: 'FS',
+    start_date: '2026-01-01', end_date: '2026-06-30' },
+]
+const PRODUCTS = [
+  { id: 'pr1', product_code: 'PRD-01', product_name: 'Internet Banking',
+    product_type: 'web_app', status: 'active', domain_code: 'FS', tags: [] },
+]
 
-vi.mock('../../ba/BAPage', () => ({
-  default: () => React.createElement('div', { 'data-testid': 'ba-page' }, 'BAPage'),
+vi.mock('../../../api/ppg', () => ({
+  getProjectDomains: vi.fn(() => Promise.resolve(DOMAINS)),
+  getProjects:       vi.fn(() => Promise.resolve(PROJECTS)),
+  getDocsTree:       vi.fn(() => Promise.resolve({
+    project_id: 'p1', project_code: 'PRJ-01', domain_code: 'FS', tracks: [],
+  })),
+  downloadTemplate:  vi.fn(),
+  uploadDocFile:     vi.fn(),
+  getFolderFiles:    vi.fn(() => Promise.resolve([])),
+  downloadDocFile:   vi.fn(),
 }))
 
-vi.mock('../../ba-workflow/BAWorkflowPage', () => ({
-  default: () => React.createElement('div', { 'data-testid': 'ba-workflow-page' }, 'BAWorkflowPage'),
+vi.mock('../../../api/catalog', () => ({
+  getProducts: vi.fn(() => Promise.resolve(PRODUCTS)),
 }))
 
-vi.mock('../../test-workflow/TestWorkflowPage', () => ({
-  default: () => React.createElement('div', { 'data-testid': 'test-workflow-page' }, 'TestWorkflowPage'),
+// ProductDocsView gọi tiếp nhiều API (Master Doc, CR, sơ đồ) — thay bằng bản giả
+// để test này chỉ kiểm điều hướng, không kiểm nội dung tài liệu sản phẩm.
+vi.mock('../ProductDocsView', () => ({
+  ProductDocsView: ({ product }: { product: { product_name: string } }) =>
+    React.createElement('div', { 'data-testid': 'product-docs' }, product.product_name),
 }))
 
-// ---------------------------------------------------------------------------
-// Import the component under test AFTER mocks are set up
-// ---------------------------------------------------------------------------
+vi.mock('../../../stores/auth', () => ({
+  useStore: () => ({ addToast: vi.fn() }),
+}))
 
 import DocsPage from '../DocsPage'
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
+describe('DocsPage — điều hướng Domain → Dự án | Sản phẩm', () => {
+  beforeEach(() => { vi.clearAllMocks() })
 
-describe('DocsPage', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
-  it('renders 3 tab buttons', () => {
-    const { getAllByRole } = render(React.createElement(DocsPage))
-    const buttons = getAllByRole('button')
-    expect(buttons.length).toBeGreaterThanOrEqual(3)
-  })
-
-  it('renders the correct 3 tab labels', () => {
+  it('hiện danh sách domain lấy từ API', async () => {
     render(React.createElement(DocsPage))
-    expect(screen.getByText('Tài liệu dự án')).toBeInTheDocument()
-    expect(screen.getByText('Tài liệu BA')).toBeInTheDocument()
-    expect(screen.getByText('Tài liệu Test')).toBeInTheDocument()
+    expect(await screen.findByText('Financial Services')).toBeInTheDocument()
+    expect(screen.getByText('Information Technology')).toBeInTheDocument()
   })
 
-  it('default active tab is "Tài liệu dự án" — renders BAPage', () => {
+  it('mặc định chọn nhánh Dự án và nhắc chọn domain', () => {
     render(React.createElement(DocsPage))
-    expect(screen.getByTestId('ba-page')).toBeInTheDocument()
-    expect(screen.queryByTestId('ba-workflow-page')).toBeNull()
-    expect(screen.queryByTestId('test-workflow-page')).toBeNull()
+    expect(screen.getByText(/Chọn Domain để xem dự án/)).toBeInTheDocument()
   })
 
-  it('clicking "Tài liệu BA" tab switches content to BAWorkflowPage', () => {
+  it('có hai nút chuyển nhánh Dự án và Sản phẩm', async () => {
     render(React.createElement(DocsPage))
-    fireEvent.click(screen.getByText('Tài liệu BA'))
-    expect(screen.getByTestId('ba-workflow-page')).toBeInTheDocument()
-    expect(screen.queryByTestId('ba-page')).toBeNull()
+    expect(await screen.findByText('Dự án')).toBeInTheDocument()
+    expect(screen.getByText('Sản phẩm')).toBeInTheDocument()
   })
 
-  it('clicking "Tài liệu Test" tab switches content to TestWorkflowPage', () => {
+  it('chọn domain thì nạp cả dự án và sản phẩm của domain đó', async () => {
     render(React.createElement(DocsPage))
-    fireEvent.click(screen.getByText('Tài liệu Test'))
-    expect(screen.getByTestId('test-workflow-page')).toBeInTheDocument()
-    expect(screen.queryByTestId('ba-page')).toBeNull()
+    fireEvent.click(await screen.findByText('Financial Services'))
+    expect(await screen.findByText('PRJ-01')).toBeInTheDocument()
   })
 
-  it('clicking back to "Tài liệu dự án" re-renders BAPage', () => {
+  it('chuyển sang nhánh Sản phẩm thì hiện sản phẩm của domain', async () => {
     render(React.createElement(DocsPage))
-    fireEvent.click(screen.getByText('Tài liệu BA'))
-    fireEvent.click(screen.getByText('Tài liệu dự án'))
-    expect(screen.getByTestId('ba-page')).toBeInTheDocument()
-    expect(screen.queryByTestId('ba-workflow-page')).toBeNull()
+    fireEvent.click(await screen.findByText('Financial Services'))
+    await screen.findByText('PRJ-01')
+    fireEvent.click(screen.getByText('Sản phẩm'))
+    expect(await screen.findByText('PRD-01')).toBeInTheDocument()
   })
 
-  it('shows sub-description for active "Tài liệu dự án" tab', () => {
+  it('chọn một sản phẩm thì hiện khung tài liệu sản phẩm', async () => {
     render(React.createElement(DocsPage))
-    // The sub-description for project tab
-    expect(screen.getByText('Requirements, documents gắn với project')).toBeInTheDocument()
-  })
-
-  it('shows sub-description for "Tài liệu BA" when that tab is active', () => {
-    render(React.createElement(DocsPage))
-    fireEvent.click(screen.getByText('Tài liệu BA'))
-    expect(screen.getByText('BRD, FSD, API Spec, ERD gắn với đối tượng')).toBeInTheDocument()
-  })
-
-  it('shows sub-description for "Tài liệu Test" when that tab is active', () => {
-    render(React.createElement(DocsPage))
-    fireEvent.click(screen.getByText('Tài liệu Test'))
-    expect(screen.getByText('Test Plan, Test Case, Bug Report, UAT Sign-off')).toBeInTheDocument()
-  })
-
-  it('sub-description is only shown for the active tab (not all 3 at once)', () => {
-    render(React.createElement(DocsPage))
-    // Only the active tab's sub-description is visible
-    const sub1 = screen.getByText('Requirements, documents gắn với project')
-    expect(sub1).toBeInTheDocument()
-    // The other two should not appear in the default state
-    expect(screen.queryByText('BRD, FSD, API Spec, ERD gắn với đối tượng')).toBeNull()
-    expect(screen.queryByText('Test Plan, Test Case, Bug Report, UAT Sign-off')).toBeNull()
-  })
-})
-
-// ---------------------------------------------------------------------------
-// TABS constant structure tests
-// ---------------------------------------------------------------------------
-
-describe('DocsPage — TABS data structure', () => {
-  // Inline the TABS definition to test the structure without importing private
-  const TABS = [
-    { key: 'project', label: 'Tài liệu dự án', sub: 'Requirements, documents gắn với project' },
-    { key: 'ba',      label: 'Tài liệu BA',    sub: 'BRD, FSD, API Spec, ERD gắn với đối tượng' },
-    { key: 'test',    label: 'Tài liệu Test',  sub: 'Test Plan, Test Case, Bug Report, UAT Sign-off' },
-  ]
-
-  it('has exactly 3 tabs', () => {
-    expect(TABS.length).toBe(3)
-  })
-
-  it('first tab is "Tài liệu dự án" with key "project"', () => {
-    expect(TABS[0].key).toBe('project')
-    expect(TABS[0].label).toBe('Tài liệu dự án')
-  })
-
-  it('second tab is "Tài liệu BA" with key "ba"', () => {
-    expect(TABS[1].key).toBe('ba')
-    expect(TABS[1].label).toBe('Tài liệu BA')
-  })
-
-  it('third tab is "Tài liệu Test" with key "test"', () => {
-    expect(TABS[2].key).toBe('test')
-    expect(TABS[2].label).toBe('Tài liệu Test')
-  })
-
-  it('all tabs have a sub-description', () => {
-    TABS.forEach(tab => {
-      expect(tab.sub).toBeTruthy()
-      expect(tab.sub.length).toBeGreaterThan(0)
+    fireEvent.click(await screen.findByText('Financial Services'))
+    await screen.findByText('PRJ-01')
+    fireEvent.click(screen.getByText('Sản phẩm'))
+    fireEvent.click(await screen.findByText('PRD-01'))
+    await waitFor(() => {
+      expect(screen.getByTestId('product-docs')).toHaveTextContent('Internet Banking')
     })
+  })
+
+  it('giải thích rõ tài liệu dự án là file, tài liệu sản phẩm nằm trong hệ', () => {
+    render(React.createElement(DocsPage))
+    expect(screen.getByText(/nằm trong hệ: Master Doc, BRS theo từng CR/)).toBeInTheDocument()
   })
 })

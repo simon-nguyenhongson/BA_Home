@@ -52,18 +52,19 @@ describe('BADocumentList', () => {
     expect(screen.getByText('FSD — Authentication')).toBeTruthy()
   })
 
+  // Mỗi nhãn xuất hiện 2 lần: một ở nút lọc, một ở badge trong bảng → getAllByText
   it('renders doc type badges', () => {
     render(<BADocumentList documents={mockDocuments} />)
-    expect(screen.getByText('BRD')).toBeTruthy()
-    expect(screen.getByText('BRS')).toBeTruthy()
-    expect(screen.getByText('FSD')).toBeTruthy()
+    expect(screen.getAllByText('BRD').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('BRS').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('FSD').length).toBeGreaterThan(0)
   })
 
   it('renders status badges', () => {
     render(<BADocumentList documents={mockDocuments} />)
-    expect(screen.getByText('draft')).toBeTruthy()
-    expect(screen.getByText('review')).toBeTruthy()
-    expect(screen.getByText('approved')).toBeTruthy()
+    expect(screen.getAllByText('draft').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('review').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('approved').length).toBeGreaterThan(0)
   })
 
   it('renders version numbers', () => {
@@ -80,8 +81,7 @@ describe('BADocumentList', () => {
 
   it('filters by doc type', () => {
     render(<BADocumentList documents={mockDocuments} />)
-    const brsBtn = screen.getByText('BRS')
-    // Click the filter button (not the table badge — find the button)
+    // Bấm đúng nút lọc, không phải badge trong bảng
     const filterButtons = screen.getAllByRole('button')
     const brsFilter = filterButtons.find((b) => b.textContent === 'BRS')
     if (brsFilter) {

@@ -21,12 +21,21 @@ export type Priority      = 'critical' | 'high' | 'medium' | 'low'
 export type Severity      = 'critical' | 'high' | 'medium' | 'low'
 export type Environment   = 'DEV' | 'SIT' | 'UAT' | 'PROD' | 'DR' | 'STAGING'
 
+export type CRKind = 'standard' | 'internal'
+
 export interface ChangeRequest {
   id:            string
   request_code:  string
-  project_id:    string
+  /** QUYỀN SỞ HỮU — sản phẩm mà CR thay đổi (V052: bắt buộc với CR tạo mới) */
+  product_id?:   string
+  product_name?: string
+  product_code?: string
+  /** QUY KẾT NGUỒN — dự án tài trợ, tùy chọn; trống với CR phát sinh sau khi dự án đóng */
+  project_id?:   string
   project_name?: string
   project_code?: string
+  /** standard = CR nghiệp vụ (qua BRS + test) · internal = CR nội bộ sửa tay Master Doc */
+  cr_kind?:      CRKind
   title:         string
   description?:  string
   change_type:   CRChangeType
@@ -67,7 +76,11 @@ export interface ServiceRequest {
 }
 
 export interface CRCreate {
-  project_id:    string
+  /** Bắt buộc — sản phẩm mà CR thay đổi (quyền sở hữu) */
+  product_id:    string
+  /** Tùy chọn — dự án tài trợ (quy kết nguồn, phục vụ báo cáo theo kỳ) */
+  project_id?:   string
+  cr_kind?:      CRKind
   title:         string
   description?:  string
   change_type?:  CRChangeType
@@ -169,8 +182,12 @@ export interface RequestHistoryEntry {
 // ── CR endpoints ─────────────────────────────────────────────────────────────
 
 export const crApi = {
-  list: (params?: { project_id?: string; status?: string; priority?: string; change_type?: string }) => {
+  list: (params?: {
+    product_id?: string; project_id?: string
+    status?: string; priority?: string; change_type?: string
+  }) => {
     const qs = new URLSearchParams()
+    if (params?.product_id)  qs.set('product_id',  params.product_id)
     if (params?.project_id)  qs.set('project_id',  params.project_id)
     if (params?.status)      qs.set('status',       params.status)
     if (params?.priority)    qs.set('priority',     params.priority)

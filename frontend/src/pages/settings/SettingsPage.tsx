@@ -7,8 +7,11 @@ import {
 } from '../../api/ai'
 import { Badge, Btn, Card, Confirm, EmptyState, Field, AppInput, AppTextarea, Modal } from '../../components/ui'
 import { useStore } from '../../stores/auth'
+import CatalogPage from '../catalog/CatalogPage'
 
-type Tab = 'ai' | 'skills'
+// Danh mục (sản phẩm / nhân sự / vai trò) đã chuyển từ menu riêng vào đây
+// theo yêu cầu PO 2026-09-01 — đều là dữ liệu cấu hình, không phải việc hằng ngày.
+type Tab = 'ai' | 'skills' | 'catalog'
 
 const MODELS = [
   { value: 'claude-opus-5', label: 'Claude Opus 5 — mạnh nhất, mặc định' },
@@ -17,7 +20,10 @@ const MODELS = [
 ]
 
 export default function SettingsPage() {
-  const [tab, setTab] = useState<Tab>('ai')
+  // Link cũ /catalog chuyển hướng sang /settings?tab=products → mở luôn tab Danh mục
+  const initialTab: Tab =
+    new URLSearchParams(window.location.search).get('tab') === 'products' ? 'catalog' : 'ai'
+  const [tab, setTab] = useState<Tab>(initialTab)
 
   return (
     <div>
@@ -26,7 +32,7 @@ export default function SettingsPage() {
           Cài đặt
         </h1>
         <p style={{ fontSize: 14, color: 'var(--app-neutral-500)' }}>
-          Cấu hình AI Agent và kho skill chuẩn dùng cho sinh tài liệu, test case, báo cáo
+          AI Agent, kho skill chuẩn và danh mục dữ liệu nền của hệ thống
         </p>
       </div>
 
@@ -37,9 +43,14 @@ export default function SettingsPage() {
         <button className={`ds-tab${tab === 'skills' ? ' active' : ''}`} onClick={() => setTab('skills')}>
           Kho skill
         </button>
+        <button className={`ds-tab${tab === 'catalog' ? ' active' : ''}`} onClick={() => setTab('catalog')}>
+          Danh mục
+        </button>
       </div>
 
-      {tab === 'ai' ? <AiSettingsTab /> : <SkillsTab />}
+      {tab === 'ai' && <AiSettingsTab />}
+      {tab === 'skills' && <SkillsTab />}
+      {tab === 'catalog' && <CatalogPage />}
     </div>
   )
 }

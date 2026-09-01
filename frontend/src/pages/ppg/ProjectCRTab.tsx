@@ -23,6 +23,7 @@ import { RequestAttachments } from '../../components/RequestAttachments'
 import { FileQueueSection } from '../../components/FileQueueSection'
 import { createTodo, type TodoType } from '../../api/todos'
 import { UserSelect } from '../../components/UserSelect'
+import { getProducts, type CatalogProduct } from '../../api/catalog'
 import {
   CR_CHANGE_TYPE_LABELS as CHANGE_TYPE_LABELS,
   CR_STATUS_LABELS as STATUS_LABELS,
@@ -113,6 +114,8 @@ function FlowBar({ status }: { status: CRStatus }) {
 // ── CR Form (create / edit) ──────────────────────────────────────
 function blankForm(projectId: string, username: string | null): CRCreate {
   return {
+    // product_id là quyền sở hữu CR (V052) — người dùng phải chọn trước khi lưu
+    product_id:   '',
     project_id:   projectId,
     title:        '',
     change_type:  'process',
@@ -138,6 +141,7 @@ function CRFormModal({
   const [form, setForm] = useState<CRCreate>(() =>
     initial
       ? {
+          product_id:    initial.product_id ?? '',
           project_id:    projectId,
           title:         initial.title,
           description:   initial.description,
@@ -155,6 +159,13 @@ function CRFormModal({
   const [saving, setSaving]           = useState(false)
   const [error,  setError]            = useState<string | null>(null)
   const [queuedFiles, setQueuedFiles] = useState<File[]>([])
+  const [products, setProducts]       = useState<CatalogProduct[]>([])
+
+  useEffect(() => {
+    getProducts()
+      .then(setProducts)
+      .catch(() => setError('Không tải được danh mục sản phẩm — kiểm tra kết nối rồi thử lại'))
+  }, [])
 
   const set = <K extends keyof CRCreate>(k: K, v: CRCreate[K]) =>
     setForm(f => ({ ...f, [k]: v }))
@@ -163,6 +174,10 @@ function CRFormModal({
     e.preventDefault()
     if (!form.title.trim() || !form.requested_by.trim()) {
       setError('Vui lòng điền Tiêu đề và Người yêu cầu'); return
+    }
+    if (!form.product_id) {
+      setError('Vui lòng chọn Sản phẩm bị tác động — CR thuộc về sản phẩm, '
+        + 'và AI cần Master Doc của sản phẩm đó để sinh BRS'); return
     }
     setSaving(true); setError(null)
     try {
@@ -216,9 +231,30 @@ function CRFormModal({
 
         {/* Body */}
         <form onSubmit={submit} style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {/* Project — read-only */}
+          {/* Sản phẩm — quyền sở hữu CR, bắt buộc */}
           <div>
-            <label className="block text-xs text-gray-500 mb-1">Dự án</label>
+            <label className="block text-xs text-gray-500 mb-1">
+              Sản phẩm bị tác động <span style={{ color: '#ef4444' }}>*</span>
+            </label>
+            <select
+              className="w-full border rounded px-3 py-2 text-sm"
+              value={form.product_id}
+              onChange={e => set('product_id', e.target.value)}
+            >
+              <option value="">— Chọn sản phẩm —</option>
+              {products.map(pr => (
+                <option key={pr.id} value={pr.id}>{pr.product_code} — {pr.product_name}</option>
+              ))}
+            </select>
+            <div className="text-xs text-gray-400 mt-1">
+              CR thuộc về sản phẩm và sống cùng sản phẩm. Master Doc của sản phẩm là bối cảnh
+              AS-IS để AI sinh BRS.
+            </div>
+          </div>
+
+          {/* Dự án tài trợ — chỉ để quy kết nguồn, phục vụ báo cáo theo kỳ */}
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">Dự án tài trợ</label>
             <div className="w-full border border-gray-200 rounded px-3 py-2 text-sm bg-gray-50 text-gray-600">
               {projectLabel}
             </div>

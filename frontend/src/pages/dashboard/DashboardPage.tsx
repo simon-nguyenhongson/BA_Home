@@ -9,7 +9,7 @@ import React, { useEffect, useState } from 'react'
 import {
   LayoutDashboard, FolderKanban, AlertTriangle, Users,
   RefreshCw, Building2, Flag, Package, FileText, GitPullRequest, FlaskConical,
-  ChevronUp, ChevronDown,
+  ChevronUp, ChevronDown, CalendarRange,
 } from 'lucide-react'
 import { Badge, StatusBadge } from '../../components/ui'
 import {
@@ -18,6 +18,7 @@ import {
   type DashboardSummary, type DashboardProject, type DashboardProduct,
   type ResourceData,
 } from '../../api/dashboard'
+import { PeriodReportTab } from './PeriodReportTab'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -206,6 +207,7 @@ function KpiCard({
 
 const TABS: { key: string; label: string; icon: React.ReactNode }[] = [
   { key: 'dashboard',   label: 'Dashboard',     icon: <LayoutDashboard size={16} strokeWidth={1.5} /> },
+  { key: 'period',      label: 'Báo cáo theo kỳ', icon: <CalendarRange size={16} strokeWidth={1.5} /> },
   { key: 'projects',    label: 'Dự án',         icon: <FolderKanban size={16} strokeWidth={1.5} /> },
   { key: 'products',    label: 'Sản phẩm',      icon: <Package size={16} strokeWidth={1.5} /> },
   { key: 'resources',   label: 'Nhân sự',       icon: <Users size={16} strokeWidth={1.5} /> },
@@ -679,6 +681,7 @@ export default function DashboardPage() {
       {!loading && !error && (
         <>
           {activeTab === 'dashboard'  && summary   && <Sheet1 data={summary} />}
+          {activeTab === 'period'                  && <PeriodReportTab />}
           {activeTab === 'projects'                && <Sheet2 projects={projects} />}
           {activeTab === 'products'                && <Sheet3 products={products} />}
           {activeTab === 'resources'  && resources  && <Sheet5 data={resources} />}

@@ -6,7 +6,9 @@ import {
   type DocFileInfo, type DocFileVersion,
 } from '../../api/ppg'
 import { useStore } from '../../stores/auth'
-import { FileText, FolderOpen } from 'lucide-react'
+import { FileText, FolderOpen, Package, Building2 } from 'lucide-react'
+import { getProducts, type CatalogProduct } from '../../api/catalog'
+import { ProductDocsView } from './ProductDocsView'
 
 // ─── colour helpers ───────────────────────────────────────────────
 const TRACK_COLOR: Record<string, string> = {
@@ -567,10 +569,14 @@ function FoldersTab() {
   const { addToast } = useStore()
   const [domains, setDomains]               = useState<ProjectDomain[]>([])
   const [projects, setProjects]             = useState<Project[]>([])
+  const [products, setProducts]             = useState<CatalogProduct[]>([])
   const [loadingDomains, setLoadingDomains] = useState(true)
-  const [loadingProjects, setLoadingProjects] = useState(false)
+  const [loadingList, setLoadingList]       = useState(false)
   const [selectedDomain, setSelectedDomain] = useState<ProjectDomain | null>(null)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+  const [selectedProduct, setSelectedProduct] = useState<CatalogProduct | null>(null)
+  // Tài liệu dự án là file trên đĩa; tài liệu sản phẩm nằm trong DB — hai nhánh khác nhau
+  const [kind, setKind] = useState<'project' | 'product'>('project')
 
   useEffect(() => {
     getProjectDomains()
@@ -580,13 +586,19 @@ function FoldersTab() {
   }, [])
 
   useEffect(() => {
-    if (!selectedDomain) { setProjects([]); return }
-    setLoadingProjects(true)
+    if (!selectedDomain) { setProjects([]); setProducts([]); return }
+    setLoadingList(true)
     setSelectedProject(null)
-    getProjects({ all_years: true })
-      .then(all => setProjects(all.filter(p => p.domain_code === selectedDomain.code)))
-      .catch(() => addToast('Không tải được danh sách project', 'error'))
-      .finally(() => setLoadingProjects(false))
+    setSelectedProduct(null)
+    Promise.all([
+      getProjects({ all_years: true })
+        .then(all => all.filter(p => p.domain_code === selectedDomain.code))
+        .catch(() => { addToast('Không tải được danh sách dự án', 'error'); return [] as Project[] }),
+      getProducts({ domain: selectedDomain.code })
+        .catch(() => { addToast('Không tải được danh sách sản phẩm', 'error'); return [] as CatalogProduct[] }),
+    ])
+      .then(([prjs, prods]) => { setProjects(prjs); setProducts(prods) })
+      .finally(() => setLoadingList(false))
   }, [selectedDomain?.code])
 
   const domainColor = (i: number) => DOMAIN_COLORS[i % DOMAIN_COLORS.length]
@@ -641,38 +653,86 @@ function FoldersTab() {
         </div>
       </div>
 
-      {/* ── Column 2: Project list ── */}
+      {/* ── Cột 2: Dự án | Sản phẩm ── */}
       <div style={{
-        width: 220, flexShrink: 0,
+        width: 240, flexShrink: 0,
         borderRight: '1px solid var(--app-neutral-200)',
         display: 'flex', flexDirection: 'column',
         background: '#fff',
       }}>
-        <div style={{ padding: '12px 12px 8px', borderBottom: '1px solid var(--app-neutral-200)' }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--app-neutral-500)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            {selectedDomain ? `${selectedDomain.code} — Projects` : 'Dự án'}
-          </span>
+        <div style={{ padding: '10px 10px 8px', borderBottom: '1px solid var(--app-neutral-200)' }}>
+          <div style={{ display: 'flex', gap: 4 }}>
+            <button onClick={() => setKind('project')}
+              style={{
+                flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                height: 28, borderRadius: 8, border: 'none', cursor: 'pointer',
+                fontFamily: 'var(--font)', fontSize: 12, fontWeight: kind === 'project' ? 600 : 500,
+                background: kind === 'project' ? 'var(--app-primary)' : '#F2F4F7',
+                color: kind === 'project' ? '#fff' : 'var(--app-neutral-700)',
+              }}>
+              <Building2 size={13} strokeWidth={1.5} /> Dự án
+              <span style={{ opacity: 0.8 }}>{selectedDomain ? projects.length : ''}</span>
+            </button>
+            <button onClick={() => setKind('product')}
+              style={{
+                flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                height: 28, borderRadius: 8, border: 'none', cursor: 'pointer',
+                fontFamily: 'var(--font)', fontSize: 12, fontWeight: kind === 'product' ? 600 : 500,
+                background: kind === 'product' ? 'var(--app-primary)' : '#F2F4F7',
+                color: kind === 'product' ? '#fff' : 'var(--app-neutral-700)',
+              }}>
+              <Package size={13} strokeWidth={1.5} /> Sản phẩm
+              <span style={{ opacity: 0.8 }}>{selectedDomain ? products.length : ''}</span>
+            </button>
+          </div>
         </div>
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {!selectedDomain && (
             <div style={{ padding: '20px 12px', fontSize: 12, color: 'var(--app-neutral-400)', textAlign: 'center' }}>
-              Chọn Domain để xem dự án
+              Chọn Domain để xem {kind === 'project' ? 'dự án' : 'sản phẩm'}
             </div>
           )}
-          {selectedDomain && loadingProjects && (
+          {selectedDomain && loadingList && (
             <div style={{ padding: 12, fontSize: 12, color: 'var(--app-neutral-400)' }}>Đang tải...</div>
           )}
-          {selectedDomain && !loadingProjects && projects.length === 0 && (
+          {selectedDomain && !loadingList && kind === 'product' && products.length === 0 && (
+            <div style={{ padding: '20px 12px', fontSize: 12, color: 'var(--app-neutral-400)', textAlign: 'center' }}>
+              Không có sản phẩm trong domain này
+            </div>
+          )}
+          {selectedDomain && !loadingList && kind === 'project' && projects.length === 0 && (
             <div style={{ padding: '20px 12px', fontSize: 12, color: 'var(--app-neutral-400)', textAlign: 'center' }}>
               Không có dự án trong domain này
             </div>
           )}
-          {projects.map(p => {
+
+          {kind === 'product' && products.map(pr => (
+            <div key={pr.id}
+              onClick={() => { setSelectedProduct(pr); setSelectedProject(null) }}
+              style={{
+                padding: '9px 12px', cursor: 'pointer',
+                borderBottom: '1px solid var(--app-neutral-100)',
+                background: selectedProduct?.id === pr.id ? '#EFF4FF' : 'transparent',
+                borderLeft: selectedProduct?.id === pr.id ? '3px solid var(--app-primary)' : '3px solid transparent',
+              }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--app-neutral-700)', lineHeight: 1.3 }}>
+                {pr.product_code}
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--app-neutral-500)', marginTop: 2, lineHeight: 1.3 }}>
+                {pr.product_name.length > 34 ? pr.product_name.slice(0, 34) + '…' : pr.product_name}
+              </div>
+              <div style={{ fontSize: 10, color: 'var(--app-neutral-400)', marginTop: 3 }}>
+                {pr.product_type} · {pr.status}
+              </div>
+            </div>
+          ))}
+
+          {kind === 'project' && projects.map(p => {
             const statusColor = p.status === 'active' ? '#16a34a' : p.status === 'completed' ? '#2563eb' : '#9ca3af'
             return (
               <div
                 key={p.id}
-                onClick={() => setSelectedProject(p)}
+                onClick={() => { setSelectedProject(p); setSelectedProduct(null) }}
                 style={{
                   padding: '9px 12px', cursor: 'pointer',
                   borderBottom: '1px solid var(--app-neutral-100)',
@@ -697,16 +757,23 @@ function FoldersTab() {
         </div>
       </div>
 
-      {/* ── Column 3: Folder tree ── */}
+      {/* ── Cột 3: nội dung tài liệu ── */}
       <div style={{ flex: 1, overflowY: 'auto', background: '#fff' }}>
-        {!selectedProject ? (
+        {selectedProduct ? (
+          <ProductDocsView product={selectedProduct} />
+        ) : !selectedProject ? (
           <div style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             height: '100%', minHeight: 300, color: 'var(--app-neutral-400)',
           }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}><FolderOpen size={14} strokeWidth={1.5} /></div>
-            <div style={{ fontSize: 14, fontWeight: 600 }}>Chọn dự án để xem thư mục</div>
-            <div style={{ fontSize: 12, marginTop: 6, color: 'var(--app-neutral-300)' }}>Domain → Dự án → Thư mục</div>
+            <div style={{ marginBottom: 12 }}><FolderOpen size={22} strokeWidth={1.5} /></div>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>
+              Chọn {kind === 'project' ? 'dự án' : 'sản phẩm'} để xem tài liệu
+            </div>
+            <div style={{ fontSize: 12, marginTop: 6, color: 'var(--app-neutral-400)', textAlign: 'center', maxWidth: 380, lineHeight: 1.5 }}>
+              Tài liệu <b>dự án</b> là file trên đĩa theo cây thư mục (BRD, biên bản họp, tài liệu test).
+              Tài liệu <b>sản phẩm</b> nằm trong hệ: Master Doc, BRS theo từng CR, sơ đồ, kết quả test.
+            </div>
           </div>
         ) : (
           <div>

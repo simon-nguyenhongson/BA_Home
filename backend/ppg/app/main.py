@@ -24,6 +24,7 @@ from app.routers import requests
 from app.routers import test_documents
 from app.routers import todos
 from app.routers import ai_admin, cr_brs, master_docs, automation
+from app.routers import diagrams
 
 
 @asynccontextmanager
@@ -93,6 +94,10 @@ app.include_router(ai_admin.router)
 app.include_router(cr_brs.router)
 app.include_router(master_docs.router)
 app.include_router(automation.router)
+
+# v11 router — Diagram (QĐ-9): quản lý / sinh bằng AI / import cho Project, Product, BRS.
+# Bộ quy tắc vẽ hình lấy từ skill diagram-design (MIT) nhúng tại app/skills/diagram-design
+app.include_router(diagrams.router)
 
 # Serve MkDocs static sites at /sites/{project_code}/
 _sites_dir = Path(os.getenv("SITES_DIR", "./public/sites"))
