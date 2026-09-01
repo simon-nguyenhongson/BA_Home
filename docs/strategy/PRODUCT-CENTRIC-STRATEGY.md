@@ -39,14 +39,17 @@ Cân đối: phạm vi v2 **nhẹ hơn v1 khoảng 25%** dù thêm 2 hạng mụ
 | 11 | **Bỏ kế hoạch năm** → báo cáo theo năm / from-date to-date, export công việc đã làm (project, product, CR) | Gỡ module; thêm module Báo cáo |
 | 12 | Trục là **vòng đời**: Project, Product, BA + AI, Test, Tài liệu, CR. Còn lại có thể xóa | Xác nhận trục kiến trúc + cho phép cắt bỏ phần rìa |
 | 13 | API key cứ lưu thoải mái; test báo lỗi nhưng thực tế vẫn gọi được | **Đã xử lý xong** — xem Mục 8 |
+| 14 | Master Doc v1: sinh từ BRD của project, **hoặc** import chủ động, **hoặc** sửa trực tiếp trên giao diện | 3 đường khởi tạo — trả lời CH-2 |
+| 15 | Kế hoạch năm: **bỏ luôn cả DB và ràng buộc** | V050 — **ĐÃ THỰC HIỆN**, trả lời CH-1 |
+| 16 | **Không đảo trục**: output của 1 Project là 1 Product để vận hành và CR lâu dài; project done là dừng, không có CR trên project | Product là trục chính (như v1), Project là giai đoạn sinh ra Product rồi kết thúc. CR **chỉ** thuộc Product |
 
 ---
 
 ## 3. Mô hình mục tiêu
 
-### 3.1 Hai trục ngang hàng, gặp nhau ở CR
+### 3.1 Product là trục chính — Project là giai đoạn sinh ra Product
 
-v1 coi Product là gốc duy nhất. QĐ-1 sửa lại: **Project và Product ngang hàng**, mỗi bên một vòng đời, gặp nhau ở hai điểm nối.
+Theo QĐ-16, **Product là trục xuyên suốt**. Project là khoản đầu tư có thời hạn, bàn giao ra **đúng 1 Product** rồi kết thúc. Khi project done là dừng hẳn — **mọi thay đổi sau đó đều là CR trên Product**, không còn CR trên project.
 
 ```
 TRỤC DELIVERY (có thời hạn)              TRỤC TRI THỨC (sống lâu dài)

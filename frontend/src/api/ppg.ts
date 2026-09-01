@@ -180,10 +180,6 @@ export const uploadFileVersion = async (projectId: string, fid: string, file: Fi
 }
 
 // ── Annual Plans (v2 response: {data:[], meta:{}}) ────────────────────────
-export const getAnnualPlans = (year?: number) =>
-  request<{ data: AnnualPlan[]; meta: { total: number } }>(
-    'GET', `/annual-plans${year ? `?year=${year}` : ''}`
-  ).then((r) => r.data)
 // ── Activity Tasks (5-domain governance checklist) ───────────────────────
 export const getActivityTasks = (projectId: string, domain?: string) =>
   request<ActivityTask[]>('GET', `/projects/${projectId}/activity-tasks${domain ? `?domain=${domain}` : ''}`)
@@ -245,7 +241,7 @@ export interface ActivityTaskCreate {
 export interface Project {
   id: string; name: string; code: string; description?: string
   status: string; owner?: string; start_date?: string; end_date?: string
-  plan_id?: string; domain_code?: string; created_at: string; updated_at: string
+  domain_code?: string; created_at: string; updated_at: string
 }
 
 export interface ProjectBrief {
@@ -284,7 +280,7 @@ export interface ProjectBrief {
 export interface ProjectCreate {
   name: string; code: string; description?: string
   start_date?: string; end_date?: string
-  owner?: string; plan_id?: string; status?: string
+  owner?: string; status?: string
   domain_code?: string
 }
 export interface Dashboard {
@@ -353,11 +349,6 @@ export interface ParsedMeeting {
 export interface MeetingGenerate {
   title: string; meeting_date?: string; raw_notes: string
   location?: string; milestone_id?: string; created_by?: string
-}
-export interface AnnualPlan {
-  id: string; year: number; code: string; name: string
-  description?: string; status: string
-  created_by?: string; created_at: string; updated_at: string
 }
 export interface PublishJob {
   status: 'never_published' | 'pending' | 'building' | 'success' | 'failed'

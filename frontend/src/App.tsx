@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import {
-  LayoutDashboard, CalendarRange, Building2, FileText, FlaskConical, Bot,
+  LayoutDashboard, Building2, FileText, FlaskConical, Bot,
   BookOpen, Layers, Ticket, CheckSquare, Settings, LogOut, Search, Menu, SlidersHorizontal,
 } from 'lucide-react'
 import { useStore } from './stores/auth'
@@ -9,7 +9,6 @@ import { ToastContainer } from './components/ui'
 import LoginPage from './pages/LoginPage'
 import PPGPage from './pages/ppg/PPGPage'
 import BAPage from './pages/ba/BAPage'
-import AnnualPlansPage from './pages/annual-plans/AnnualPlansPage'
 import ProjectObjectsPage from './pages/projects/ProjectObjectsPage'
 import BAWorkflowPage from './pages/ba-workflow/BAWorkflowPage'
 import TestWorkflowPage from './pages/test-workflow/TestWorkflowPage'
@@ -24,7 +23,6 @@ import './styles.css'
 
 const APPS = [
   { key: 'dashboard'     as const, icon: LayoutDashboard, label: 'Dashboard',    sub: 'Portfolio Overview',            path: '/dashboard',      desc: '' },
-  { key: 'annual-plans'  as const, icon: CalendarRange,   label: 'Kế hoạch năm', sub: 'Annual Plan Management',        path: '/annual-plans',   desc: 'Quản lý mục tiêu, Definition of Done và danh mục dự án theo năm' },
   { key: 'ppg'           as const, icon: Building2,       label: 'PPG System',   sub: 'Project Governance',            path: '/ppg',            desc: 'Single Source of Truth · IT Project Portfolio' },
   { key: 'ba-workflow'   as const, icon: FileText,        label: 'BA',           sub: 'BA Document Hub',               path: '/ba-workflow',    desc: 'Transform Raw Requirements → BRD / BRS / ERD / API Spec' },
   { key: 'test-workflow' as const, icon: FlaskConical,    label: 'Test',         sub: 'Test Dashboard',                path: '/test-workflow',  desc: 'Strategy · Execution · Control · Tài liệu' },
@@ -136,7 +134,6 @@ function Shell() {
             <main className="main-content">
               <Routes>
                 <Route path="/dashboard"     element={<DashboardPage />} />
-                <Route path="/annual-plans"  element={<AnnualPlansPage />} />
                 <Route path="/ppg"           element={<PPGPage />} />
                 <Route path="/catalog"       element={<CatalogPage />} />
                 <Route path="/ba-workflow"   element={<BAWorkflowPage />} />

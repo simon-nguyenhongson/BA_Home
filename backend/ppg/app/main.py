@@ -12,8 +12,8 @@ from fastapi.staticfiles import StaticFiles
 from app.database import init_pool, close_pool
 from app.routers import auth, projects, app_registry, sync
 from app.routers import milestones, members, files, meetings
-from app.routers import annual_plans_v2, project_objects, reports
-from app.routers import publish, annual_plan_extended
+from app.routers import project_objects, reports
+from app.routers import publish
 from app.routers import project_management, project_product_info, project_compliance
 from app.routers import project_export
 from app.routers import catalog_products, catalog_users
@@ -55,12 +55,10 @@ app.include_router(members.router)
 app.include_router(files.router)
 app.include_router(meetings.router)
 
-# v2 routers — FR-019 to FR-026 (annual_plans_v2 supersedes annual_plans)
-app.include_router(annual_plans_v2.router)
+# v2 routers — FR-023 to FR-026
 app.include_router(project_objects.router)
 app.include_router(reports.router)
 app.include_router(publish.router)
-app.include_router(annual_plan_extended.router)
 
 # v3 routers — Extended project management (FR: Governance, Health, Products, Compliance)
 app.include_router(project_management.router)

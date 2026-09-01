@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { login as apiLogin } from '../api/ppg'
-import type { Project, AnnualPlan, Milestone, Member, ProjectFile, Meeting } from '../api/ppg'
+import type { Project, Milestone, Member, ProjectFile, Meeting } from '../api/ppg'
 import type { Document } from '../api/ba'
 import type { TestCase, TestReport } from '../api/test'
 
@@ -29,8 +29,6 @@ interface AppState {
   setSelectedProject: (p: Project | null) => void
 
   // ── Annual Plans ──────────────────────────────────────────────
-  annualPlans: AnnualPlan[]
-  setAnnualPlans: (plans: AnnualPlan[]) => void
 
   // ── Milestones ────────────────────────────────────────────────
   milestones: Milestone[]
@@ -92,8 +90,6 @@ export const useStore = create<AppState>((set) => ({
   setSelectedProject: (selectedProject) => set({ selectedProject }),
 
   // Annual Plans
-  annualPlans: [],
-  setAnnualPlans: (annualPlans) => set({ annualPlans }),
 
   // Milestones
   milestones: [],

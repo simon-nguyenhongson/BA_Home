@@ -12,7 +12,6 @@ import {
 } from 'lucide-react'
 import {
   getProjects, createProject, updateProject, archiveProject,
-  getAnnualPlans,
   getMilestones, updateMilestone, regenerateMilestones,
   getMembers, createMember, updateMember, deleteMember,
   getFiles, createFile, updateFile, deleteFile, getFileVersions, uploadFileVersion, copyFromUrl, downloadFileVersion,
@@ -21,7 +20,7 @@ import {
   exportProject, importProject,
   getProjectDomains,
   getActivityTasks, patchActivityTask, createActivityTask,
-  type Project, type AnnualPlan, type Milestone, type Member, type ProjectFile,
+  type Project, type Milestone, type Member, type ProjectFile,
   type FileVersion, type Meeting, type PublishJob, type ProjectDomain,
   type ActivityTask, type ActivityDomain, type ActivityStatus,
 } from '../../api/ppg'
@@ -62,14 +61,14 @@ function MsIcon({ type, size = 16, fallback = null }: { type?: string | null; si
 // ══════════════════════════════════════════════════════════════════
 // 1. PROJECT MODAL
 // ══════════════════════════════════════════════════════════════════
-function ProjectModal({ open, onClose, onSaved, editing, plans, domains }: {
+function ProjectModal({ open, onClose, onSaved, editing, domains }: {
   open: boolean; onClose: () => void; onSaved: () => void
-  editing?: Project; plans: AnnualPlan[]; domains: ProjectDomain[]
+  editing?: Project; domains: ProjectDomain[]
 }) {
   const { addToast } = useStore()
   const [form, setForm] = useState({
     code: '', name: '', description: '', status: 'active',
-    owner: '', start_date: '', end_date: '', plan_id: '', domain_code: '',
+    owner: '', start_date: '', end_date: '', domain_code: '',
   })
   const [saving, setSaving] = useState(false)
 
@@ -79,11 +78,11 @@ function ProjectModal({ open, onClose, onSaved, editing, plans, domains }: {
         code: editing.code || '', name: editing.name || '',
         description: editing.description || '', status: editing.status || 'active',
         owner: editing.owner || '', start_date: editing.start_date?.slice(0, 10) || '',
-        end_date: editing.end_date?.slice(0, 10) || '', plan_id: editing.plan_id || '',
+        end_date: editing.end_date?.slice(0, 10) || '',
         domain_code: editing.domain_code || '',
       })
     } else {
-      setForm({ code: '', name: '', description: '', status: 'active', owner: '', start_date: '', end_date: '', plan_id: '', domain_code: '' })
+      setForm({ code: '', name: '', description: '', status: 'active', owner: '', start_date: '', end_date: '', domain_code: '' })
     }
   }, [editing, open])
 
@@ -96,7 +95,6 @@ function ProjectModal({ open, onClose, onSaved, editing, plans, domains }: {
     try {
       const payload = {
         ...form,
-        plan_id: form.plan_id || undefined,
         domain_code: form.domain_code || undefined,
       }
       if (editing) {
@@ -133,12 +131,6 @@ function ProjectModal({ open, onClose, onSaved, editing, plans, domains }: {
             {domains.map(d => (
               <option key={d.code} value={d.code}>{d.code} · {d.name}</option>
             ))}
-          </AppSelect>
-        </Field>
-        <Field label="Gán Kế hoạch năm">
-          <AppSelect value={form.plan_id} onChange={s('plan_id')}>
-            <option value="">— Không gán —</option>
-            {plans.map(p => <option key={p.id} value={p.id}>{p.year} · {p.name}</option>)}
           </AppSelect>
         </Field>
       </div>
@@ -187,9 +179,8 @@ function ProjectModal({ open, onClose, onSaved, editing, plans, domains }: {
 // ══════════════════════════════════════════════════════════════════
 // 2. OVERVIEW TAB — Tổng quan dự án
 // ══════════════════════════════════════════════════════════════════
-function OverviewTab({ project, annualPlans, onNavigate }: {
+function OverviewTab({ project, onNavigate }: {
   project: Project
-  annualPlans: AnnualPlan[]
   onNavigate: (tab: Tab) => void
 }) {
   const { addToast } = useStore()
@@ -227,8 +218,6 @@ function OverviewTab({ project, annualPlans, onNavigate }: {
       .catch(e => addToast((e as Error).message, 'error'))
   }, [project.id, addToast])
 
-  const linkedPlan = annualPlans.find(p => p.id === project.plan_id)
-
   const daysDiff = (a?: string, b?: string) => {
     if (!a || !b) return null
     const diff = (new Date(b).getTime() - new Date(a).getTime()) / 86400000
@@ -265,11 +254,6 @@ function OverviewTab({ project, annualPlans, onNavigate }: {
               {project.domain_code && (
                 <span style={{ fontSize: 11, background: 'var(--app-warning)20', color: 'var(--app-warning)', padding: '2px 8px', borderRadius: 10, fontWeight: 700, border: '1px solid var(--app-warning)40' }}>
                    {project.domain_code}
-                </span>
-              )}
-              {linkedPlan && (
-                <span style={{ fontSize: 11, background: 'var(--app-primary)15', color: 'var(--app-primary)', padding: '2px 8px', borderRadius: 10, fontWeight: 600 }}>
-                   {linkedPlan.year} · {linkedPlan.name}
                 </span>
               )}
             </div>
@@ -1499,7 +1483,7 @@ function ChecklistTab({ project }: { project: Project }) {
 // MAIN PAGE
 // ══════════════════════════════════════════════════════════════════
 export default function PPGPage() {
-  const { projects, setProjects, annualPlans, setAnnualPlans, selectedProject, setSelectedProject, addToast } = useStore()
+  const { projects, setProjects, selectedProject, setSelectedProject, addToast } = useStore()
   const [loading, setLoading] = useState(false)
   const [statusFilter, setStatusFilter] = useState('')
   const [showCreate, setShowCreate] = useState(false)
@@ -1516,16 +1500,10 @@ export default function PPGPage() {
     finally { setLoading(false) }
   }, [setProjects, addToast])
 
-  const loadPlans = useCallback(async () => {
-    try { setAnnualPlans(await getAnnualPlans()) }
-    catch { /* silent */ }
-  }, [setAnnualPlans])
-
   useEffect(() => {
     loadProjects()
-    loadPlans()
     getProjectDomains().then(setDomains).catch(() => {})
-  }, [loadProjects, loadPlans])
+  }, [loadProjects])
 
   const doDelete = async (id: string) => {
     try { await archiveProject(id); addToast('Đã archive project', 'success'); loadProjects() }
@@ -1678,11 +1656,6 @@ export default function PPGPage() {
                       <Calendar size={11} /> {p.start_date?.slice(0, 10)} → {p.end_date?.slice(0, 10) || '...'}
                     </div>
                   )}
-                  {p.plan_id && (
-                    <div style={{ fontSize: 11, color: 'var(--app-primary)', marginBottom: 8 }}>
-                       {annualPlans.find(pl => pl.id === p.plan_id)?.name || 'Kế hoạch năm'}
-                    </div>
-                  )}
                   <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
                     <Btn variant="primary" size="sm" onClick={e => { e.stopPropagation(); setSelectedProject(p); setActiveTab('overview') }} style={{ flex: 1, justifyContent: 'center' }}>
                       <ChevronRight size={12} /> Xem chi tiết
@@ -1733,9 +1706,6 @@ export default function PPGPage() {
                           ? <><Calendar size={10} style={{ display: 'inline', marginRight: 4 }} />{p.start_date?.slice(0, 10)} → {p.end_date?.slice(0, 10) || '...'}</>
                           : '—'}
                       </td>
-                      <td style={{ padding: '9px 12px', fontSize: 11, color: 'var(--app-primary)' }}>
-                        {p.plan_id ? (annualPlans.find(pl => pl.id === p.plan_id)?.name || 'Kế hoạch năm') : '—'}
-                      </td>
                       <td style={{ padding: '9px 12px', whiteSpace: 'nowrap' }} onClick={e => e.stopPropagation()}>
                         <Btn variant="ghost" size="sm" onClick={() => { setSelectedProject(p); setActiveTab('overview') }}><ChevronRight size={12} /></Btn>
                         <Btn variant="ghost" size="sm" onClick={() => { setSelectedProject(p); setActiveTab('files') }} title="Tài liệu"><FileText size={12} /></Btn>
@@ -1752,7 +1722,7 @@ export default function PPGPage() {
       )}
 
       {activeTab === 'overview' && selectedProject && (
-        <OverviewTab project={selectedProject} annualPlans={annualPlans} onNavigate={setActiveTab} />
+        <OverviewTab project={selectedProject} onNavigate={setActiveTab} />
       )}
       {activeTab === 'milestones' && selectedProject && <MilestonesTab project={selectedProject} />}
       {activeTab === 'members'   && selectedProject && <MembersTab   project={selectedProject} />}
@@ -1767,7 +1737,7 @@ export default function PPGPage() {
         />
       )}
 
-      <ProjectModal open={showCreate} onClose={() => setShowCreate(false)} onSaved={loadProjects} editing={editing} plans={annualPlans} domains={domains} />
+      <ProjectModal open={showCreate} onClose={() => setShowCreate(false)} onSaved={loadProjects} editing={editing} domains={domains} />
       <Confirm open={!!confirm} message="Archive project này?" onConfirm={() => confirm && doDelete(confirm)} onCancel={() => setConfirm(null)} />
     </div>
   )

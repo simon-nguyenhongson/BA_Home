@@ -15,6 +15,9 @@ import '@testing-library/jest-dom'
 vi.mock('../pages/LoginPage', () => ({
   default: () => React.createElement('div', { 'data-testid': 'login-page' }, 'LoginPage'),
 }))
+vi.mock('../pages/dashboard/DashboardPage', () => ({
+  default: () => React.createElement('div', { 'data-testid': 'dashboard-page' }, 'DashboardPage'),
+}))
 vi.mock('../pages/ppg/PPGPage', () => ({
   default: () => React.createElement('div', { 'data-testid': 'ppg-page' }, 'PPGPage'),
 }))
@@ -23,9 +26,6 @@ vi.mock('../pages/ba/BAPage', () => ({
 }))
 vi.mock('../pages/test/TestPage', () => ({
   default: () => React.createElement('div', { 'data-testid': 'test-page' }, 'TestPage'),
-}))
-vi.mock('../pages/annual-plans/AnnualPlansPage', () => ({
-  default: () => React.createElement('div', { 'data-testid': 'annual-plans-page' }, 'AnnualPlansPage'),
 }))
 vi.mock('../pages/projects/ProjectObjectsPage', () => ({
   default: () => React.createElement('div', { 'data-testid': 'project-objects-page' }, 'ProjectObjectsPage'),
@@ -68,8 +68,6 @@ vi.mock('../stores/auth', () => ({
     logout: mockLogout,
     projects: [],
     setProjects: vi.fn(),
-    annualPlans: [],
-    setAnnualPlans: vi.fn(),
     selectedProject: null,
     setSelectedProject: vi.fn(),
     addToast: vi.fn(),
@@ -84,11 +82,16 @@ import App from '../App'
 // ---------------------------------------------------------------------------
 
 const APPS = [
-  { key: 'annual-plans'as const, icon: '', label: 'Kế hoạch năm', sub: 'Annual Plan Management',  path: '/annual-plans'},
-  { key: 'ppg'as const, icon: '', label: 'PPG System',   sub: 'Project Governance',      path: '/ppg'},
-  { key: 'ba-workflow'as const, icon: '', label: 'BA Workflow',   sub: 'BA Document Hub',          path: '/ba-workflow'},
-  { key: 'test-workflow'as const, icon: '', label: 'Test Platform', sub: 'Test Workflow',             path: '/test-workflow'},
-  { key: 'docs'as const, icon: '', label: 'Tài liệu',     sub: 'Dự án /BA /Test',         path: '/docs'},
+  { key: 'dashboard'     as const, label: 'Dashboard',   path: '/dashboard' },
+  { key: 'ppg'           as const, label: 'PPG System',  path: '/ppg' },
+  { key: 'ba-workflow'   as const, label: 'BA',          path: '/ba-workflow' },
+  { key: 'test-workflow' as const, label: 'Test',        path: '/test-workflow' },
+  { key: 'automation'    as const, label: 'Automation',  path: '/automation' },
+  { key: 'docs'          as const, label: 'Tài liệu',    path: '/docs' },
+  { key: 'catalog'       as const, label: 'Danh mục',    path: '/catalog' },
+  { key: 'requests'      as const, label: 'Requests',    path: '/requests' },
+  { key: 'todos'         as const, label: 'To-do',       path: '/todos' },
+  { key: 'settings'      as const, label: 'Cài đặt',     path: '/settings' },
 ]
 
 // ---------------------------------------------------------------------------
@@ -100,14 +103,14 @@ describe('App — APPS array structure', () => {
     vi.clearAllMocks()
   })
 
-  it('has exactly 5 items', () => {
-    expect(APPS.length).toBe(5)
+  it('has exactly 10 items', () => {
+    expect(APPS.length).toBe(10)
   })
 
-  it('first item is "Kế hoạch năm" with path /annual-plans', () => {
-    expect(APPS[0].label).toBe('Kế hoạch năm')
-    expect(APPS[0].path).toBe('/annual-plans')
-    expect(APPS[0].key).toBe('annual-plans')
+  it('first item is "Dashboard" with path /dashboard', () => {
+    expect(APPS[0].label).toBe('Dashboard')
+    expect(APPS[0].path).toBe('/dashboard')
+    expect(APPS[0].key).toBe('dashboard')
   })
 
   it('second item (index 1) is "PPG System"', () => {
@@ -116,28 +119,27 @@ describe('App — APPS array structure', () => {
     expect(APPS[1].path).toBe('/ppg')
   })
 
-  it('third item (index 2) is "BA Workflow"', () => {
-    expect(APPS[2].label).toBe('BA Workflow')
+  it('third item (index 2) is "BA"', () => {
+    expect(APPS[2].label).toBe('BA')
     expect(APPS[2].key).toBe('ba-workflow')
   })
 
-  it('fourth item (index 3) is "Test Platform"', () => {
-    expect(APPS[3].label).toBe('Test Platform')
+  it('fourth item (index 3) is "Test"', () => {
+    expect(APPS[3].label).toBe('Test')
     expect(APPS[3].key).toBe('test-workflow')
   })
 
-  it('last item (index 4) is "Tài liệu" → /docs', () => {
-    expect(APPS[4].label).toBe('Tài liệu')
-    expect(APPS[4].path).toBe('/docs')
-    expect(APPS[4].key).toBe('docs')
+  it('has "Tài liệu" → /docs', () => {
+    const docs = APPS.find(a => a.key === 'docs')
+    expect(docs?.label).toBe('Tài liệu')
+    expect(docs?.path).toBe('/docs')
   })
 
-  it('all items have required fields: key, label, sub, path', () => {
+  it('all items have required fields: key, label, path', () => {
     APPS.forEach(app => {
       expect(app.key).toBeTruthy()
       // icon giờ là component lucide, không phải string — kiểm tra các field text
       expect(app.label).toBeTruthy()
-      expect(app.sub).toBeTruthy()
       expect(app.path).toMatch(/^\//)
     })
   })
@@ -168,15 +170,6 @@ describe('App — APPS array structure', () => {
 describe('App — routing (authenticated)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-  })
-
-  it('renders AnnualPlansPage at /annual-plans', () => {
-    render(
-      React.createElement(MemoryRouter, { initialEntries: ['/annual-plans'] },
-        React.createElement(App)
-      )
-    )
-    expect(screen.getByTestId('annual-plans-page')).toBeInTheDocument()
   })
 
   it('renders PPGPage at /ppg', () => {
@@ -215,14 +208,13 @@ describe('App — routing (authenticated)', () => {
     expect(screen.getByTestId('test-workflow-page')).toBeInTheDocument()
   })
 
-  it('redirects from unknown path to /annual-plans (default redirect)', () => {
+  it('redirects from unknown path to /dashboard (default redirect)', () => {
     render(
       React.createElement(MemoryRouter, { initialEntries: ['/unknown-route'] },
         React.createElement(App)
       )
     )
-    // The wildcard Route redirects to /annual-plans
-    expect(screen.getByTestId('annual-plans-page')).toBeInTheDocument()
+    expect(screen.getByTestId('dashboard-page')).toBeInTheDocument()
   })
 
   it('shows login page at /login path', () => {
@@ -240,26 +232,25 @@ describe('App — routing (authenticated)', () => {
 // ---------------------------------------------------------------------------
 
 describe('App — Shell sidebar', () => {
-  it('renders sidebar with DevOps Hub brand', () => {
+  it('renders sidebar with BA_HOME brand', () => {
     render(
-      React.createElement(MemoryRouter, { initialEntries: ['/annual-plans'] },
+      React.createElement(MemoryRouter, { initialEntries: ['/ppg'] },
         React.createElement(App)
       )
     )
-    expect(screen.getByText('DevOps Hub')).toBeInTheDocument()
+    expect(screen.getByText('BA_HOME')).toBeInTheDocument()
   })
 
-  it('renders all 5 app labels in the topbar pill navigation', () => {
+  it('renders app labels in the topbar navigation', () => {
     render(
-      React.createElement(MemoryRouter, { initialEntries: ['/annual-plans'] },
+      React.createElement(MemoryRouter, { initialEntries: ['/ppg'] },
         React.createElement(App)
       )
     )
-    // All 5 app labels should appear in topbar buttons
-    expect(screen.getAllByText('Kế hoạch năm').length).toBeGreaterThanOrEqual(1)
+    // Nhãn app xuất hiện ở thanh điều hướng trên
     expect(screen.getAllByText('PPG System').length).toBeGreaterThanOrEqual(1)
-    expect(screen.getAllByText('BA Workflow').length).toBeGreaterThanOrEqual(1)
-    expect(screen.getAllByText('Test Platform').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('BA').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Test').length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText('Tài liệu').length).toBeGreaterThanOrEqual(1)
   })
 })

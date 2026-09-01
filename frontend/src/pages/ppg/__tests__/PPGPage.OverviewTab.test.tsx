@@ -1,6 +1,6 @@
 /**
  * Unit tests for OverviewTab (PPGPage) — renders project summary KPI cards,
- * milestone mini timeline, progress bar, annual plan badge, doc templates.
+ * milestone mini timeline, progress bar, doc templates.
  */
 
 import React from 'react'
@@ -19,7 +19,6 @@ vi.mock('../../../api/ppg', () => ({
   getMembers: vi.fn(),
   getFiles: vi.fn(),
   getProjects: vi.fn().mockResolvedValue([]),
-  getAnnualPlans: vi.fn().mockResolvedValue([]),
   createProject: vi.fn(),
   updateProject: vi.fn(),
   archiveProject: vi.fn(),
@@ -49,8 +48,6 @@ vi.mock('../../../stores/auth', () => ({
     isAuthenticated: true,
     projects: [],
     setProjects: vi.fn(),
-    annualPlans: [],
-    setAnnualPlans: vi.fn(),
     selectedProject: null,
     setSelectedProject: vi.fn(),
   }),
@@ -111,13 +108,6 @@ const SAMPLE_PROJECT = {
   created_at: '2026-01-01T00:00:00Z',
 }
 
-const SAMPLE_ANNUAL_PLAN = {
-  id: 'plan-001',
-  name: 'Kế hoạch 2026',
-  year: 2026,
-  status: 'active',
-}
-
 const SAMPLE_MILESTONES = [
   { id: 'ms-001', name: 'Kickoff', status: 'completed', milestone_type: 'kickoff', start_date: '2026-01-01', end_date: '2026-01-15' },
   { id: 'ms-002', name: 'Requirements', status: 'in_progress', milestone_type: 'requirements', start_date: '2026-01-16', end_date: '2026-02-28' },
@@ -141,21 +131,16 @@ const SAMPLE_DASHBOARD = {
 // Re-export OverviewTab for testing by rendering a thin wrapper
 function OverviewTabWrapper({
   project = SAMPLE_PROJECT,
-  annualPlans = [SAMPLE_ANNUAL_PLAN],
   onNavigate = vi.fn(),
 }: {
   project?: typeof SAMPLE_PROJECT
-  annualPlans?: typeof SAMPLE_ANNUAL_PLAN[]
   onNavigate?: (tab: string) => void
 }) {
   // Inline the OverviewTab rendering as a simple integration test via PPGPage internals
   // We test via data rendered in the DOM
   const msDone = project.status === 'active' ? 1 : 0
-  const linkedPlan = annualPlans.find(p => p.id === project.plan_id)
 
   return React.createElement('div', null,
-    // Plan badge
-    linkedPlan ? React.createElement('span', { 'data-testid': 'plan-badge' }, `${linkedPlan.year} · ${linkedPlan.name}`) : null,
     // Project name
     React.createElement('h2', { 'data-testid': 'project-name' }, project.name),
     // Status badge
@@ -191,42 +176,30 @@ describe('PPGPage — OverviewTab', () => {
   })
 
   it('renders project name and status correctly', () => {
-    const { getByTestId } = render(React.createElement(OverviewTabWrapper, { project: SAMPLE_PROJECT, annualPlans: [SAMPLE_ANNUAL_PLAN] }))
+    const { getByTestId } = render(React.createElement(OverviewTabWrapper, { project: SAMPLE_PROJECT }))
     expect(getByTestId('project-name').textContent).toBe('Customer Portal')
     expect(getByTestId('status-badge').textContent).toBe('active')
   })
 
-  it('shows annual plan badge when plan is linked', () => {
-    const { getByTestId } = render(React.createElement(OverviewTabWrapper, { project: SAMPLE_PROJECT, annualPlans: [SAMPLE_ANNUAL_PLAN] }))
-    const badge = getByTestId('plan-badge')
-    expect(badge).toBeInTheDocument()
-    expect(badge.textContent).toContain('2026')
-    expect(badge.textContent).toContain('Kế hoạch 2026')
-  })
 
-  it('does not show annual plan badge when no plan linked', () => {
-    const projectNoPlan = { ...SAMPLE_PROJECT, plan_id: undefined as unknown as string }
-    const { queryByTestId } = render(React.createElement(OverviewTabWrapper, { project: projectNoPlan, annualPlans: [SAMPLE_ANNUAL_PLAN] }))
-    expect(queryByTestId('plan-badge')).toBeNull()
-  })
 
   it('KPI card for milestones triggers onNavigate callback', () => {
     const onNavigate = vi.fn()
-    const { getByTestId } = render(React.createElement(OverviewTabWrapper, { project: SAMPLE_PROJECT, annualPlans: [SAMPLE_ANNUAL_PLAN], onNavigate }))
+    const { getByTestId } = render(React.createElement(OverviewTabWrapper, { project: SAMPLE_PROJECT, onNavigate }))
     fireEvent.click(getByTestId('kpi-milestones'))
     expect(onNavigate).toHaveBeenCalledWith('milestones')
   })
 
   it('KPI card for members triggers onNavigate callback', () => {
     const onNavigate = vi.fn()
-    const { getByTestId } = render(React.createElement(OverviewTabWrapper, { project: SAMPLE_PROJECT, annualPlans: [SAMPLE_ANNUAL_PLAN], onNavigate }))
+    const { getByTestId } = render(React.createElement(OverviewTabWrapper, { project: SAMPLE_PROJECT, onNavigate }))
     fireEvent.click(getByTestId('kpi-members'))
     expect(onNavigate).toHaveBeenCalledWith('members')
   })
 
   it('KPI card for files triggers onNavigate callback', () => {
     const onNavigate = vi.fn()
-    const { getByTestId } = render(React.createElement(OverviewTabWrapper, { project: SAMPLE_PROJECT, annualPlans: [SAMPLE_ANNUAL_PLAN], onNavigate }))
+    const { getByTestId } = render(React.createElement(OverviewTabWrapper, { project: SAMPLE_PROJECT, onNavigate }))
     fireEvent.click(getByTestId('kpi-files'))
     expect(onNavigate).toHaveBeenCalledWith('files')
   })

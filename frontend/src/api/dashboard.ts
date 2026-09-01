@@ -14,35 +14,42 @@ export interface KpiData {
   total_projects: number
   active_projects: number
   completed_projects: number
-  open_risks: number
-  avg_risk_score: number
-  total_budget_planned: number
-  total_budget_actual: number
-  budget_utilization_pct: number
+  total_products: number
+  products_with_master_doc: number
+  total_crs: number
+  open_crs: number
+  open_test_tasks: number
 }
 
-export interface StatusDistItem {
-  status: string
+export interface CountItem {
   count: number
 }
 
-export interface BudgetChartItem {
-  quarter: string
-  planned: number
-  actual: number
-}
-
-export interface BudgetByTypeItem {
-  budget_type: string
-  planned: number
-  actual: number
-}
+export interface StatusDistItem extends CountItem { status: string }
+export interface ProductDistItem extends CountItem { product_type: string }
 
 export interface DashboardSummary {
   kpi: KpiData
-  status_distribution: StatusDistItem[]
-  budget_chart: BudgetChartItem[]
-  budget_by_type: BudgetByTypeItem[]
+  status_dist: StatusDistItem[]
+  product_dist: ProductDistItem[]
+  cr_dist: StatusDistItem[]
+  brs_dist: StatusDistItem[]
+  test_dist: StatusDistItem[]
+}
+
+export interface DashboardProduct {
+  id: string
+  product_code: string
+  product_name: string
+  product_type: string
+  status: string
+  domain_code: string | null
+  domain_label: string | null
+  master_doc_version: string | null
+  master_doc_updated_at: string | null
+  has_master_doc: boolean
+  cr_count: number
+  open_cr_count: number
 }
 
 export interface DashboardProject {
@@ -57,51 +64,6 @@ export interface DashboardProject {
   domain_label: string | null
   created_at: string | null
   member_count: number
-}
-
-export interface PlanSummary {
-  plan_id: string
-  plan_name: string
-  year: number
-  plan_status: string
-  total_planned: number
-  total_actual: number
-  variance: number
-  utilization_pct: number
-  line_count: number
-}
-
-export interface QuarterlyDetail {
-  plan_name: string
-  year: number
-  quarter: string
-  budget_type: string
-  planned: number
-  actual: number
-  variance: number
-  currency: string
-}
-
-export interface FinancialData {
-  plan_summary: PlanSummary[]
-  quarterly_detail: QuarterlyDetail[]
-}
-
-export interface RiskItem {
-  id: string
-  title: string
-  description: string | null
-  category: string | null
-  probability: number | null
-  impact: number | null
-  risk_score: number | null
-  mitigation: string | null
-  owner: string | null
-  quarter: string | null
-  status: string
-  plan_name: string
-  plan_year: number
-  created_at: string | null
 }
 
 export interface MemberItem {
@@ -121,19 +83,8 @@ export interface ProjectHeadcount {
   members: MemberItem[]
 }
 
-export interface PlanResourceItem {
-  plan_name: string
-  year: number
-  team: string | null
-  role: string | null
-  unique_members: number
-  avg_allocation_pct: number
-  quarter: string
-}
-
 export interface ResourceData {
   project_headcount: ProjectHeadcount[]
-  plan_resources: PlanResourceItem[]
 }
 
 // ── API calls ──────────────────────────────────────────────────────────────
@@ -144,11 +95,10 @@ export const getDashboardSummary = () =>
 export const getDashboardProjects = () =>
   request<DashboardProject[]>('/dashboard/projects')
 
-export const getDashboardFinancial = () =>
-  request<FinancialData>('/dashboard/financial')
 
-export const getDashboardRisks = (limit = 20) =>
-  request<RiskItem[]>(`/dashboard/risks?limit=${limit}`)
+
+export const getDashboardProducts = () =>
+  request<DashboardProduct[]>('/dashboard/products')
 
 export const getDashboardResources = () =>
   request<ResourceData>('/dashboard/resources')

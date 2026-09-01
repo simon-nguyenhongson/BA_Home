@@ -33,7 +33,6 @@ class ProjectCreate(BaseModel):
     owner: Optional[str] = None
     start_date: Optional[date] = None
     end_date: Optional[date] = None
-    plan_id: Optional[str] = None
     domain_code: Optional[str] = Field(None, max_length=50)
 
 
@@ -42,7 +41,6 @@ class ProjectUpdate(BaseModel):
     description: Optional[str] = None
     status: Optional[str] = None
     owner: Optional[str] = None
-    plan_id: Optional[str] = None
     domain_code: Optional[str] = Field(None, max_length=50)
 
 
@@ -132,11 +130,11 @@ async def create_project(
     project_id = str(uuid4())
     try:
         row = await db.fetchrow("""
-            INSERT INTO projects (id, code, name, description, status, owner, start_date, end_date, plan_id, domain_code)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *
+            INSERT INTO projects (id, code, name, description, status, owner, start_date, end_date, domain_code)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *
         """, project_id, body.code, body.name, body.description,
             body.status, body.owner,
-            body.start_date, body.end_date, body.plan_id, body.domain_code)
+            body.start_date, body.end_date, body.domain_code)
     except asyncpg.UniqueViolationError:
         raise HTTPException(409, f"Project code '{body.code}' already exists")
 

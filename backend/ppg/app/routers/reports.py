@@ -1,6 +1,6 @@
 """
 Reports Router — Cross-project Connection Report (FR-026) and
-Annual Plan Dashboard Summary (FR-022).
+Cross-project connection report.
 """
 from __future__ import annotations
 
@@ -15,15 +15,6 @@ from app.database import get_db
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
-
-def _calc_dod_pct(dod_items: list) -> float:
-    if not dod_items:
-        return 0.0
-    total_weight = sum(float(d["weight"]) for d in dod_items)
-    if total_weight == 0:
-        return 0.0
-    achieved_weight = sum(float(d["weight"]) for d in dod_items if d["is_achieved"])
-    return round(achieved_weight / total_weight * 100, 1)
 
 
 @router.get("/connections")
@@ -185,120 +176,3 @@ async def cross_project_connections(
     return {"data": data}
 
 
-@router.get("/annual-plan-summary/{plan_id}")
-async def annual_plan_summary(
-    user: CurrentUser,
-    plan_id: str,
-    db: asyncpg.Connection = Depends(get_db),
-) -> dict:
-    """FR-022: Annual plan dashboard summary."""
-    plan = await db.fetchrow("SELECT * FROM ppg_annual_plans WHERE id = $1", plan_id)
-    if not plan:
-        raise HTTPException(404, detail={"code": "NOT_FOUND", "message": "Annual plan not found"})
-
-    dod_items = await db.fetch(
-        "SELECT weight, is_achieved FROM ppg_annual_plan_dod_items WHERE plan_id = $1", plan_id
-    )
-
-    # Projects linked to this plan
-    projects_rows = await db.fetch(
-        """
-        SELECT p.id, p.name, p.status, p.code
-        FROM ppg_plan_project_links ppl
-        JOIN projects p ON p.id = ppl.project_id
-        WHERE ppl.plan_id = $1 AND ppl.unlinked_at IS NULL
-        ORDER BY p.name
-        """,
-        plan_id,
-    )
-
-    # Count by status
-    projects_by_status: dict[str, int] = {
-        "active": 0,
-        "on_hold": 0,
-        "completed": 0,
-        "archived": 0,
-    }
-    project_details: list[dict] = []
-
-    # Batch 3 query cho toàn bộ dự án của plan thay vì 4 query / dự án (N+1)
-    pids = [str(p["id"]) for p in projects_rows]
-    ms_map: dict = {}
-    ba_map: dict = {}
-    cov_map: dict = {}
-    if pids:
-        ms_rows = await db.fetch(
-            """
-            SELECT project_id,
-                   COUNT(*) AS total_ms,
-                   COUNT(*) FILTER (WHERE status = 'completed') AS done_ms
-            FROM project_milestones
-            WHERE project_id = ANY($1::uuid[])
-            GROUP BY project_id
-            """,
-            pids,
-        )
-        ms_map = {str(r["project_id"]): r for r in ms_rows}
-        # BA docs approved — bảng mới ba_documents + legacy project_documents
-        ba_rows = await db.fetch(
-            """
-            SELECT project_id, COUNT(*) AS cnt FROM (
-                SELECT project_id FROM ba_documents
-                WHERE project_id = ANY($1::uuid[]) AND status = 'approved'
-                UNION ALL
-                SELECT project_id FROM project_documents
-                WHERE project_id = ANY($1::uuid[]) AND status = 'approved'
-            ) combined
-            GROUP BY project_id
-            """,
-            pids,
-        )
-        ba_map = {str(r["project_id"]): r["cnt"] for r in ba_rows}
-        # Test coverage từ báo cáo test mới nhất per project
-        cov_rows = await db.fetch(
-            """
-            SELECT DISTINCT ON (project_id) project_id, COALESCE(coverage, 0) AS coverage_pct
-            FROM test_reports
-            WHERE project_id = ANY($1::uuid[])
-            ORDER BY project_id, executed_at DESC
-            """,
-            pids,
-        )
-        cov_map = {str(r["project_id"]): float(r["coverage_pct"]) for r in cov_rows}
-
-    for p in projects_rows:
-        pstatus = p["status"]
-        if pstatus in projects_by_status:
-            projects_by_status[pstatus] += 1
-
-        pid = str(p["id"])
-        ms = ms_map.get(pid)
-        total_ms = ms["total_ms"] if ms else 0
-        done_ms = ms["done_ms"] if ms else 0
-        ba_approved = ba_map.get(pid, 0)
-        test_coverage = cov_map.get(pid, 0.0)
-
-        project_details.append(
-            {
-                "id": pid,
-                "name": p["name"],
-                "status": pstatus,
-                "milestone_progress": f"{done_ms or 0}/{total_ms or 0}",
-                "ba_docs_approved": ba_approved or 0,
-                "test_coverage_pct": test_coverage,
-            }
-        )
-
-    return {
-        "data": {
-            "plan": {
-                "id": str(plan["id"]),
-                "name": plan["name"],
-                "year": plan["year"],
-                "status": plan["status"],
-            },
-            "dod_completion_pct": _calc_dod_pct(list(dod_items)),
-            "projects_by_status": projects_by_status,
-            "projects": project_details,
-        }
-    }

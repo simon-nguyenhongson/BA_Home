@@ -2,22 +2,21 @@
  * DashboardPage — 5 sheets
  *  Sheet 1 (Dashboard):    KPI cards + Pie chart status + Budget bar chart
  *  Sheet 2 (Project List): Full project table
- *  Sheet 3 (Financial):    Budget vs Actual per plan + quarterly breakdown
- *  Sheet 4 (Risk):         Top risks table with heat-map score
- *  Sheet 5 (Resource):     Headcount per project + plan allocation
+ *  Sheet 3 (Sản phẩm):     Danh mục sản phẩm + tình trạng Master Doc + số CR
+ *  Sheet 5 (Nhân sự):      Headcount theo dự án
  */
 import React, { useEffect, useState } from 'react'
 import {
-  LayoutDashboard, FolderKanban, Wallet, AlertTriangle, Users,
-  RefreshCw, Building2, CheckCircle, Flag, TrendingUp, Banknote, Gauge,
+  LayoutDashboard, FolderKanban, AlertTriangle, Users,
+  RefreshCw, Building2, Flag, Package, FileText, GitPullRequest, FlaskConical,
   ChevronUp, ChevronDown,
 } from 'lucide-react'
 import { Badge, StatusBadge } from '../../components/ui'
 import {
-  getDashboardSummary, getDashboardProjects, getDashboardFinancial,
-  getDashboardRisks, getDashboardResources,
-  type DashboardSummary, type DashboardProject, type FinancialData,
-  type RiskItem, type ResourceData,
+  getDashboardSummary, getDashboardProjects, getDashboardProducts,
+  getDashboardResources,
+  type DashboardSummary, type DashboardProject, type DashboardProduct,
+  type ResourceData,
 } from '../../api/dashboard'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -35,6 +34,8 @@ function fmtDate(d: string | null): string {
 }
 
 // DS categorical palette — map 1-1 theo thứ tự chuỗi cũ
+const PALETTE = ['#155EEF', '#7F56D9', '#039855', '#DC6803', '#0086C9', '#D92D20', '#667085', '#02CCCC']
+
 const STATUS_COLORS: Record<string, string> = {
   active:      '#155EEF',
   completed:   '#7F56D9',
@@ -68,7 +69,7 @@ function riskLabel(score: number | null): string {
 
 interface PieSlice { label: string; value: number; color: string }
 
-function PieChart({ slices, size = 180 }: { slices: PieSlice[]; size?: number }) {
+function PieChart({ slices, size = 180, unitLabel = 'mục' }: { slices: PieSlice[]; size?: number; unitLabel?: string }) {
   const total = slices.reduce((s, sl) => s + sl.value, 0)
   if (total === 0) return <p style={{ color: 'var(--app-neutral-400)', fontSize: 14 }}>Chưa có dữ liệu</p>
 
@@ -99,7 +100,7 @@ function PieChart({ slices, size = 180 }: { slices: PieSlice[]; size?: number })
         {/* center hole */}
         <circle cx={cx} cy={cy} r={r * 0.42} fill="#fff" />
         <text x={cx} y={cy - 6} textAnchor="middle" fontSize={13} fontWeight={600} fill="#344054">{total}</text>
-        <text x={cx} y={cy + 10} textAnchor="middle" fontSize={10} fill="#667085">projects</text>
+        <text x={cx} y={cy + 10} textAnchor="middle" fontSize={10} fill="#667085">{unitLabel}</text>
       </svg>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {slices.filter(sl => sl.value > 0).map((sl, i) => (
@@ -121,7 +122,7 @@ function PieChart({ slices, size = 180 }: { slices: PieSlice[]; size?: number })
 
 interface BarGroup { label: string; planned: number; actual: number }
 
-function BarChart({ groups, height = 180 }: { groups: BarGroup[]; height?: number }) {
+function BarChart({ groups, height = 180, single = false, seriesLabels = ['Planned', 'Actual'] }: { groups: BarGroup[]; height?: number; single?: boolean; seriesLabels?: [string, string] | string[] }) {
   if (groups.length === 0) return <p style={{ color: 'var(--app-neutral-400)', fontSize: 14 }}>Chưa có dữ liệu</p>
 
   const maxVal = Math.max(...groups.flatMap(g => [g.planned, g.actual]), 1)
@@ -157,12 +158,14 @@ function BarChart({ groups, height = 180 }: { groups: BarGroup[]; height?: numbe
             <g key={i}>
               {/* Planned */}
               <rect x={x} y={y0 - pH} width={barW} height={pH} fill="#155EEF" rx={2}>
-                <title>Planned: {fmtVND(g.planned)}</title>
+                <title>{seriesLabels[0]}: {single ? g.planned : fmtVND(g.planned)}</title>
               </rect>
-              {/* Actual */}
-              <rect x={x + barW + gap} y={y0 - aH} width={barW} height={aH} fill="#7F56D9" rx={2}>
-                <title>Actual: {fmtVND(g.actual)}</title>
-              </rect>
+              {/* Actual — ẩn khi biểu đồ chỉ có 1 chuỗi số liệu */}
+              {!single && (
+                <rect x={x + barW + gap} y={y0 - aH} width={barW} height={aH} fill="#7F56D9" rx={2}>
+                  <title>{seriesLabels[1]}: {fmtVND(g.actual)}</title>
+                </rect>
+              )}
               {/* Label */}
               <text x={x + barW} y={y0 + 14} fontSize={10} fill="#667085" textAnchor="middle">{g.label}</text>
             </g>
@@ -171,9 +174,9 @@ function BarChart({ groups, height = 180 }: { groups: BarGroup[]; height?: numbe
         {/* Legend */}
         <g>
           <rect x={padLeft} y={height - 14} width={10} height={10} fill="#155EEF" rx={2} />
-          <text x={padLeft + 13} y={height - 5} fontSize={10} fill="#344054">Planned</text>
+          <text x={padLeft + 13} y={height - 5} fontSize={10} fill="#344054">{seriesLabels[0]}</text>
           <rect x={padLeft + 70} y={height - 14} width={10} height={10} fill="#7F56D9" rx={2} />
-          <text x={padLeft + 83} y={height - 5} fontSize={10} fill="#344054">Actual</text>
+          {!single && <text x={padLeft + 83} y={height - 5} fontSize={10} fill="#344054">{seriesLabels[1]}</text>}
         </g>
       </svg>
     </div>
@@ -203,96 +206,110 @@ function KpiCard({
 
 const TABS: { key: string; label: string; icon: React.ReactNode }[] = [
   { key: 'dashboard',   label: 'Dashboard',     icon: <LayoutDashboard size={16} strokeWidth={1.5} /> },
-  { key: 'projects',    label: 'Project List',  icon: <FolderKanban size={16} strokeWidth={1.5} /> },
-  { key: 'financial',   label: 'Financial',     icon: <Wallet size={16} strokeWidth={1.5} /> },
-  { key: 'risks',       label: 'Risk',          icon: <AlertTriangle size={16} strokeWidth={1.5} /> },
-  { key: 'resources',   label: 'Resource',      icon: <Users size={16} strokeWidth={1.5} /> },
+  { key: 'projects',    label: 'Dự án',         icon: <FolderKanban size={16} strokeWidth={1.5} /> },
+  { key: 'products',    label: 'Sản phẩm',      icon: <Package size={16} strokeWidth={1.5} /> },
+  { key: 'resources',   label: 'Nhân sự',       icon: <Users size={16} strokeWidth={1.5} /> },
 ]
 
 // ── Sheet 1: Dashboard ─────────────────────────────────────────────────────
 
 function Sheet1({ data }: { data: DashboardSummary }) {
-  const { kpi, status_distribution, budget_chart, budget_by_type } = data
+  const { kpi, status_dist, product_dist, cr_dist, test_dist } = data
 
-  const pieSlices = status_distribution.map(s => ({
+  const projectSlices = status_dist.map(s => ({
     label: s.status,
     value: s.count,
     color: statusColor(s.status),
   }))
 
-  const barGroups = budget_chart.map(b => ({
-    label:   b.quarter,
-    planned: b.planned,
-    actual:  b.actual,
+  const productSlices = product_dist.map((p, i) => ({
+    label: p.product_type,
+    value: p.count,
+    color: PALETTE[i % PALETTE.length],
   }))
 
-  const typeBarGroups = budget_by_type.map(b => ({
-    label:   b.budget_type.toUpperCase(),
-    planned: b.planned,
-    actual:  b.actual,
+  const crGroups = cr_dist.map(c => ({
+    label: c.status,
+    planned: c.count,
+    actual: 0,
   }))
 
-  const utilColor = kpi.budget_utilization_pct > 100 ? '#D92D20'
-    : kpi.budget_utilization_pct > 80 ? '#DC6803' : '#039855'
+  const docCoverage = kpi.total_products > 0
+    ? Math.round((kpi.products_with_master_doc / kpi.total_products) * 100)
+    : 0
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* KPI Cards */}
+      {/* KPI theo trục vòng đời */}
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-        <KpiCard label="Total Projects"     value={kpi.total_projects}
+        <KpiCard label="Dự án"            value={kpi.total_projects}
+          sub={`Đang chạy: ${kpi.active_projects}`}
           icon={<Building2 size={16} strokeWidth={1.5} />}     color="#155EEF" />
-        <KpiCard label="Active"             value={kpi.active_projects}
-          icon={<CheckCircle size={16} strokeWidth={1.5} />}   color="#039855" />
-        <KpiCard label="Completed"          value={kpi.completed_projects}
+        <KpiCard label="Dự án hoàn thành" value={kpi.completed_projects}
           icon={<Flag size={16} strokeWidth={1.5} />}          color="#444CE7" />
-        <KpiCard label="Open Risks"         value={kpi.open_risks}
-          sub={`Avg score: ${kpi.avg_risk_score}`}
-          icon={<AlertTriangle size={16} strokeWidth={1.5} />} color="#D92D20" />
-        <KpiCard label="Budget Planned"     value={fmtVND(kpi.total_budget_planned)}
-          sub="VND"
-          icon={<TrendingUp size={16} strokeWidth={1.5} />}    color="#7F56D9" />
-        <KpiCard label="Budget Actual"      value={fmtVND(kpi.total_budget_actual)}
-          sub="VND"
-          icon={<Banknote size={16} strokeWidth={1.5} />}      color="#DC6803" />
-        <KpiCard label="Budget Utilization" value={`${kpi.budget_utilization_pct}%`}
-          sub="Actual / Planned"
-          icon={<Gauge size={16} strokeWidth={1.5} />}         color={utilColor} />
+        <KpiCard label="Sản phẩm"         value={kpi.total_products}
+          icon={<Package size={16} strokeWidth={1.5} />}       color="#7F56D9" />
+        <KpiCard label="Có Master Doc"    value={`${docCoverage}%`}
+          sub={`${kpi.products_with_master_doc}/${kpi.total_products} sản phẩm`}
+          icon={<FileText size={16} strokeWidth={1.5} />}
+          color={docCoverage >= 80 ? '#039855' : docCoverage >= 40 ? '#DC6803' : '#D92D20'} />
+        <KpiCard label="Yêu cầu thay đổi" value={kpi.total_crs}
+          sub={`Đang mở: ${kpi.open_crs}`}
+          icon={<GitPullRequest size={16} strokeWidth={1.5} />} color="#0086C9" />
+        <KpiCard label="Việc test đang mở" value={kpi.open_test_tasks}
+          icon={<FlaskConical size={16} strokeWidth={1.5} />}
+          color={kpi.open_test_tasks > 0 ? '#DC6803' : '#039855'} />
       </div>
 
-      {/* Charts row */}
+      {/* Biểu đồ */}
       <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
-        {/* Pie chart */}
         <div className="card" style={{ padding: '16px 20px', flex: '1 1 300px' }}>
           <h3 className="card__title" style={{ margin: '0 0 16px' }}>
-            Project Status Distribution
+            Dự án theo trạng thái
           </h3>
-          <PieChart slices={pieSlices} size={200} />
+          <PieChart slices={projectSlices} size={200} unitLabel="dự án" />
         </div>
 
-        {/* Budget by quarter bar chart */}
-        <div className="card" style={{ padding: '16px 20px', flex: '1 1 380px' }}>
+        <div className="card" style={{ padding: '16px 20px', flex: '1 1 300px' }}>
           <h3 className="card__title" style={{ margin: '0 0 16px' }}>
-            Budget vs Actual — by Quarter (VND)
+            Sản phẩm theo loại
           </h3>
-          {barGroups.length > 0
-            ? <BarChart groups={barGroups} height={200} />
-            : <p style={{ color: 'var(--app-neutral-400)', fontSize: 14 }}>Chưa có dữ liệu ngân sách</p>
-          }
+          <PieChart slices={productSlices} size={200} unitLabel="sản phẩm" />
         </div>
 
-        {/* Budget by type */}
-        {typeBarGroups.length > 0 && (
-          <div className="card" style={{ padding: '16px 20px', flex: '1 1 240px' }}>
-            <h3 className="card__title" style={{ margin: '0 0 16px' }}>
-              Capex vs Opex (VND)
-            </h3>
-            <BarChart groups={typeBarGroups} height={200} />
-          </div>
-        )}
+        <div className="card" style={{ padding: '16px 20px', flex: '2 1 420px' }}>
+          <h3 className="card__title" style={{ margin: '0 0 16px' }}>
+            Yêu cầu thay đổi theo trạng thái
+          </h3>
+          {crGroups.length > 0
+            ? <BarChart groups={crGroups} height={180} single seriesLabels={['Số CR', '']} />
+            : <div className="empty-state">
+                <div className="empty-state__title">Chưa có yêu cầu thay đổi</div>
+                <div className="empty-state__desc">Tạo CR đầu tiên để bắt đầu theo dõi.</div>
+              </div>}
+        </div>
       </div>
+
+      {/* Tiến độ kiểm thử */}
+      {test_dist.length > 0 && (
+        <div className="card" style={{ padding: '16px 20px' }}>
+          <h3 className="card__title" style={{ margin: '0 0 12px' }}>
+            Công việc kiểm thử
+          </h3>
+          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+            {test_dist.map(t => (
+              <div key={t.status} style={{ minWidth: 140 }}>
+                <div style={{ fontSize: 12, color: 'var(--app-neutral-500)' }}>{t.status}</div>
+                <div style={{ fontSize: 20, fontWeight: 600, color: 'var(--app-neutral-900)' }}>{t.count}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
+
 
 // ── Sheet 2: Project List ──────────────────────────────────────────────────
 
@@ -384,237 +401,102 @@ function Sheet2({ projects }: { projects: DashboardProject[] }) {
   )
 }
 
-// ── Sheet 3: Financial ─────────────────────────────────────────────────────
+// ── Sheet 3: Sản phẩm ──────────────────────────────────────────────────────
 
-function Sheet3({ data }: { data: FinancialData }) {
-  const { plan_summary, quarterly_detail } = data
-  const [activeTab, setActiveTab] = useState<'plan' | 'quarterly'>('plan')
+function Sheet3({ products }: { products: DashboardProduct[] }) {
+  const [search, setSearch] = useState('')
+  const [typeFilter, setTypeFilter] = useState('all')
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div className="ds-seg" style={{ alignSelf: 'flex-start' }}>
-        <button className={activeTab === 'plan' ? 'ds-seg__item active' : 'ds-seg__item'}
-          onClick={() => setActiveTab('plan')}>Per Plan</button>
-        <button className={activeTab === 'quarterly' ? 'ds-seg__item active' : 'ds-seg__item'}
-          onClick={() => setActiveTab('quarterly')}>Quarterly Detail</button>
-      </div>
-
-      {activeTab === 'plan' && (
-        <div className="card" style={{ overflowX: 'auto' }}>
-          <table className="ds-table">
-            <thead>
-              <tr>
-                {['Plan', 'Year', 'Status', 'Planned (VND)', 'Actual (VND)', 'Variance', 'Utilization', 'Lines'].map(h => (
-                  <th key={h}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {plan_summary.length === 0 ? (
-                <tr><td colSpan={8} style={{ padding: '32px', textAlign: 'center', color: 'var(--app-neutral-400)' }}>
-                  Chưa có dữ liệu ngân sách
-                </td></tr>
-              ) : plan_summary.map(p => (
-                <tr key={p.plan_id}>
-                  <td style={{ fontWeight: 600, color: 'var(--app-neutral-800)' }}>{p.plan_name}</td>
-                  <td>{p.year}</td>
-                  <td><StatusBadge status={p.plan_status} /></td>
-                  <td style={{ fontFamily: 'monospace', textAlign: 'right' }}>{fmtVND(p.total_planned)}</td>
-                  <td style={{ fontFamily: 'monospace', textAlign: 'right' }}>{fmtVND(p.total_actual)}</td>
-                  <td style={{
-                    fontFamily: 'monospace', textAlign: 'right',
-                    color: p.variance > 0 ? 'var(--app-danger)' : 'var(--app-success)',
-                  }}>
-                    {p.variance > 0 ? '+' : ''}{fmtVND(p.variance)}
-                  </td>
-                  <td style={{ textAlign: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <div style={{ flex: 1, height: 6, background: 'var(--app-neutral-200)', borderRadius: 3, overflow: 'hidden', minWidth: 60 }}>
-                        <div style={{
-                          height: '100%', borderRadius: 3,
-                          width: `${Math.min(p.utilization_pct, 100)}%`,
-                          background: p.utilization_pct > 100 ? 'var(--app-danger)' : p.utilization_pct > 80 ? 'var(--app-warning)' : 'var(--app-success)',
-                        }} />
-                      </div>
-                      <span style={{ fontSize: 11, fontWeight: 600, minWidth: 36, color: 'var(--app-neutral-700)' }}>
-                        {p.utilization_pct}%
-                      </span>
-                    </div>
-                  </td>
-                  <td style={{ textAlign: 'center', color: 'var(--app-neutral-500)' }}>{p.line_count}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {activeTab === 'quarterly' && (
-        <div className="card" style={{ overflowX: 'auto' }}>
-          <table className="ds-table">
-            <thead>
-              <tr>
-                {['Plan', 'Year', 'Quarter', 'Type', 'Planned', 'Actual', 'Variance', 'Currency'].map(h => (
-                  <th key={h}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {quarterly_detail.length === 0 ? (
-                <tr><td colSpan={8} style={{ padding: '32px', textAlign: 'center', color: 'var(--app-neutral-400)' }}>
-                  Chưa có dữ liệu chi tiết
-                </td></tr>
-              ) : quarterly_detail.map((q, i) => (
-                <tr key={i}>
-                  <td style={{ fontWeight: 500, color: 'var(--app-neutral-700)' }}>{q.plan_name}</td>
-                  <td style={{ color: 'var(--app-neutral-500)' }}>{q.year}</td>
-                  <td>
-                    <Badge variant="info">{q.quarter}</Badge>
-                  </td>
-                  <td>
-                    <Badge variant={q.budget_type === 'capex' ? 'primary' : 'warning'}>
-                      {q.budget_type.toUpperCase()}
-                    </Badge>
-                  </td>
-                  <td style={{ fontFamily: 'monospace', textAlign: 'right' }}>{fmtVND(q.planned)}</td>
-                  <td style={{ fontFamily: 'monospace', textAlign: 'right' }}>{fmtVND(q.actual)}</td>
-                  <td style={{
-                    fontFamily: 'monospace', textAlign: 'right',
-                    color: q.variance > 0 ? 'var(--app-danger)' : 'var(--app-success)',
-                  }}>
-                    {q.variance > 0 ? '+' : ''}{fmtVND(q.variance)}
-                  </td>
-                  <td style={{ color: 'var(--app-neutral-500)', fontSize: 11 }}>{q.currency}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ── Sheet 4: Risk ──────────────────────────────────────────────────────────
-
-function Sheet4({ risks }: { risks: RiskItem[] }) {
-  const [catFilter, setCatFilter] = useState('all')
-  const [statusFilter, setStatusFilter] = useState('open')
-
-  const categories = Array.from(new Set(risks.map(r => r.category).filter(Boolean))).sort() as string[]
-  const filtered = risks.filter(r => {
-    const matchCat    = catFilter    === 'all' || r.category === catFilter
-    const matchStatus = statusFilter === 'all' || r.status   === statusFilter
-    return matchCat && matchStatus
+  const types = Array.from(new Set(products.map(p => p.product_type))).sort()
+  const filtered = products.filter(p => {
+    const matchSearch = search === '' ||
+      p.product_name.toLowerCase().includes(search.toLowerCase()) ||
+      p.product_code.toLowerCase().includes(search.toLowerCase())
+    const matchType = typeFilter === 'all' || p.product_type === typeFilter
+    return matchSearch && matchType
   })
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      {/* Filters */}
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-        <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
-          className="app-input" style={{ width: 'auto', cursor: 'pointer' }}>
-          <option value="all">All Categories</option>
-          {categories.map(c => <option key={c} value={c}>{c}</option>)}
+        <input
+          value={search} onChange={e => setSearch(e.target.value)}
+          placeholder="Tìm sản phẩm theo tên hoặc mã"
+          className="app-input"
+          style={{ maxWidth: 280 }}
+        />
+        <select className="app-input" style={{ maxWidth: 180 }}
+          value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
+          <option value="all">Tất cả loại</option>
+          {types.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
-        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-          className="app-input" style={{ width: 'auto', cursor: 'pointer' }}>
-          <option value="all">All Status</option>
-          <option value="open">Open</option>
-          <option value="mitigated">Mitigated</option>
-          <option value="closed">Closed</option>
-          <option value="occurred">Occurred</option>
-        </select>
-        <span style={{ fontSize: 12, color: 'var(--app-neutral-500)' }}>{filtered.length} risks</span>
+        <span style={{ fontSize: 13, color: 'var(--app-neutral-500)' }}>
+          {filtered.length} / {products.length} sản phẩm
+        </span>
       </div>
 
-      {/* Table */}
-      <div className="card" style={{ overflowX: 'auto' }}>
+      <div className="card" style={{ overflow: 'auto' }}>
         <table className="ds-table">
           <thead>
             <tr>
-              {['Score', 'Title', 'Category', 'P', 'I', 'Level', 'Owner', 'Status', 'Plan', 'Quarter'].map(h => (
-                <th key={h}>{h}</th>
-              ))}
+              <th style={{ width: 120 }}>Mã</th>
+              <th>Tên sản phẩm</th>
+              <th style={{ width: 110 }}>Loại</th>
+              <th style={{ width: 150 }}>Domain</th>
+              <th style={{ width: 150 }}>Master Doc</th>
+              <th style={{ width: 120 }}>CR</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
-              <tr><td colSpan={10} style={{ padding: '32px', textAlign: 'center', color: 'var(--app-neutral-400)' }}>
-                Không có risks
-              </td></tr>
-            ) : filtered.map(r => (
-              <tr key={r.id}>
+            {filtered.map(p => (
+              <tr key={p.id}>
+                <td><code style={{ fontSize: 12 }}>{p.product_code}</code></td>
+                <td style={{ color: 'var(--app-neutral-900)', fontWeight: 500 }}>{p.product_name}</td>
+                <td>{p.product_type}</td>
+                <td>{p.domain_label ?? p.domain_code ?? '—'}</td>
                 <td>
-                  <span style={{
-                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    width: 32, height: 32, borderRadius: 8,
-                    background: riskColor(r.risk_score),
-                    color: '#fff', fontWeight: 700, fontSize: 14,
-                  }}>{r.risk_score ?? '—'}</span>
+                  {p.has_master_doc
+                    ? <span className="badge badge-success">{p.master_doc_version}</span>
+                    : <span className="badge badge-warning">Chưa có</span>}
                 </td>
-                <td style={{ fontWeight: 500, color: 'var(--app-neutral-800)', maxWidth: 260 }}>
-                  <div>{r.title}</div>
-                  {r.mitigation && (
-                    <div style={{ fontSize: 11, color: 'var(--app-neutral-400)', marginTop: 2 }}>
-                      Mitigation: {r.mitigation.slice(0, 80)}{r.mitigation.length > 80 ? '…' : ''}
-                    </div>
+                <td>
+                  {p.cr_count === 0 ? '—' : (
+                    <>
+                      {p.cr_count} CR
+                      {p.open_cr_count > 0 && (
+                        <span style={{ color: 'var(--app-warning)' }}> · {p.open_cr_count} đang mở</span>
+                      )}
+                    </>
                   )}
-                </td>
-                <td>
-                  {r.category
-                    ? <Badge variant="neutral">{r.category}</Badge>
-                    : <span style={{ color: 'var(--app-neutral-300)' }}>—</span>}
-                </td>
-                <td style={{ textAlign: 'center', fontWeight: 600 }}>{r.probability ?? '—'}</td>
-                <td style={{ textAlign: 'center', fontWeight: 600 }}>{r.impact ?? '—'}</td>
-                <td>
-                  <span style={{
-                    padding: '2px 10px', borderRadius: 16, fontSize: 12, fontWeight: 500,
-                    background: riskColor(r.risk_score) + '22',
-                    color: riskColor(r.risk_score),
-                  }}>{riskLabel(r.risk_score)}</span>
-                </td>
-                <td>{r.owner ?? '—'}</td>
-                <td><StatusBadge status={r.status} /></td>
-                <td style={{ color: 'var(--app-neutral-500)', fontSize: 12 }}>
-                  {r.plan_name} ({r.plan_year})
-                </td>
-                <td>
-                  {r.quarter ? <Badge variant="info">{r.quarter}</Badge> : '—'}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+        {filtered.length === 0 && (
+          <div className="empty-state">
+            <div className="empty-state__title">Không có sản phẩm khớp bộ lọc</div>
+            <div className="empty-state__desc">Đổi từ khóa tìm kiếm hoặc chọn loại khác.</div>
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
+
 // ── Sheet 5: Resource ──────────────────────────────────────────────────────
 
 function Sheet5({ data }: { data: ResourceData }) {
-  const { project_headcount, plan_resources } = data
-  const [activeTab, setActiveTab] = useState<'project' | 'plan'>('project')
+  const { project_headcount } = data
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const maxHC = Math.max(...project_headcount.map(p => p.headcount), 1)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div className="ds-seg" style={{ alignSelf: 'flex-start' }}>
-        <button className={activeTab === 'project' ? 'ds-seg__item active' : 'ds-seg__item'}
-          onClick={() => setActiveTab('project')}>
-          Headcount per Project
-        </button>
-        <button className={activeTab === 'plan' ? 'ds-seg__item active' : 'ds-seg__item'}
-          onClick={() => setActiveTab('plan')}>
-          Plan Resource Allocation
-        </button>
-      </div>
 
-      {activeTab === 'project' && (
+      {(
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={{ fontSize: 12, color: 'var(--app-neutral-500)' }}>
             {project_headcount.length} projects · click để xem thành viên
@@ -702,50 +584,7 @@ function Sheet5({ data }: { data: ResourceData }) {
         </div>
       )}
 
-      {activeTab === 'plan' && (
-        <div className="card" style={{ overflowX: 'auto' }}>
-          <table className="ds-table">
-            <thead>
-              <tr>
-                {['Plan', 'Year', 'Quarter', 'Team', 'Role', 'Members', 'Avg Allocation'].map(h => (
-                  <th key={h}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {plan_resources.length === 0 ? (
-                <tr><td colSpan={7} style={{ padding: '32px', textAlign: 'center', color: 'var(--app-neutral-400)' }}>
-                  Chưa có dữ liệu phân bổ nguồn lực
-                </td></tr>
-              ) : plan_resources.map((r, i) => (
-                <tr key={i}>
-                  <td style={{ fontWeight: 500 }}>{r.plan_name}</td>
-                  <td style={{ color: 'var(--app-neutral-500)' }}>{r.year}</td>
-                  <td>
-                    <Badge variant="info">{r.quarter}</Badge>
-                  </td>
-                  <td style={{ color: 'var(--app-neutral-700)' }}>{r.team ?? '—'}</td>
-                  <td>{r.role ?? '—'}</td>
-                  <td style={{ textAlign: 'center', fontWeight: 600 }}>{r.unique_members}</td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <div style={{ flex: 1, height: 6, background: 'var(--app-neutral-200)', borderRadius: 3, overflow: 'hidden', minWidth: 60 }}>
-                        <div style={{
-                          height: '100%', borderRadius: 3,
-                          width: `${r.avg_allocation_pct}%`,
-                          background: r.avg_allocation_pct >= 80 ? 'var(--app-danger)' : r.avg_allocation_pct >= 60 ? 'var(--app-warning)' : 'var(--app-success)',
-                        }} />
-                      </div>
-                      <span style={{ fontSize: 11, fontWeight: 600, minWidth: 36 }}>{r.avg_allocation_pct}%</span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
+          </div>
   )
 }
 
@@ -755,8 +594,7 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [summary,   setSummary]   = useState<DashboardSummary | null>(null)
   const [projects,  setProjects]  = useState<DashboardProject[]>([])
-  const [financial, setFinancial] = useState<FinancialData | null>(null)
-  const [risks,     setRisks]     = useState<RiskItem[]>([])
+  const [products,  setProducts]  = useState<DashboardProduct[]>([])
   const [resources, setResources] = useState<ResourceData | null>(null)
   const [loading,   setLoading]   = useState(false)
   const [error,     setError]     = useState<string | null>(null)
@@ -772,11 +610,8 @@ export default function DashboardPage() {
         case 'projects':
           if (!projects.length) setProjects(await getDashboardProjects())
           break
-        case 'financial':
-          if (!financial) setFinancial(await getDashboardFinancial())
-          break
-        case 'risks':
-          if (!risks.length) setRisks(await getDashboardRisks())
+        case 'products':
+          if (!products.length) setProducts(await getDashboardProducts())
           break
         case 'resources':
           if (!resources) setResources(await getDashboardResources())
@@ -808,11 +643,11 @@ export default function DashboardPage() {
             Portfolio Dashboard
           </h1>
           <p style={{ fontSize: 14, color: 'var(--app-neutral-500)', margin: '4px 0 0' }}>
-            Tổng quan dự án, ngân sách, rủi ro và nguồn lực
+            Tổng quan theo vòng đời: dự án, sản phẩm, yêu cầu thay đổi và kiểm thử
           </p>
         </div>
         <button
-          onClick={() => { setSummary(null); setProjects([]); setFinancial(null); setRisks([]); setResources(null); fetchTab(activeTab) }}
+          onClick={() => { setSummary(null); setProjects([]); setProducts([]); setResources(null); fetchTab(activeTab) }}
           className="btn btn-secondary"
         >
           <RefreshCw size={16} strokeWidth={1.5} /> Refresh
@@ -845,8 +680,7 @@ export default function DashboardPage() {
         <>
           {activeTab === 'dashboard'  && summary   && <Sheet1 data={summary} />}
           {activeTab === 'projects'                && <Sheet2 projects={projects} />}
-          {activeTab === 'financial'  && financial  && <Sheet3 data={financial} />}
-          {activeTab === 'risks'                   && <Sheet4 risks={risks} />}
+          {activeTab === 'products'                && <Sheet3 products={products} />}
           {activeTab === 'resources'  && resources  && <Sheet5 data={resources} />}
         </>
       )}
