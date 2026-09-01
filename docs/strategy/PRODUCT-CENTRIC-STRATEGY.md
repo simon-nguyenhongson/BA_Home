@@ -1,6 +1,6 @@
 # Chiến lược tái cấu trúc BA_Home theo hướng Product-Centric
 
-- **Mã:** STRATEGY-001 · **Phiên bản:** 5.2 · **Ngày:** 2026-09-01
+- **Mã:** STRATEGY-001 · **Phiên bản:** 5.3 · **Ngày:** 2026-09-01
 - **Trạng thái:** đã chốt toàn bộ câu hỏi kiến trúc · **đang triển khai** — P1 và P2 xong
 - **Thay thế:** v4.0 (v1–v4 xem Git history)
 - **Mới ở v5:** PO trả lời 3 câu chặn + 10 quyết định giao diện; **đảo hướng hạng mục
@@ -11,6 +11,9 @@
   nặng nhất là phản hồi AI bị cắt vẫn được lưu như tài liệu hoàn chỉnh. Đồng thời chuyển 5 skill
   của luồng BA sang **dạng thư mục chuẩn Claude skill** (SKILL.md + templates/ + references/)
   theo yêu cầu PO — xem **Mục 7.8** và **Mục 7.9**.
+- **Mới ở v5.3:** PO hỏi *"tại sao tách riêng phần test và phần automation"* — không có lý do
+  thiết kế nào, đó là nợ kỹ thuật do hai thế hệ nằm cạnh nhau và **trái QĐ-3**. Đã gộp thành
+  một module — xem **Mục 7.10**. QĐ-3 chuyển từ ⏳ P4 sang ✅.
 
 ---
 
@@ -35,7 +38,7 @@ nguồn lực, milestone; khai sinh hoặc góp phần vào Product rồi kết 
 |---|---|---|
 | QĐ-1 | Quản lý CR theo Product | ✅ P1 |
 | QĐ-2 | Tài liệu theo domain, mỗi domain có module Product | ✅ P2 |
-| QĐ-3 | Testcase gom một hệ duy nhất, đi theo hướng automation | ⏳ P4 |
+| QĐ-3 | Testcase gom một hệ duy nhất, đi theo hướng automation | ✅ v5.3 — Mục 7.10 |
 | QĐ-4 | Automation testcase con quản lý ở DB, không JSON cục bộ | ⚠️ **đã đảo hướng** — Mục 5.3 |
 | QĐ-5 | **Không** làm BRD của Product — BRD thuộc Project | ✅ (không xây) |
 | QĐ-6 | Quản lý file Prototype (HTML) cho project và product | ⏳ P3 |
@@ -566,6 +569,53 @@ diagram; nếu để loader chung nạp thì `SKILL.md` 39 KB bị gửi hai l�
 Trên giao diện Cài đặt → Skill: mỗi skill hiện thư mục, phiên bản, số template/reference; bấm
 tên file để **xem chỉ-đọc** (đường dẫn được kiểm sau khi resolve nên không đọc ra ngoài thư mục
 skill được); ô sửa được đổi nhãn thành "Bổ sung của đơn vị".
+
+### 7.10 Gộp Test và Automation thành một module (QĐ-3)
+
+**Câu hỏi của PO:** *"Tại sao tách riêng phần test và phần automation"* — không có lý do thiết
+kế nào. Đó là **hai thế hệ nằm cạnh nhau**, và việc tách trái đúng QĐ-3 mà chính PO đã chốt:
+*"Testcase gom chung vào 1 hệ không tách riêng, đi theo hướng automation."*
+
+| | **Test** (`/test-workflow`) | **Automation** (`/automation`) |
+|---|---|---|
+| Service | test-platform `:8003` | PPG `:8001` |
+| Bảng | `test_documents` · `test_cases` · `test_results` · `test_defects` · `test_reports` · `test_tasks` | `automation_test_tasks` · `_cases` · `_runs` |
+| Nguồn BRS | `brs_sync`, `brs_id` kiểu **VARCHAR(100)** | `cr_brs_documents.id` kiểu **UUID** |
+| Dữ liệu | 6 tài liệu, 8 test case | 0 / 0 / 0 |
+
+**Hai cột `brs_id` khác kiểu và trỏ hai bảng khác nhau**, nên test case thế hệ 1 vĩnh viễn không
+tham chiếu được BRS của luồng BA mà không đổi lược đồ. Đây không phải chuyện thiếu thời gian nối.
+
+**8 test case thế hệ 1 chứng minh generator cũ không dùng được.** Tiêu đề thật trong DB:
+
+```
+[2. Use Cases] **UC-01**: User Authentication
+[3. Non-Functional Requirements] **Performance**
+```
+
+Đó là **mảnh tiêu đề Markdown** bị bóc ra từ tài liệu — không precondition, không bước thao tác,
+`expected_result` là chính câu yêu cầu, `playwright_script` chỉ có phần khung `import { test,
+expect } from …`. Và 8 dòng thực chất là 4 dòng nhân đôi.
+
+**Phân biệt đáng giữ không phải "test vs automation"** mà là **test case** (cái gì phải đúng —
+thuộc BRS) và **script chạy được** (chạy thế nào — thuộc Capture Studio). Cả hai nằm trong cùng
+một module, hai tab. Còn **tài liệu test** (Test Plan, Bug Report, UAT Sign-off) là loài khác:
+đó là tài liệu, chỗ của nó là trang Tài liệu.
+
+**Đã làm:**
+
+| Việc | Chi tiết |
+|---|---|
+| Một menu **Test** duy nhất tại `/test` | Tab *Test case theo CR* + tab *Capture Studio — ghi script* |
+| Link cũ không chết | `/automation` và `/test-workflow` chuyển hướng sang `/test`; có test kiểm |
+| Tài liệu test về trang Tài liệu | Section *Tài liệu test* trong nhánh Dự án, **chỉ xem** — đổi trạng thái là việc của luồng test, không phải của trang tra cứu. Dữ liệu vẫn ở `test_documents`, **không di trú DB** |
+| Lưu trữ 8 test case rác (V056) | Copy sang `test_cases_legacy_archive` kèm lý do rồi xóa khỏi `test_cases`. `test_defects` trỏ bằng `ON DELETE SET NULL` nên **80 bug report không mất** |
+| Xóa mã chết | `TestWorkflowPage` · `TestPage` · `TestMetricsPage` (hai file sau **chưa từng được route**) · `TestDocumentForm` · `lib/api/project-objects.ts` · `lib/types/project-object.ts` |
+
+**Chưa làm, có chủ đích:** service test-platform `:8003` **vẫn chạy** và các bảng `test_*` vẫn
+còn. Giao diện không còn gọi tới `test_cases`, nhưng `test_documents` thì vẫn đọc từ service đó.
+Gỡ hẳn service là bước riêng, làm sau khi chắc chắn không mất gì — không gộp vào lần này để
+việc gộp module có thể quay lại được nếu cần.
 
 ## 8. Lộ trình còn lại
 

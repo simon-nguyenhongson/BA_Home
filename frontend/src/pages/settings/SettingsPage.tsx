@@ -123,9 +123,11 @@ function AiSettingsTab() {
 
         {settings?.credential_type === 'oauth' && (
           <div className="state-banner state-banner-warn">
-            Đang dùng OAuth token (sk-ant-oat…) của gói thuê bao — token này sống ngắn hạn
-            và dùng chung hạn mức với gói. Để hệ thống chạy ổn định, nên thay bằng API key
-            trả theo lượt dùng (sk-ant-api…) lấy từ console.anthropic.com.
+            Đang dùng OAuth token (sk-ant-oat…) của gói thuê bao. Qua API, token này chỉ
+            gọi được model nhẹ (Claude Haiku 4.5) — Opus 5 và Sonnet 5 bị Anthropic từ chối
+            (429) dù hạn mức của gói vẫn còn, vì hai model đó chỉ dành cho ứng dụng
+            Claude/Claude Code. Token cũng sống ngắn hạn. Muốn hệ thống dùng Opus/Sonnet,
+            nhập API key trả theo lượt dùng (sk-ant-api…) lấy từ console.anthropic.com.
           </div>
         )}
 

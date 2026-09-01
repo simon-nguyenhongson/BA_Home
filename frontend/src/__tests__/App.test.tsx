@@ -24,8 +24,8 @@ vi.mock('../pages/ppg/PPGPage', () => ({
 vi.mock('../pages/ba-workflow/BAWorkflowPage', () => ({
   default: () => React.createElement('div', { 'data-testid': 'ba-workflow-page' }, 'BAWorkflowPage'),
 }))
-vi.mock('../pages/test-workflow/TestWorkflowPage', () => ({
-  default: () => React.createElement('div', { 'data-testid': 'test-workflow-page' }, 'TestWorkflowPage'),
+vi.mock('../pages/test-hub/TestHubPage', () => ({
+  default: () => React.createElement('div', { 'data-testid': 'test-hub-page' }, 'TestHubPage'),
 }))
 vi.mock('../pages/docs/DocsPage', () => ({
   default: () => React.createElement('div', { 'data-testid': 'docs-page' }, 'DocsPage'),
@@ -76,8 +76,7 @@ const APPS = [
   { key: 'dashboard'     as const, label: 'Dashboard',   path: '/dashboard' },
   { key: 'ppg'           as const, label: 'Project',     path: '/ppg' },
   { key: 'ba-workflow'   as const, label: 'BA',          path: '/ba-workflow' },
-  { key: 'test-workflow' as const, label: 'Test',        path: '/test-workflow' },
-  { key: 'automation'    as const, label: 'Automation',  path: '/automation' },
+  { key: 'test'          as const, label: 'Test',        path: '/test' },
   { key: 'docs'          as const, label: 'Tài liệu',    path: '/docs' },
   { key: 'requests'      as const, label: 'Requests',    path: '/requests' },
   { key: 'todos'         as const, label: 'To-do',       path: '/todos' },
@@ -93,8 +92,8 @@ describe('App — APPS array structure', () => {
     vi.clearAllMocks()
   })
 
-  it('has exactly 9 items — Danh mục đã chuyển vào Cài đặt', () => {
-    expect(APPS.length).toBe(9)
+  it('has exactly 8 items — Danh mục vào Cài đặt, Automation gộp vào Test', () => {
+    expect(APPS.length).toBe(8)
   })
 
   it('first item is "Dashboard" with path /dashboard', () => {
@@ -114,9 +113,10 @@ describe('App — APPS array structure', () => {
     expect(APPS[2].key).toBe('ba-workflow')
   })
 
-  it('fourth item (index 3) is "Test"', () => {
+  it('fourth item (index 3) is "Test" — module test hợp nhất', () => {
     expect(APPS[3].label).toBe('Test')
-    expect(APPS[3].key).toBe('test-workflow')
+    expect(APPS[3].key).toBe('test')
+    expect(APPS[3].path).toBe('/test')
   })
 
   it('has "Tài liệu" → /docs', () => {
@@ -189,13 +189,25 @@ describe('App — routing (authenticated)', () => {
     expect(screen.getByTestId('ba-workflow-page')).toBeInTheDocument()
   })
 
-  it('renders TestWorkflowPage at /test-workflow', () => {
+  it('renders TestHubPage at /test', () => {
     render(
-      React.createElement(MemoryRouter, { initialEntries: ['/test-workflow'] },
+      React.createElement(MemoryRouter, { initialEntries: ['/test'] },
         React.createElement(App)
       )
     )
-    expect(screen.getByTestId('test-workflow-page')).toBeInTheDocument()
+    expect(screen.getByTestId('test-hub-page')).toBeInTheDocument()
+  })
+
+  it('chuyển hướng /automation và /test-workflow sang /test (link cũ không chết)', () => {
+    for (const legacy of ['/automation', '/test-workflow']) {
+      const { unmount } = render(
+        React.createElement(MemoryRouter, { initialEntries: [legacy] },
+          React.createElement(App)
+        )
+      )
+      expect(screen.getByTestId('test-hub-page')).toBeInTheDocument()
+      unmount()
+    }
   })
 
   it('redirects from unknown path to /dashboard (default redirect)', () => {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import {
-  LayoutDashboard, Building2, FileText, FlaskConical, Bot,
+  LayoutDashboard, Building2, FileText, FlaskConical,
   BookOpen, Ticket, CheckSquare, Settings, LogOut, Search, Menu, SlidersHorizontal,
 } from 'lucide-react'
 import { useStore } from './stores/auth'
@@ -9,12 +9,11 @@ import { ToastContainer } from './components/ui'
 import LoginPage from './pages/LoginPage'
 import PPGPage from './pages/ppg/PPGPage'
 import BAWorkflowPage from './pages/ba-workflow/BAWorkflowPage'
-import TestWorkflowPage from './pages/test-workflow/TestWorkflowPage'
 import DocsPage from './pages/docs/DocsPage'
 import DashboardPage from './pages/dashboard/DashboardPage'
 import RequestsPage from './pages/requests/RequestsPage'
 import TodoPage from './pages/todos/TodoPage'
-import AutomationPage from './pages/automation/AutomationPage'
+import TestHubPage from './pages/test-hub/TestHubPage'
 import SettingsPage from './pages/settings/SettingsPage'
 import './styles.css'
 
@@ -22,8 +21,7 @@ const APPS = [
   { key: 'dashboard'     as const, icon: LayoutDashboard,   label: 'Dashboard',  sub: 'Tổng quan vòng đời',            path: '/dashboard' },
   { key: 'ppg'           as const, icon: Building2,         label: 'Project',    sub: 'Quản trị dự án',                path: '/ppg' },
   { key: 'ba-workflow'   as const, icon: FileText,          label: 'BA',         sub: 'Chọn CR · AI sinh tài liệu',    path: '/ba-workflow' },
-  { key: 'test-workflow' as const, icon: FlaskConical,      label: 'Test',       sub: 'Chiến lược · Thực thi',         path: '/test-workflow' },
-  { key: 'automation'    as const, icon: Bot,               label: 'Automation', sub: 'Capture Studio · Playwright',   path: '/automation' },
+  { key: 'test'          as const, icon: FlaskConical,      label: 'Test',       sub: 'Test case theo CR · Capture Studio', path: '/test' },
   { key: 'docs'          as const, icon: BookOpen,          label: 'Tài liệu',   sub: 'Dự án · Sản phẩm',              path: '/docs' },
   { key: 'requests'      as const, icon: Ticket,            label: 'Requests',   sub: 'Change Request · Service Request', path: '/requests' },
   { key: 'todos'         as const, icon: CheckSquare,       label: 'To-do',      sub: 'Công việc · Kanban',            path: '/todos' },
@@ -109,14 +107,16 @@ function Shell() {
                 <Route path="/dashboard"     element={<DashboardPage />} />
                 <Route path="/ppg"           element={<PPGPage />} />
                 <Route path="/ba-workflow"   element={<BAWorkflowPage />} />
-                <Route path="/test-workflow" element={<TestWorkflowPage />} />
-                <Route path="/automation"    element={<AutomationPage />} />
+                <Route path="/test"          element={<TestHubPage />} />
                 <Route path="/settings"      element={<SettingsPage />} />
                 <Route path="/docs"          element={<DocsPage />} />
                 <Route path="/requests"      element={<RequestsPage />} />
                 <Route path="/todos"         element={<TodoPage />} />
-                {/* Danh mục đã chuyển vào Cài đặt — giữ chuyển hướng cho link cũ */}
+                {/* Danh mục đã chuyển vào Cài đặt; Test và Automation đã gộp thành /test.
+                    Giữ chuyển hướng cho link cũ và bookmark. */}
                 <Route path="/catalog"       element={<Navigate to="/settings?tab=products" replace />} />
+                <Route path="/automation"    element={<Navigate to="/test" replace />} />
+                <Route path="/test-workflow" element={<Navigate to="/test" replace />} />
                 <Route path="*"              element={<Navigate to="/dashboard" replace />} />
               </Routes>
             </main>

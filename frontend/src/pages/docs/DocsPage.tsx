@@ -9,6 +9,9 @@ import { useStore } from '../../stores/auth'
 import { FileText, FolderOpen, Package, Building2 } from 'lucide-react'
 import { getProducts, type CatalogProduct } from '../../api/catalog'
 import { ProductDocsView } from './ProductDocsView'
+import { TestDocumentList } from '../../components/test-workflow/TestDocumentList'
+import { getTestDocuments } from '../../lib/api/workflow-docs'
+import type { TestDocument } from '../../lib/types/workflow-doc'
 
 // ─── colour helpers ───────────────────────────────────────────────
 const TRACK_COLOR: Record<string, string> = {
@@ -563,6 +566,46 @@ function ProjectFolderView({ project }: { project: Project }) {
 }
 
 // ══════════════════════════════════════════════════════════════════
+// ProjectTestDocsSection — tài liệu test của dự án
+//
+// Test Plan / Bug Report / UAT Sign-off là TÀI LIỆU, nên chỗ của chúng là trang Tài liệu.
+// Trước 2026-09-01 chúng nằm trong menu "Test" riêng cùng với generator test case thế hệ 1;
+// menu đó đã gộp vào /test (chỉ còn test case + Capture Studio), phần tài liệu chuyển về đây.
+// Dữ liệu vẫn nằm ở service test-platform (bảng test_documents) — không di trú DB.
+// ══════════════════════════════════════════════════════════════════
+function ProjectTestDocsSection({ project }: { project: Project }) {
+  const { addToast } = useStore()
+  const [docs, setDocs] = useState<TestDocument[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const load = () => {
+    setLoading(true)
+    getTestDocuments({ project_id: project.id, size: 100 })
+      .then(r => setDocs(r.data))
+      .catch(() => addToast('Không tải được tài liệu test', 'error'))
+      .finally(() => setLoading(false))
+  }
+  useEffect(load, [project.id])
+
+  if (!loading && docs.length === 0) return null
+
+  return (
+    <div style={{ padding: '0 16px 20px' }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600,
+        color: 'var(--app-neutral-800)', margin: '4px 0 10px',
+        paddingTop: 14, borderTop: '1px solid var(--app-neutral-200)',
+      }}>
+        <FileText size={14} strokeWidth={1.5} /> Tài liệu test ({docs.length})
+      </div>
+      {/* Chỉ xem. Đổi trạng thái tài liệu test là việc của luồng test, không phải của
+          trang tra cứu tài liệu — nên không đưa nút chuyển trạng thái vào đây. */}
+      <TestDocumentList documents={docs} loading={loading} disableAdd />
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════════════
 // FoldersTab — Domain → Project → Folder hierarchy
 // ══════════════════════════════════════════════════════════════════
 function FoldersTab() {
@@ -795,6 +838,7 @@ function FoldersTab() {
               </div>
             </div>
             <ProjectFolderView project={selectedProject} />
+            <ProjectTestDocsSection project={selectedProject} />
           </div>
         )}
       </div>

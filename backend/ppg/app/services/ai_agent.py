@@ -229,14 +229,9 @@ async def run_skill(
                 "message": _auth_error_message(api_key),
             },
         )
-    except RateLimitError:
-        raise HTTPException(
-            429,
-            detail={
-                "code": "AI_RATE_LIMIT",
-                "message": _rate_limit_message(api_key, model),
-            },
-        )
+    except RateLimitError as exc:
+        code, message = await _explain_429(api_key, model, exc)
+        raise HTTPException(429, detail={"code": code, "message": message})
     except APIStatusError as exc:
         logger.error("Claude API error %s: %s", exc.status_code, exc.message)
         raise HTTPException(
@@ -337,11 +332,9 @@ async def verify_api_key(api_key: str, model: str = DEFAULT_MODEL) -> dict:
             400,
             detail={"code": "AI_KEY_INVALID", "message": _auth_error_message(api_key)},
         )
-    except RateLimitError:
-        raise HTTPException(
-            429,
-            detail={"code": "AI_RATE_LIMIT", "message": _rate_limit_message(api_key, model)},
-        )
+    except RateLimitError as exc:
+        code, message = await _explain_429(api_key, model, exc)
+        raise HTTPException(429, detail={"code": code, "message": message})
     except APIStatusError as exc:
         raise HTTPException(
             502,
@@ -362,26 +355,125 @@ async def verify_api_key(api_key: str, model: str = DEFAULT_MODEL) -> dict:
         await client.close()
 
 
-def _rate_limit_message(credential: str, model: str = "") -> str:
-    """
-    Thông báo 429 — nêu rõ nếu đang dùng OAuth token của gói thuê bao.
+# Model dùng để ĐO hạn mức còn lại khi gặp 429 không kèm thông tin hạn mức.
+# Chọn Haiku vì đây là model duy nhất mà OAuth token của gói thuê bao gọi được qua API
+# (xem ghi chú ở _explain_429) — nên nó phản ánh đúng hạn mức chung của gói.
+QUOTA_PROBE_MODEL = "claude-haiku-4-5"
 
-    Hạn mức của gói thuê bao tính RIÊNG theo từng lớp model: Opus/Sonnet có thể đã cạn
-    trong khi Haiku vẫn gọi được. Vì vậy phải nói rõ model nào bị chặn, nếu không người
-    dùng thấy Claude Code vẫn chạy bình thường và tưởng hệ thống bị lỗi.
+
+def _unified_quota(headers: object) -> Optional[dict]:
+    """Bóc các header anthropic-ratelimit-unified-* thành dict, None nếu không có."""
+    if not headers:
+        return None
+    get = getattr(headers, "get", None)
+    if not callable(get):
+        return None
+    status = get("anthropic-ratelimit-unified-status")
+    util = get("anthropic-ratelimit-unified-5h-utilization")
+    reset = get("anthropic-ratelimit-unified-5h-reset") or get("anthropic-ratelimit-unified-reset")
+    if status is None and util is None:
+        return None
+    try:
+        util_f = float(util) if util is not None else None
+    except (TypeError, ValueError):
+        util_f = None
+    return {"status": (status or "").lower(), "utilization": util_f, "reset": reset}
+
+
+async def _probe_quota(credential: str) -> Optional[dict]:
     """
-    which = f" cho model {model}" if model else ""
-    if is_oauth_token(credential):
-        return (
-            f"Đã chạm giới hạn sử dụng của gói thuê bao gắn với OAuth token này{which}. "
-            "Hạn mức tính riêng theo từng lớp model — thử đổi sang model nhẹ hơn "
-            "(Claude Haiku 4.5) trong Cài đặt → AI Agent, chờ hạn mức đặt lại, "
-            "hoặc chuyển sang API key trả theo lượt dùng (sk-ant-api...) "
-            "lấy từ console.anthropic.com."
+    Đo hạn mức còn lại bằng một request nhỏ nhất tới model probe.
+
+    Cần thiết vì Anthropic KHÔNG gửi header hạn mức kèm 429 bị từ chối theo model —
+    không đo thì chỉ còn cách đoán, mà đoán sai thì thông báo bảo người dùng đi chờ
+    hạn mức đặt lại trong khi hạn mức chưa hề chạm.
+    """
+    try:
+        from anthropic import RateLimitError  # type: ignore[import-not-found]
+    except ImportError:
+        return None
+
+    client = build_client(credential)
+    try:
+        resp = await client.messages.with_raw_response.create(
+            model=QUOTA_PROBE_MODEL,
+            max_tokens=1024,
+            messages=[{"role": "user", "content": "."}],
         )
-    return (
-        f"Claude API đang giới hạn tần suất{which}. Thử lại sau ít phút, "
-        "hoặc dùng model nhẹ hơn nếu cần chạy liên tục."
+        info = _unified_quota(resp.headers) or {}
+        info["probe_ok"] = True
+        return info
+    except RateLimitError as exc:
+        info = _unified_quota(getattr(getattr(exc, "response", None), "headers", None)) or {}
+        info["probe_ok"] = False
+        return info
+    except Exception as exc:  # noqa: BLE001 — probe chỉ để giải thích lỗi, không được che lỗi gốc
+        logger.warning("Không đo được hạn mức khi giải thích 429: %s", exc)
+        return None
+    finally:
+        await client.close()
+
+
+async def _explain_429(credential: str, model: str, exc: object) -> tuple[str, str]:
+    """
+    Giải thích 429 bằng số đo, trả về (code, message).
+
+    Đo thực tế 2026-09-01 với OAuth token của gói thuê bao (sk-ant-oat…), thay đổi
+    MỘT biến mỗi lần:
+      - Haiku 4.5, không cần gì thêm                     → 200, 5h-utilization 0.09
+      - Opus 5 / Sonnet 5, không system                  → 429, KHÔNG header hạn mức
+      - Opus 5 + system prompt bất kỳ (VN hoặc EN)       → 429
+      - Opus 5 + header anthropic-beta claude-code       → 429
+      - Opus 5 + x-app: cli / user-agent claude-cli      → 429
+      - Opus 5 + system prompt danh tính của Claude Code → 200
+    Kết luận: cổng kiểm soát của Anthropic nằm ở NỘI DUNG system prompt, không phải
+    header. Gói thuê bao chỉ được dùng Opus/Sonnet từ trong ứng dụng Claude Code;
+    ứng dụng khác chỉ gọi được model nhẹ. Đây KHÔNG phải lỗi hạn mức, nên không được
+    báo là hạn mức — người dùng sẽ đi chờ reset mà chẳng bao giờ hết lỗi.
+    """
+    headers = getattr(getattr(exc, "response", None), "headers", None)
+    quota = _unified_quota(headers)
+
+    # 429 có kèm thông tin hạn mức → đúng là chạm hạn mức.
+    if quota and quota.get("status") not in (None, "", "allowed"):
+        return "AI_RATE_LIMIT", (
+            f"Đã dùng hết hạn mức cho model {model}. "
+            + ("Chờ hạn mức đặt lại, hoặc c" if is_oauth_token(credential) else "C")
+            + "huyển sang API key trả theo lượt dùng (sk-ant-api...) "
+              "lấy từ console.anthropic.com."
+        )
+
+    if not is_oauth_token(credential):
+        return "AI_RATE_LIMIT", (
+            f"Claude API trả 429 cho model {model} nhưng không kèm thông tin hạn mức. "
+            "Thử lại sau ít phút; nếu lặp lại, kiểm tra quyền của API key với model này."
+        )
+
+    # OAuth token + 429 trống thông tin hạn mức → đo hạn mức thật để nói đúng nguyên nhân.
+    probe = await _probe_quota(credential)
+    if probe and probe.get("probe_ok"):
+        util = probe.get("utilization")
+        used = f" (5 giờ qua mới dùng {util * 100:.0f}% hạn mức)" if isinstance(util, float) else ""
+        return "AI_MODEL_NOT_ALLOWED", (
+            f"Model {model} KHÔNG dùng được bằng OAuth token của gói thuê bao — đây không "
+            f"phải lỗi hết hạn mức{used}. Anthropic chỉ cho gói thuê bao chạy Opus/Sonnet "
+            f"từ trong ứng dụng Claude / Claude Code; ứng dụng khác chỉ gọi được "
+            f"{QUOTA_PROBE_MODEL}. Hai cách xử lý: đổi Model sang Claude Haiku 4.5 trong "
+            f"Cài đặt → AI Agent (chạy được ngay, chất lượng thấp hơn), hoặc nhập API key "
+            f"trả theo lượt dùng (sk-ant-api...) lấy từ console.anthropic.com để dùng "
+            f"{model}."
+        )
+    if probe is not None:  # probe cũng bị 429 → hạn mức của gói đã cạn thật
+        return "AI_RATE_LIMIT", (
+            f"Đã dùng hết hạn mức của gói thuê bao (cả {QUOTA_PROBE_MODEL} cũng bị từ chối). "
+            "Chờ hạn mức đặt lại, hoặc chuyển sang API key trả theo lượt dùng "
+            "(sk-ant-api...) lấy từ console.anthropic.com."
+        )
+    return "AI_RATE_LIMIT", (
+        f"Anthropic từ chối request cho model {model} (429) và không đo được hạn mức còn "
+        "lại. Với OAuth token của gói thuê bao, thường là do model này chỉ dùng được "
+        "trong ứng dụng Claude Code — thử Claude Haiku 4.5, hoặc nhập API key "
+        "(sk-ant-api...) từ console.anthropic.com."
     )
 
 
