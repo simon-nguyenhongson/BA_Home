@@ -1,6 +1,9 @@
 """
-Sync endpoints — receive data from BA Workflow and Test Platform
-Internal endpoints — no user auth required
+Sync endpoints — nhận dữ liệu từ BA Workflow và Test Platform.
+
+Đây là endpoint service-to-service nên KHÔNG dùng JWT của người dùng, nhưng vẫn phải xác thực:
+bảo vệ bằng bí mật chia sẻ INTERNAL_SYNC_TOKEN (xem app/internal_auth.py). Trước đây hai
+endpoint này mở hoàn toàn — bất kỳ máy nào chạm được cổng đều ghi được tài liệu vào hồ sơ dự án.
 """
 from fastapi import APIRouter, Depends, HTTPException
 import asyncpg
@@ -8,12 +11,14 @@ import logging
 from uuid import uuid4
 
 from app.database import get_db
+from app.internal_auth import require_internal_token
 
 router = APIRouter(tags=["sync"])
 logger = logging.getLogger(__name__)
 
 
-@router.post("/sync-doc", status_code=200)
+@router.post("/sync-doc", status_code=200,
+             dependencies=[Depends(require_internal_token)])
 async def sync_doc(payload: dict, db: asyncpg.Connection = Depends(get_db)):
     """Receive approved document from BA Workflow"""
     doc_id = payload.get("doc_id") or payload.get("id")
@@ -75,7 +80,8 @@ async def sync_doc(payload: dict, db: asyncpg.Connection = Depends(get_db)):
     return {"status": "synced"}
 
 
-@router.post("/sync-test", status_code=200)
+@router.post("/sync-test", status_code=200,
+             dependencies=[Depends(require_internal_token)])
 async def sync_test(payload: dict, db: asyncpg.Connection = Depends(get_db)):
     """Receive test metrics from Test Platform"""
     project_id = payload.get("project_id")

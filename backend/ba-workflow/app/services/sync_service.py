@@ -14,11 +14,25 @@ TEST_URL = os.getenv("TEST_SERVICE_URL", "http://127.0.0.1:8003")
 logger = logging.getLogger(__name__)
 
 
+def _internal_headers() -> dict[str, str]:
+    """
+    Bí mật chia sẻ cho endpoint service-to-service của PPG (xem ppg/app/internal_auth.py).
+    Phải đặt cùng một giá trị INTERNAL_SYNC_TOKEN cho cả ba service.
+    """
+    token = (os.getenv("INTERNAL_SYNC_TOKEN") or "").strip()
+    if not token:
+        logger.error(
+            "INTERNAL_SYNC_TOKEN chưa được đặt ở BA Workflow — PPG sẽ từ chối request sync."
+        )
+        return {}
+    return {"X-Internal-Token": token}
+
+
 async def push_doc_to_ppg(doc: dict) -> None:
     """Push approved document to PPG — all doc types."""
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.post(f"{PPG_URL}/sync-doc", json=doc)
+            resp = await client.post(f"{PPG_URL}/sync-doc", json=doc, headers=_internal_headers())
             resp.raise_for_status()
     except httpx.HTTPStatusError as e:
         logger.error(

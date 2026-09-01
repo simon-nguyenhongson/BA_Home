@@ -1,10 +1,12 @@
 # Chiến lược tái cấu trúc BA_Home theo hướng Product-Centric
 
-- **Mã:** STRATEGY-001 · **Phiên bản:** 5.0 · **Ngày:** 2026-09-01
+- **Mã:** STRATEGY-001 · **Phiên bản:** 5.1 · **Ngày:** 2026-09-01
 - **Trạng thái:** đã chốt toàn bộ câu hỏi kiến trúc · **đang triển khai** — P1 và P2 xong
 - **Thay thế:** v4.0 (v1–v4 xem Git history)
 - **Mới ở v5:** PO trả lời 3 câu chặn + 10 quyết định giao diện; **đảo hướng hạng mục
   Capture Studio** (không viết lại `store.js`); ghi lại phần đã code và kiểm chứng thật.
+- **Mới ở v5.1:** rà soát đối chiếu mã nguồn với chiến lược — tìm **8 điểm lệch**, trong đó
+  3 phá đúng bất biến kiểm toán và 1 là lỗ hổng bảo mật. Tất cả đã sửa — xem **Mục 7.7**.
 
 ---
 
@@ -110,7 +112,7 @@ Trả lời câu hỏi *"điều khoản này đến từ đâu"*:
 |---|---|
 | `cr_merge` | BRS → CR → người duyệt CR |
 | `manual` | **CR nội bộ** → người sửa + lý do bắt buộc + người duyệt |
-| `init_import` / `init_manual` / `init_ai` | nguồn khởi tạo v1 |
+| `init_import` / `init_manual` / `init_ai` | nguồn khởi tạo v1 — ghi theo đường người dùng chọn |
 
 **Không còn đường ghi đè trực tiếp.** Đây là lỗ hổng lớn nhất của bản cũ: endpoint sửa tay
 tự đánh dấu `approved` — một người vừa sửa vừa tự duyệt tài liệu đặc tả. Đã đóng ở P1 (Mục 7).
@@ -143,11 +145,17 @@ nhúng tại `backend/ppg/app/skills/diagram-design/`. Chi tiết vận hành: M
 ### 5.2 Prototype + Design System (QĐ-6, QĐ-7) — ⏳ P3
 
 ```
-prototypes (owner_type: project|product, owner_id, name, entry_file, status)
+prototypes (project_id? · product_id?  ← khóa ngoại thật, CHECK đúng-một
+            name, entry_file, status)
   └── prototype_versions (version, storage_path, change_summary, cr_id?, created_by)
-design_systems (owner_type: project|product, owner_id, name, status)
+design_systems (project_id? · product_id?  ← cùng mẫu, name, status)
   └── design_system_versions (version, tokens_file, css_file, change_summary)
 ```
+
+⚠️ **Dùng khóa ngoại thật ngay từ đầu, không dùng `(owner_type, owner_id)` đa hình.** Bài học
+từ bảng `diagrams`: mẫu đa hình để lại dòng mồ côi mà không màn nào hiển thị nên không ai dọn
+(L-3, Mục 7.7), và ràng buộc chống lệch viết dạng ba nhánh `OR` **không chặn được gì** vì logic
+ba giá trị của SQL (L-4). Viết CHECK dạng `COALESCE`/`CASE`.
 
 File lưu theo ADR-005 (đĩa + đường dẫn trong DB). Prototype xem qua iframe.
 `prototype_versions.cr_id` trả lời *"CR nào đổi màn hình nào"*.
@@ -367,6 +375,73 @@ Tab **Báo cáo theo kỳ**: chọn từ ngày – đến ngày (kèm mốc nhan
 | Tài liệu phải thấy tài liệu Product | Mục 7.3 |
 | Danh mục chuyển vào Cài đặt | Cài đặt 3 tab: AI Agent · Kho skill · Danh mục. `/catalog` chuyển hướng, link cũ không chết |
 
+### 7.7 Rà soát đối chiếu chiến lược ↔ mã nguồn
+
+Sau khi code, rà lại từng tuyên bố "đã làm" ở Mục 2 và từng bất biến ở Mục 3.4 xem mã nguồn
+có thật sự làm đúng không. Tìm ra **8 điểm lệch**. Bốn điểm đầu là lỗi thật, không phải chuyện
+tài liệu ghi thiếu.
+
+**L-1 — Ba đường khởi tạo Master Doc vẫn không phân biệt được.** ⛔ *bất biến kiểm toán*
+V052 nới CHECK cho `init_ai | init_import | init_manual`, nhưng mã nguồn **chưa bao giờ dùng** —
+vẫn ghi `source='initial'` cho mọi bản v1. Nghĩa là Mục 3.4 tuyên bố "truy được nguồn khởi tạo"
+mà hệ thống không làm được. Sửa: thêm `init_method` vào API tạo, ghi `init_import`/`init_manual`
+đúng đường người dùng đã chọn, hiện luôn trên màn khởi tạo để người dùng biết mình đang ghi gì
+vào hồ sơ. Kiểm chứng: import → `init_import`.
+
+**L-2 — Truy vết CR nội bộ sang Master Doc trả về RỖNG.** ⛔ *bất biến kiểm toán*
+Endpoint `/change-requests/{id}/master-doc-impact` — chỗ trả lời câu hỏi *"CR này sửa chỗ nào
+trong Master Doc"* — **chỉ** join bảng `master_doc_version_crs`. Luồng merge từ BRS có ghi vào
+bảng đó, nhưng luồng sửa tay (CR nội bộ, QĐ-19) thì không: tôi chỉ đặt `internal_cr_id` trên
+version. Kết quả: hỏi về CR nội bộ thì trả danh sách trống — đúng nhóm rủi ro cao nhất mà Mục 3.4
+nói phải liệt kê riêng để giải trình. Sửa: luồng sửa tay ghi thêm một dòng `master_doc_version_crs`.
+Kiểm chứng: 1 version truy được, kèm lý do.
+
+**L-3 — Bảng `diagrams` không có toàn vẹn tham chiếu.** ⛔
+V051 dùng cặp `(owner_type, owner_id)` đa hình cho gọn, đánh đổi mất khóa ngoại. Rà soát cho thấy
+đây **không phải rủi ro lý thuyết**: `DELETE` một CR sẽ cascade xóa BRS, và sơ đồ gắn vào BRS đó
+còn lại, trỏ vào một BRS không tồn tại. Mọi truy vấn đều lọc theo chủ sở hữu nên **không màn nào
+hiển thị dòng mồ côi** → không ai thấy để dọn, nó nằm lại trong DB và vào cả bản sao lưu.
+Sửa (V053): 3 cột khóa ngoại nullable + CHECK "đúng một chủ sở hữu", `owner_type/owner_id` giữ
+làm hợp đồng API nhưng bị CHECK buộc khớp. Hợp đồng API không đổi. Kiểm chứng: xóa CR → BRS và
+sơ đồ mất theo.
+
+**L-4 — Ràng buộc chống lệch dữ liệu KHÔNG chặn được gì.** ⛔ *tìm ra khi kiểm chứng L-3*
+Bản đầu của V053 viết CHECK dạng ba nhánh:
+`(owner_type='project' AND owner_id=project_id) OR (…product…) OR (…brs…)`.
+Trông đúng nhưng vô dụng vì logic ba giá trị của SQL: với `owner_type='project'`,
+`product_id=<uuid>`, `project_id=NULL` thì nhánh đầu là `owner_id = NULL` → **NULL**, hai nhánh sau
+`false`, và `NULL OR false` = `NULL` — Postgres coi CHECK là **ĐẠT**. Nếu không thử trực tiếp thì
+ràng buộc này sẽ nằm đó suốt, tạo cảm giác an toàn giả. Sửa: viết dạng `COALESCE` + `CASE`, không
+có nhánh nào so sánh với NULL. Kiểm chứng: cả hai kiểu dữ liệu lệch đều bị chặn đúng tên ràng buộc.
+
+**L-5 — `/sync-doc` và `/sync-test` không có xác thực.** ⛔ *bảo mật*
+Hai endpoint nhận tài liệu dự án từ BA Workflow và Test Platform, mở hoàn toàn với lý do
+"internal endpoint — no user auth required" ghi ngay trong docstring. Trong mạng nội bộ ngân hàng
+điều đó nghĩa là **bất kỳ máy nào chạm được cổng 8001 đều ghi được tài liệu vào hồ sơ dự án**, và
+không có cách nào biết dữ liệu đến từ đâu. Sửa: bí mật chia sẻ `INTERNAL_SYNC_TOKEN` qua header
+`X-Internal-Token`, so sánh chống rò rỉ thời gian, **fail-closed** khi chưa cấu hình (mở sẵn khi
+thiếu cấu hình chính là cái lỗ đang phải bịt); thêm header ở cả hai bên gọi; `start.sh`/`start.bat`
+sinh giá trị tạm cho phiên chạy nếu chưa đặt. Kiểm chứng: không token → 401, token sai → 401,
+token đúng → 200.
+
+**L-6 — CR PATCH không kiểm tra tham chiếu và không cho gắn dự án.** Đặt `product_id` sai UUID sẽ
+vi phạm khóa ngoại và trả **500 thô**. Ngoài ra `CRPatch` thiếu `project_id` nên CR tạo ngoài dự án
+không thể quy kết về dự án sau — trái QĐ-18. Sửa cả hai; `cr_kind` vẫn **không** cho sửa (đổi CR
+nghiệp vụ thành nội bộ sẽ làm mất bắt buộc BRS/test của một thay đổi đã ghi nhận).
+
+**L-7 — Dashboard gộp CR nội bộ vào tổng CR.** CR nội bộ sinh tự động mỗi lần sửa tay Master Doc.
+Gộp vào `total_crs`/`open_crs` sẽ làm phồng "CR đang mở" bằng việc bảo trì tài liệu mà không ai
+phải xử lý. Sửa: tách thành chỉ số riêng, phân bố trạng thái chỉ đếm CR nghiệp vụ.
+
+**L-8 — 4 component mã chết.** `components/projects/{ConnectionMap, ExportImportPanel,
+ProjectObjectTable, ObjectTypeForm}` không còn chỗ nào dùng sau khi gỡ `ProjectObjectsPage`, kèm
+25 test đang kiểm mã không ai gọi tới. Đã xóa. Giữ `lib/api/project-objects.ts` vì trang Test còn dùng.
+
+**Ghi nhận sự cố trong lúc kiểm chứng:** một lệnh thử cascade đã **xóa mất CR-2026-003** thật
+(alias `psql` không hoạt động trong zsh nên các lệnh truy vấn lỗi trong khi lệnh `DELETE` qua API
+vẫn chạy). Đã phục hồi đúng `id`, mã, tiêu đề, người yêu cầu và thời điểm tạo gốc lấy từ
+`request_history`, và chuyển sang dùng CR dùng-một-lần cho các phép thử phá hủy.
+
 ### 7.6 Kiểm chứng
 
 **Chạy thật đầu-cuối trên DB thật** (dữ liệu thử đã dọn, DB trả về trạng thái ban đầu):
@@ -396,8 +471,8 @@ sai về DOM) · Playwright chạy 9 trang + luồng sản phẩm: **0 lỗi con
 |---|---|---|
 | ~~P1~~ | ~~Quyền sở hữu CR · maker-checker Master Doc~~ | ✅ xong |
 | ~~P2~~ | ~~Diagram · tài liệu sản phẩm · báo cáo theo kỳ · dọn giao diện~~ | ✅ xong |
-| **P3** | Prototype + Design System (V053): bảng + API + màn quản lý/xem/import | 2 |
-| **P4** | Automation theo hướng mới (V054): sao lưu/nạp lại Studio · bộ hồi quy 3 mức phạm vi · report theo từng testcase · export theo skill | 2 |
+| **P3** | Prototype + Design System (V054): bảng + API + màn quản lý/xem/import | 2 |
+| **P4** | Automation theo hướng mới (V055): sao lưu/nạp lại Studio · bộ hồi quy 3 mức phạm vi · report theo từng testcase · export theo skill | 2 |
 | **P5** | Dọn phần rìa còn lại · đường "AI sinh Master Doc v1 từ BRD" khi có BRD đầu tiên | 1 |
 | **P6** | **Phân quyền** — xem Mục 9 | 1–2 |
 

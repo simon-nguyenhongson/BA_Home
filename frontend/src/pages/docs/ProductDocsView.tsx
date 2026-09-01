@@ -100,6 +100,8 @@ function MasterDocSection({ product }: { product: CatalogProduct }) {
   // Đường "AI sinh từ BRD dự án" chưa dùng được vì project_briefs hiện chưa có dữ liệu.
   const [initTitle, setInitTitle]     = useState('')
   const [initContent, setInitContent] = useState('')
+  // Ghi lại người dùng đã nạp từ file hay tự soạn — hai đường khác nhau trong hồ sơ kiểm toán
+  const [initMethod, setInitMethod]   = useState<'import' | 'manual'>('manual')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -128,6 +130,7 @@ function MasterDocSection({ product }: { product: CatalogProduct }) {
         product_id: product.id,
         title: initTitle.trim(),
         content: initContent,
+        init_method: initMethod,
       })
       addToast('Đã khởi tạo Master Doc v1.0', 'success')
       setInitOpen(false); setInitTitle(''); setInitContent('')
@@ -142,6 +145,7 @@ function MasterDocSection({ product }: { product: CatalogProduct }) {
   async function openFile(f: File) {
     const text = await f.text()
     setInitContent(text)
+    setInitMethod('import')
     if (!initTitle.trim()) setInitTitle(`Master Doc — ${product.product_name}`)
   }
 
@@ -170,9 +174,15 @@ function MasterDocSection({ product }: { product: CatalogProduct }) {
             <AppInput value={initTitle} onChange={e => setInitTitle(e.target.value)} />
           </Field>
           <Field label="Nội dung (Markdown)" required>
-            <AppTextarea rows={14} value={initContent} onChange={e => setInitContent(e.target.value)}
+            <AppTextarea rows={14} value={initContent}
+              onChange={e => { setInitContent(e.target.value); setInitMethod('manual') }}
               placeholder="Dán nội dung tài liệu đặc tả hiện có, hoặc soạn phần khung…" />
           </Field>
+          <div style={{ fontSize: 12, color: 'var(--app-neutral-500)', margin: '-6px 0 12px' }}>
+            Sẽ ghi vào lịch sử là{' '}
+            <b>{initMethod === 'import' ? 'import tài liệu sẵn có' : 'soạn trực tiếp trên giao diện'}</b>
+            {' '}— nguồn khởi tạo là phần bắt buộc của hồ sơ kiểm toán tài liệu.
+          </div>
           <label style={{
             display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13,
             marginBottom: 16, cursor: 'pointer', color: 'var(--app-primary)',

@@ -31,6 +31,23 @@ class MasterDocCreate(BaseModel):
     product_id: str
     title: str = Field(..., max_length=300)
     content: str = ""
+    # Ba đường khởi tạo Master Doc v1 theo QĐ-14. Phải ghi lại được đường nào, vì bất biến
+    # kiểm toán yêu cầu "mọi version truy được nguồn" — trước đây mọi bản v1 đều ghi
+    # source='initial' nên không phân biệt được import với soạn tay.
+    init_method: str = Field("manual", pattern="^(import|manual|ai)$")
+
+
+# QĐ-14 → giá trị cột master_doc_versions.source (CHECK nới ở V052)
+INIT_SOURCE = {
+    "ai": "init_ai",           # AI sinh từ BRD của dự án khai sinh
+    "import": "init_import",   # import tài liệu đặc tả sẵn có
+    "manual": "init_manual",   # soạn trực tiếp trên giao diện
+}
+INIT_SUMMARY = {
+    "ai": "Khởi tạo Master Doc — AI sinh từ BRD của dự án",
+    "import": "Khởi tạo Master Doc — import tài liệu sẵn có",
+    "manual": "Khởi tạo Master Doc — soạn trực tiếp trên giao diện",
+}
 
 
 class MasterDocUpdate(BaseModel):
@@ -195,7 +212,22 @@ async def create_master_doc(
     body: MasterDocCreate,
     db: asyncpg.Connection = Depends(get_db),
 ) -> dict:
+    """Khởi tạo Master Doc v1.0 — ghi lại ĐƯỜNG khởi tạo theo QĐ-14."""
+    product = await db.fetchval(
+        "SELECT product_name FROM catalog_products WHERE id = $1::uuid", body.product_id
+    )
+    if not product:
+        raise HTTPException(
+            404,
+            detail={
+                "code": "PRODUCT_NOT_FOUND",
+                "message": f"Sản phẩm '{body.product_id}' không tồn tại.",
+            },
+        )
+
     doc_id = str(uuid4())
+    source = INIT_SOURCE[body.init_method]
+    summary = INIT_SUMMARY[body.init_method]
     try:
         async with db.transaction():
             row = await db.fetchrow(
@@ -213,10 +245,9 @@ async def create_master_doc(
                 INSERT INTO master_doc_versions
                     (id, master_doc_id, version_no, version, content, change_summary,
                      source, status, approved_by, approved_at, created_by)
-                VALUES ($1, $2, 1, 'v1.0', $3, 'Khởi tạo Master Doc', 'initial',
-                        'approved', $4, NOW(), $4)
+                VALUES ($1, $2, 1, 'v1.0', $3, $4, $5, 'approved', $6, NOW(), $6)
                 """,
-                str(uuid4()), doc_id, body.content, user.sub,
+                str(uuid4()), doc_id, body.content, summary, source, user.sub,
             )
     except asyncpg.UniqueViolationError:
         raise HTTPException(
@@ -225,7 +256,9 @@ async def create_master_doc(
         )
     await log_audit(
         db=db, entity_type="master_documents", entity_id=doc_id, action="CREATE",
-        changed_by=user.sub, new_values={"product_id": body.product_id, "title": body.title},
+        changed_by=user.sub,
+        new_values={"product_id": body.product_id, "title": body.title, "source": source},
+        notes=summary,
     )
     return {"data": dict(row)}
 
@@ -321,6 +354,22 @@ async def update_master_doc_manual(
             """,
             version_id, doc_id, new_content, reason,
             doc["current_version_no"], cr_id, user.sub,
+        )
+
+        # 3. Ghi vào master_doc_version_crs như luồng merge BRS.
+        #    Bắt buộc: endpoint truy vết /change-requests/{id}/master-doc-impact CHỈ join bảng này,
+        #    nên nếu bỏ qua thì câu hỏi "CR nội bộ này sửa chỗ nào trong Master Doc" trả về RỖNG —
+        #    đúng câu hỏi mà bất biến kiểm toán phải trả lời được.
+        await db.execute(
+            """
+            INSERT INTO master_doc_version_crs
+                (id, version_id, master_doc_id, cr_id, cr_code, cr_title, cr_description,
+                 cr_change_type, cr_priority, cr_notes, merged_by)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, 'process', 'medium', $8, $9)
+            """,
+            str(uuid4()), version_id, doc_id, cr_id, cr_code,
+            f"Sửa tay Master Doc: {reason[:180]}", reason,
+            "CR nội bộ sinh tự động khi sửa tay Master Doc", user.sub,
         )
 
         # Tiêu đề không phải nội dung đặc tả → đổi được ngay, không cần duyệt

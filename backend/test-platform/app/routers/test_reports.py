@@ -12,6 +12,20 @@ import asyncpg, httpx
 from app.auth import CurrentUser
 from app.database import get_db, get_pool
 
+
+def _internal_headers() -> dict:
+    """Bí mật chia sẻ cho endpoint service-to-service của PPG (ppg/app/internal_auth.py)."""
+    import os
+    import logging
+    token = (os.getenv("INTERNAL_SYNC_TOKEN") or "").strip()
+    if not token:
+        logging.getLogger(__name__).error(
+            "INTERNAL_SYNC_TOKEN chưa được đặt ở Test Platform — PPG sẽ từ chối request sync."
+        )
+        return {}
+    return {"X-Internal-Token": token}
+
+
 PPG_URL = os.getenv("PPG_SERVICE_URL", "http://127.0.0.1:8001")
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/test-reports", tags=["test-reports"])
@@ -89,7 +103,10 @@ async def _push_to_ppg(report: dict) -> None:
                     "coverage": float(report["coverage"] or 0),
                     "executed_at": report["executed_at"].isoformat() if report.get("executed_at") else None
                 }
-                resp = await client.post(f"{PPG_URL}/sync-test", json=payload)
+                resp = await client.post(
+                    f"{PPG_URL}/sync-test", json=payload,
+                    headers=_internal_headers(),
+                )
                 await db.execute(
                     "UPDATE test_reports SET pushed_at=NOW() WHERE id=$1", str(report["id"])
                 )

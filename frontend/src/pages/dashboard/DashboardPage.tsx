@@ -256,7 +256,8 @@ function Sheet1({ data }: { data: DashboardSummary }) {
           icon={<FileText size={16} strokeWidth={1.5} />}
           color={docCoverage >= 80 ? '#039855' : docCoverage >= 40 ? '#DC6803' : '#D92D20'} />
         <KpiCard label="Yêu cầu thay đổi" value={kpi.total_crs}
-          sub={`Đang mở: ${kpi.open_crs}`}
+          sub={`Đang mở: ${kpi.open_crs}`
+            + (kpi.internal_crs ? ` · ${kpi.internal_crs} CR nội bộ` : '')}
           icon={<GitPullRequest size={16} strokeWidth={1.5} />} color="#0086C9" />
         <KpiCard label="Việc test đang mở" value={kpi.open_test_tasks}
           icon={<FlaskConical size={16} strokeWidth={1.5} />}

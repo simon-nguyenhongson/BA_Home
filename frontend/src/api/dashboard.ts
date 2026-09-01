@@ -18,6 +18,8 @@ export interface KpiData {
   products_with_master_doc: number
   total_crs: number
   open_crs: number
+  /** CR nội bộ (sửa tay Master Doc) — tách riêng, không nằm trong total_crs */
+  internal_crs: number
   open_test_tasks: number
 }
 

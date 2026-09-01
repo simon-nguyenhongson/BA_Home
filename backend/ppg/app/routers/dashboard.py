@@ -57,15 +57,28 @@ async def get_summary(
     )
 
     # ── CR theo trạng thái ───────────────────────────────────────
+    #
+    # Tách CR nội bộ (cr_kind='internal', sinh tự động khi sửa tay Master Doc) khỏi
+    # phân bố chính: đó là việc bảo trì tài liệu, không phải yêu cầu thay đổi hệ thống.
+    # Gộp vào sẽ làm phồng "CR đang mở" bằng những thứ không ai phải xử lý.
     cr_rows = await db.fetch(
         """
-        SELECT status, COUNT(*) AS cnt
+        SELECT status, cr_kind, COUNT(*) AS cnt
         FROM change_requests
-        GROUP BY status
-        ORDER BY cnt DESC
+        GROUP BY status, cr_kind
         """
     )
-    cr_dist = [{"status": r["status"], "count": r["cnt"]} for r in cr_rows]
+    dist_map: dict[str, int] = {}
+    internal_crs = 0
+    for r in cr_rows:
+        if r["cr_kind"] == "internal":
+            internal_crs += r["cnt"]
+            continue
+        dist_map[r["status"]] = dist_map.get(r["status"], 0) + r["cnt"]
+    cr_dist = sorted(
+        ({"status": k, "count": v} for k, v in dist_map.items()),
+        key=lambda x: -x["count"],
+    )
     total_crs = sum(r["count"] for r in cr_dist)
     open_crs = sum(
         r["count"] for r in cr_dist
@@ -106,6 +119,7 @@ async def get_summary(
             "products_with_master_doc": products_with_master_doc or 0,
             "total_crs":                total_crs,
             "open_crs":                 open_crs,
+            "internal_crs":             internal_crs,
             "open_test_tasks":          open_test_tasks,
         },
         "status_dist":  status_dist,

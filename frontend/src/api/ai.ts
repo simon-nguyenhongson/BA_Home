@@ -235,8 +235,13 @@ export const listBrs = (params?: { status?: string; project_id?: string; product
 export const getMasterDocs = (productId?: string) =>
   req<{ data: MasterDoc[] }>('GET', `/master-docs${productId ? `?product_id=${productId}` : ''}`)
 export const getMasterDoc = (id: string) => req<{ data: MasterDoc }>('GET', `/master-docs/${id}`)
-export const createMasterDoc = (body: { product_id: string; title: string; content: string }) =>
-  req<{ data: MasterDoc }>('POST', '/master-docs', body)
+/** init_method ghi lại ĐƯỜNG khởi tạo Master Doc v1 (QĐ-14) — vào hồ sơ kiểm toán */
+export const createMasterDoc = (body: {
+  product_id: string
+  title: string
+  content: string
+  init_method?: 'import' | 'manual' | 'ai'
+}) => req<{ data: MasterDoc }>('POST', '/master-docs', body)
 export const updateMasterDoc = (id: string, body: { title?: string; content?: string; change_summary?: string }) =>
   req<{ data: MasterDoc }>('PUT', `/master-docs/${id}`, body)
 export const getMasterDocVersions = (id: string) =>

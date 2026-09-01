@@ -58,6 +58,10 @@ class CRCreate(BaseModel):
 class CRPatch(BaseModel):
     title:         Optional[str]  = Field(None, min_length=1, max_length=255)
     product_id:    Optional[str]  = None
+    # Cho phép gắn/đổi dự án tài trợ sau khi tạo — CR sinh ngoài dự án rồi được quy kết về
+    # một dự án là chuyện bình thường. cr_kind KHÔNG cho sửa: đổi CR nghiệp vụ thành nội bộ
+    # sẽ làm mất bắt buộc BRS/test của một thay đổi đã ghi nhận.
+    project_id:    Optional[str]  = None
     description:   Optional[str]  = None
     change_type:   Optional[str]  = None
     priority:      Optional[str]  = None
@@ -417,6 +421,21 @@ async def update_project_change(
         raise HTTPException(404, "CR không tồn tại")
     old_status = current['status']
 
+    # Kiểm tra tham chiếu tồn tại TRƯỚC khi UPDATE. Không có bước này thì UUID sai sẽ
+    # vi phạm khóa ngoại và trả 500 thô, người dùng không hiểu vì sao.
+    if updates.get("product_id"):
+        ok = await db.fetchval(
+            "SELECT 1 FROM catalog_products WHERE id=$1::uuid", updates["product_id"]
+        )
+        if not ok:
+            raise HTTPException(404, f"Sản phẩm '{updates['product_id']}' không tồn tại")
+    if updates.get("project_id"):
+        ok = await db.fetchval(
+            "SELECT 1 FROM projects WHERE id=$1::uuid", updates["project_id"]
+        )
+        if not ok:
+            raise HTTPException(404, f"Dự án '{updates['project_id']}' không tồn tại")
+
     # Auto set approved_at
     if updates.get("status") == "approved" and "approved_by" not in updates:
         updates.setdefault("approved_by", user.sub)
@@ -429,7 +448,7 @@ async def update_project_change(
             val = date.fromisoformat(val)
         if key == "status" and val == "approved":
             sets.append(f"approved_at = NOW()")
-        cast = "::uuid" if key == "product_id" else ""
+        cast = "::uuid" if key in ("product_id", "project_id") else ""
         sets.append(f"{key} = ${i}{cast}"); params.append(val); i += 1
     sets.append("updated_at = NOW()")
 

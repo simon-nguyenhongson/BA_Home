@@ -39,6 +39,15 @@ OWNER_TABLES = {
     "brs": ("cr_brs_documents", "title"),
 }
 
+# V053: mỗi loại chủ sở hữu có một cột khóa ngoại thật. owner_type/owner_id vẫn là hợp đồng
+# API, nhưng nguồn sự thật trong DB là 3 cột dưới đây — nhờ đó xóa dự án / sản phẩm / BRS
+# sẽ dọn luôn sơ đồ, không để lại dòng mồ côi mà không màn nào hiển thị.
+OWNER_FK_COLUMN = {
+    "project": "project_id",
+    "product": "product_id",
+    "brs": "brs_id",
+}
+
 
 # ── Models ───────────────────────────────────────────────────────────────────
 class DiagramCreate(BaseModel):
@@ -88,7 +97,7 @@ class ImportRequest(BaseModel):
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 async def _assert_owner(db: asyncpg.Connection, owner_type: str, owner_id: str) -> str:
-    """Xác nhận chủ sở hữu tồn tại và trả về tên hiển thị (không có FK thật — xem V051)."""
+    """Xác nhận chủ sở hữu tồn tại và trả về tên hiển thị (dùng cho thông báo lỗi và tên gợi ý)."""
     if owner_type not in OWNER_TABLES:
         raise HTTPException(
             400,
@@ -379,14 +388,15 @@ async def create_diagram(
     if body.format == "html" and content.strip():
         content, _ = sanitize_diagram_html(content)
 
+    owner_col = OWNER_FK_COLUMN[body.owner_type]
     row = await db.fetchrow(
         """
         INSERT INTO diagrams
-            (owner_type, owner_id, diagram_type, name, description, format,
+            (owner_type, owner_id, {owner_col}, diagram_type, name, description, format,
              content, source, created_by, updated_by)
-        VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, 'manual', $8, $8)
+        VALUES ($1, $2::uuid, $2::uuid, $3, $4, $5, $6, $7, 'manual', $8, $8)
         RETURNING *
-        """,
+        """.format(owner_col=owner_col),
         body.owner_type, body.owner_id, body.diagram_type, body.name,
         body.description, body.format, content, user.sub,
     )
@@ -522,14 +532,15 @@ async def generate_diagram(
     )
     html, stripped = sanitize_diagram_html(html)
 
+    owner_col = OWNER_FK_COLUMN[body.owner_type]
     row = await db.fetchrow(
         """
         INSERT INTO diagrams
-            (owner_type, owner_id, diagram_type, name, description, format,
+            (owner_type, owner_id, {owner_col}, diagram_type, name, description, format,
              content, source, created_by, updated_by)
-        VALUES ($1, $2::uuid, $3, $4, $5, 'html', $6, 'ai', $7, $7)
+        VALUES ($1, $2::uuid, $2::uuid, $3, $4, $5, 'html', $6, 'ai', $7, $7)
         RETURNING *
-        """,
+        """.format(owner_col=owner_col),
         body.owner_type, body.owner_id, body.diagram_type, body.name,
         body.brief.strip()[:2000], html, user.sub,
     )
@@ -621,6 +632,8 @@ async def import_diagram(
             },
         )
 
+    owner_col = OWNER_FK_COLUMN[body.owner_type]
+
     if not body.redraw:
         if body.source_format != "mermaid":
             raise HTTPException(
@@ -634,11 +647,11 @@ async def import_diagram(
         row = await db.fetchrow(
             """
             INSERT INTO diagrams
-                (owner_type, owner_id, diagram_type, name, format, content,
+                (owner_type, owner_id, {owner_col}, diagram_type, name, format, content,
                  source, source_ref, source_format, created_by, updated_by)
-            VALUES ($1, $2::uuid, $3, $4, 'mermaid', $5, 'upload', $5, 'mermaid', $6, $6)
+            VALUES ($1, $2::uuid, $2::uuid, $3, $4, 'mermaid', $5, 'upload', $5, 'mermaid', $6, $6)
             RETURNING *
-            """,
+            """.format(owner_col=owner_col),
             body.owner_type, body.owner_id, body.diagram_type, body.name,
             body.source_text, user.sub,
         )
@@ -670,11 +683,11 @@ async def import_diagram(
     row = await db.fetchrow(
         """
         INSERT INTO diagrams
-            (owner_type, owner_id, diagram_type, name, format, content,
+            (owner_type, owner_id, {owner_col}, diagram_type, name, format, content,
              source, source_ref, source_format, created_by, updated_by)
-        VALUES ($1, $2::uuid, $3, $4, 'html', $5, 'ai_import', $6, $7, $8, $8)
+        VALUES ($1, $2::uuid, $2::uuid, $3, $4, 'html', $5, 'ai_import', $6, $7, $8, $8)
         RETURNING *
-        """,
+        """.format(owner_col=owner_col),
         body.owner_type, body.owner_id, body.diagram_type, body.name,
         html, body.source_text, body.source_format, user.sub,
     )
