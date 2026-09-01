@@ -27,7 +27,7 @@ from pydantic import BaseModel, Field
 
 from app.auth import CurrentUser
 from app.database import get_db
-from app.services.ai_agent import run_skill
+from app.services.ai_agent import assert_skill_for_step, run_skill
 from app.services.audit_service import log_audit
 
 router = APIRouter(prefix="/automation", tags=["automation"])
@@ -199,6 +199,7 @@ async def generate_cases(
     db: asyncpg.Connection = Depends(get_db),
 ) -> dict:
     """[Gen testcase] — AI sinh test case từ BRS đã duyệt của CR."""
+    assert_skill_for_step("gen_test_case", body.skill_code)
     task = await _get_task_or_404(db, task_id)
     if task["status"] == "closed":
         raise HTTPException(
@@ -240,6 +241,14 @@ async def generate_cases(
 
     created = 0
     async with db.transaction():
+        # Sinh lại sẽ THAY test case chưa map script. Đếm và báo lại số bị thay: nếu QA đã
+        # sửa tay nội dung một case chưa map thì bản sửa đó mất, phải cho họ biết.
+        replaced_row = await db.fetchval(
+            "SELECT COUNT(*) FROM automation_test_cases "
+            "WHERE task_id = $1 AND studio_tc_id IS NULL",
+            task_id,
+        )
+        replaced = replaced_row or 0
         await db.execute(
             "DELETE FROM automation_test_cases WHERE task_id = $1 AND studio_tc_id IS NULL",
             task_id,
@@ -274,12 +283,24 @@ async def generate_cases(
 
     await log_audit(
         db=db, entity_type="automation_test_tasks", entity_id=task_id, action="CREATE",
-        changed_by=user.sub, new_values={"generated_cases": created, "kept_mapped": len(kept_codes)},
+        changed_by=user.sub, new_values={"generated_cases": created, "kept_mapped": len(kept_codes),
+                    "replaced_unmapped": replaced},
     )
     cases = await db.fetch(
         "SELECT * FROM automation_test_cases WHERE task_id = $1 ORDER BY sort_order, code", task_id
     )
-    return {"data": [dict(c) for c in cases], "meta": {"created": created, "kept": len(kept_codes)}}
+    return {
+        "data": [dict(c) for c in cases],
+        "meta": {
+            "created": created,
+            "kept": len(kept_codes),
+            "replaced": replaced,
+            "message": (
+                f"Đã thay {replaced} test case chưa map script"
+                if replaced else "Không có test case nào bị thay"
+            ) + (f", giữ {len(kept_codes)} case đã map." if kept_codes else "."),
+        },
+    }
 
 
 # ── Test case CRUD ───────────────────────────────────────────────────────────
@@ -414,21 +435,56 @@ async def generate_report(
     db: asyncpg.Connection = Depends(get_db),
 ) -> dict:
     """[Gen report] — AI tổng hợp báo cáo kết quả từ một lượt chạy."""
+    assert_skill_for_step("gen_test_report", body.skill_code)
     run = await db.fetchrow("SELECT * FROM automation_test_runs WHERE id = $1", run_id)
     if not run:
         raise HTTPException(404, detail={"code": "NOT_FOUND", "message": "Lượt chạy không tồn tại"})
     task = await _get_task_or_404(db, str(run["task_id"]))
     cases = await db.fetch(
-        "SELECT code, title, priority, status, expected FROM automation_test_cases "
+        "SELECT code, title, priority, status, expected, studio_tc_id FROM automation_test_cases "
         "WHERE task_id = $1 ORDER BY sort_order, code",
         run["task_id"],
     )
 
     summary = run["summary"] if isinstance(run["summary"], dict) else json.loads(run["summary"] or "{}")
-    case_lines = "\n".join(
-        f"- {c['code']} | {c['title']} | ưu tiên {c['priority']} | kết quả: {c['status']}"
-        for c in cases
-    )
+
+    # Kết quả PHẢI lấy từ chính lượt chạy này, không lấy cột status của test case.
+    #
+    # automation_test_cases.status là kết quả của LƯỢT CHẠY GẦN NHẤT. Nếu chạy lại rồi mới
+    # sinh báo cáo cho lượt cũ, báo cáo sẽ mang số liệu của lượt mới — sai lệch mà không có
+    # dấu hiệu nào. Ngoài ra skill yêu cầu nêu "Ghi nhận" của case fail, dữ liệu đó chỉ có
+    # trong summary do Capture Studio đẩy sang; không truyền vào thì AI buộc phải bịa.
+    run_results: dict[str, dict] = {}
+    for item in (summary.get("cases") or []):
+        key = str(item.get("studio_tc_id") or item.get("testcaseId") or item.get("id") or "")
+        if key:
+            run_results[key] = item
+
+    case_lines_parts: list[str] = []
+    missing_in_run = 0
+    for c in cases:
+        res = run_results.get(str(c["studio_tc_id"] or ""))
+        if res:
+            outcome = str(res.get("status") or "không rõ")
+            note = (res.get("error") or res.get("message") or res.get("note") or "").strip()
+            duration = res.get("duration_ms")
+        else:
+            missing_in_run += 1
+            outcome = "KHÔNG CÓ TRONG LƯỢT CHẠY NÀY"
+            note = ""
+            duration = None
+        line = f"- {c['code']} | {c['title']} | ưu tiên {c['priority']} | kết quả: {outcome}"
+        if duration:
+            line += f" | {duration} ms"
+        line += f" | ghi nhận: {note if note else 'không có ghi nhận lỗi từ công cụ chạy'}"
+        case_lines_parts.append(line)
+    case_lines = "\n".join(case_lines_parts)
+    if missing_in_run:
+        case_lines += (
+            f"\n\nLƯU Ý: {missing_in_run} test case không có kết quả trong lượt chạy này "
+            "(chưa map script hoặc chưa được chọn để chạy). Phải nêu rõ trong báo cáo là "
+            "CHƯA CHẠY, tuyệt đối không suy ra là đạt."
+        )
     prompt = (
         f"=== CHANGE REQUEST ===\n{task['request_code']} — {task['cr_title']}\n"
         f"Dự án: {task['project_code'] or ''} {task['project_name'] or ''}\n"

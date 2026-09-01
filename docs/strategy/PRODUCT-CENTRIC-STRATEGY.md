@@ -1,12 +1,16 @@
 # Chiến lược tái cấu trúc BA_Home theo hướng Product-Centric
 
-- **Mã:** STRATEGY-001 · **Phiên bản:** 5.1 · **Ngày:** 2026-09-01
+- **Mã:** STRATEGY-001 · **Phiên bản:** 5.2 · **Ngày:** 2026-09-01
 - **Trạng thái:** đã chốt toàn bộ câu hỏi kiến trúc · **đang triển khai** — P1 và P2 xong
 - **Thay thế:** v4.0 (v1–v4 xem Git history)
 - **Mới ở v5:** PO trả lời 3 câu chặn + 10 quyết định giao diện; **đảo hướng hạng mục
   Capture Studio** (không viết lại `store.js`); ghi lại phần đã code và kiểm chứng thật.
 - **Mới ở v5.1:** rà soát đối chiếu mã nguồn với chiến lược — tìm **8 điểm lệch**, trong đó
   3 phá đúng bất biến kiểm toán và 1 là lỗ hổng bảo mật. Tất cả đã sửa — xem **Mục 7.7**.
+- **Mới ở v5.2:** rà soát riêng **AI Agent và skill của từng bước** trong luồng BA — tìm 7 lỗi,
+  nặng nhất là phản hồi AI bị cắt vẫn được lưu như tài liệu hoàn chỉnh. Đồng thời chuyển 5 skill
+  của luồng BA sang **dạng thư mục chuẩn Claude skill** (SKILL.md + templates/ + references/)
+  theo yêu cầu PO — xem **Mục 7.8** và **Mục 7.9**.
 
 ---
 
@@ -464,6 +468,104 @@ frontend **21 → 0 fail** (113/113 pass; sửa bộ test `DocsPage` đã lạc 
 sai về DOM) · Playwright chạy 9 trang + luồng sản phẩm: **0 lỗi console**.
 
 ---
+
+### 7.8 Rà soát AI Agent và skill từng bước của luồng BA
+
+Soi 8 điểm gọi AI (sinh BRS · chỉnh BRS · merge Master Doc · sinh test case · sinh báo cáo ·
+vẽ diagram ×3) cùng nội dung 5 skill. Tìm **7 lỗi**, đã sửa hết.
+
+**A-1 — Phản hồi AI bị cắt vẫn được lưu như tài liệu hoàn chỉnh.** ⛔ *nghiêm trọng nhất*
+`run_skill` kiểm `stop_reason == "refusal"` và kiểm text rỗng, nhưng **không kiểm
+`max_tokens`**. Mọi skill của luồng đều yêu cầu trả về *toàn bộ* tài liệu — BRS 12 mục,
+Master Doc đầy đủ, mảng JSON test case. Một phản hồi bị cắt giữa vẫn là văn bản hợp lệ về cú
+pháp, nên nó được lưu như tài liệu hoàn chỉnh: **BRS thiếu mục 8–12 vẫn duyệt được rồi merge
+vào Master Doc**; Master Doc mất phần cuối mà không ai biết. Sửa: trả `AI_TRUNCATED` kèm số
+token đã sinh và chỉ dẫn tăng giới hạn hoặc chia nhỏ; **không lưu gì**.
+
+*Ghi chú:* riêng bước merge Master Doc có một chốt tình cờ — parser đòi thẻ đóng
+`</MASTER_DOC>` nên phản hồi cắt giữa sẽ trượt ở đó. Bốn bước còn lại thì không có gì chặn.
+
+**A-2 — Bước "AI chỉnh sửa BRS" dùng skill SINH MỚI.** ⛔
+`BrsReviseRequest.skill_code` mặc định là `gen_brs`. Nội dung skill đó là *"Nhiệm vụ: viết tài
+liệu BRS"* kèm cấu trúc 12 mục bắt buộc. Dùng nó để sửa thì mô hình nhận hai chỉ dẫn xung đột —
+skill bảo "viết theo cấu trúc này", prompt bảo "giữ nguyên phần không liên quan" — và thường
+nghiêng về viết lại, **xoá mất phần BA đã sửa tay**. Sửa: thêm skill `revise_brs` chuyên dụng
+với reference `edit-discipline.md` nêu rõ chỗ nào được đụng, chỗ nào không (đổi mã `FR-xx` sẽ
+làm đứt tham chiếu từ test case đã sinh).
+
+**A-3 — `skill_code` là chuỗi tự do, chạy được skill của bước khác.** ⛔
+Client gọi bước sinh BRS với `skill_code=gen_test_report` thì hệ thống ghi **một bản báo cáo
+test vào đúng cột nội dung BRS**, và bản đó đi tiếp qua duyệt → golive → merge Master Doc.
+Không có tầng nào bên dưới chặn được. Sửa: `assert_skill_for_step()` — mỗi bước chỉ nhận skill
+của nó, vẫn cho PO dùng skill tùy biến nếu mã bắt đầu bằng mã chuẩn của bước (`gen_brs_v2`).
+
+**A-4 — Skill báo cáo test yêu cầu dữ liệu mà prompt không cung cấp.** ⛔
+Skill vừa nói *"Chỉ dùng số liệu được cung cấp, KHÔNG suy diễn"*, vừa đòi bảng *"Chi tiết test
+case không đạt | Ghi nhận | Ảnh hưởng"*. Hệ thống chỉ truyền **trạng thái mới nhất** của test
+case, không truyền ghi nhận lỗi → mô hình **buộc phải bịa** phần ghi nhận và ảnh hưởng. Trong
+báo cáo kiểm thử của ngân hàng, một nguyên nhân lỗi bịa ra là lỗi nghề nghiệp.
+Thêm một lỗi thứ hai cùng chỗ: `automation_test_cases.status` là kết quả của **lượt chạy gần
+nhất**, nên sinh báo cáo cho lượt cũ sau khi đã chạy lại sẽ ra số liệu của lượt mới.
+Sửa: lấy kết quả từ `summary.cases` của **chính lượt chạy đó** kèm ghi nhận lỗi; case không có
+trong lượt chạy được đánh dấu **"KHÔNG CÓ TRONG LƯỢT CHẠY NÀY"** và skill được viết lại để đếm
+riêng nhóm chưa chạy, không tính vào tỉ lệ đạt, không kết luận đủ điều kiện đóng khi còn case
+chưa chạy.
+
+**A-5 — Chỉnh BRS khi đang review không đưa về nháp.** Nội dung đổi mà trạng thái vẫn
+`in_review` thì người duyệt có thể bấm Duyệt trên một nội dung **khác hẳn cái họ đã đọc** —
+maker-checker chỉ còn hình thức. Sửa: đưa về `draft`, ghi vào lịch sử CR, và báo trên giao diện.
+
+**A-6 — Sinh lại test case xoá im lặng bản QA đã sửa tay.** Sinh lại xoá mọi case chưa map
+script rồi chèn bộ mới. Case đã map thì được giữ, nhưng case chưa map mà QA đã sửa nội dung thì
+mất không dấu vết. Sửa: đếm và báo số case bị thay ngay trên giao diện.
+
+**A-7 — Để trống nội dung skill hệ thống làm đứng cả bước.** Không có đường hoàn tác trên UI.
+Sửa: chặn lưu nội dung rỗng kèm chỉ dẫn cách ngừng dùng đúng cách.
+
+### 7.9 Skill chuyển sang dạng thư mục chuẩn Claude skill
+
+**Câu hỏi của PO:** *"tại sao skill lại chỉ có dạng MD, nó phải có dạng chuẩn của claude chứ
+dạng folder cơ mà, có ref, có template đồ này nọ chứ"* — đúng. Một khối văn bản trong
+`ai_skills.content` thiếu ba thứ mà dạng thư mục cho:
+
+| | Vì sao cần |
+|---|---|
+| `references/` nạp theo nhu cầu | Bộ mẫu test case hay bỏ sót của nghiệp vụ ngân hàng, bộ tự kiểm BRS là tài liệu dài. Nhồi hết vào một prompt thì mỗi lần gọi đều tốn; bỏ ra thì mất chất lượng |
+| `templates/` tách khỏi hướng dẫn | Cấu trúc 12 mục BRS, lược đồ JSON test case, hai khối thẻ Master Doc là **hợp đồng đầu ra mà mã nguồn parse theo**. Để lẫn trong văn bản hướng dẫn thì sửa hướng dẫn dễ vô tình làm hỏng hợp đồng |
+| Phiên bản theo Git | Skill quyết định nội dung tài liệu đặc tả của ngân hàng. Trong Git thì biết ai đổi, đổi gì, review được. Trong DB thì mỗi môi trường một bản khác nhau mà không ai biết |
+
+**Mô hình lai — mỗi thứ đặt đúng chỗ:**
+
+| Thành phần | Ở đâu | Ai sửa |
+|---|---|---|
+| `SKILL.md` + `references/` + `templates/` | Đĩa, theo Git | Dev/BA qua pull request |
+| Bổ sung riêng của đơn vị (`ai_skills.content`) | DB | PO sửa trực tiếp trên UI |
+
+Nội dung DB **không thay** phần trên đĩa mà **nối thêm** vào cuối, dưới tiêu đề "Bổ sung của
+đơn vị". PO tinh chỉnh được ngay (*"mọi BRS phải nêu số hiệu Thông tư liên quan"*) mà không sửa
+được sai hợp đồng đầu ra. Ba khối được tách riêng cho prompt caching: hướng dẫn+template · các
+reference · bổ sung của đơn vị — sửa phần PO hay đổi nhất không làm mất hiệu lực cache hai phần
+kia.
+
+**Bộ skill sau khi chuyển** (`backend/ppg/app/skills/`):
+
+```
+gen-brs/            SKILL.md · templates/brs-structure.md
+                    references/quality-checklist.md · references/banking-domain.md
+revise-brs/         SKILL.md · references/edit-discipline.md
+update-master-doc/  SKILL.md · templates/output-format.md
+gen-test-case/      SKILL.md · templates/case-schema.md
+                    references/banking-test-patterns.md
+gen-test-report/    SKILL.md · templates/report-structure.md
+diagram-design/     nhúng từ repo MIT — 57 reference, nạp theo TỪNG loại diagram
+```
+
+`diagram-design` được loại khỏi loader chung (`LOADED_ELSEWHERE`) vì nó nạp reference theo loại
+diagram; nếu để loader chung nạp thì `SKILL.md` 39 KB bị gửi hai lần mỗi lần gọi.
+
+Trên giao diện Cài đặt → Skill: mỗi skill hiện thư mục, phiên bản, số template/reference; bấm
+tên file để **xem chỉ-đọc** (đường dẫn được kiểm sau khi resolve nên không đọc ra ngoài thư mục
+skill được); ô sửa được đổi nhãn thành "Bổ sung của đơn vị".
 
 ## 8. Lộ trình còn lại
 

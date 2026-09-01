@@ -61,12 +61,12 @@ const SEV_BG:     Record<string, string> = { critical: '#FEE4E2', high: '#FEF3F2
 // ── Tab definitions ───────────────────────────────────────────────────────────
 type TabId = 'strategy' | 'execution' | 'control' | 'documents'
 const TAB_GROUPS: { label: string; color: string; tabs: { id: TabId; icon: LucideIcon; label: string }[] }[] = [
-  { label: 'Dashboard', color: '#6941C6', tabs: [
+  { label: 'Dashboard', color: C.primary, tabs: [
     { id: 'strategy',  icon: Map,               label: 'Strategy'  },
     { id: 'execution', icon: Play,              label: 'Execution' },
     { id: 'control',   icon: SlidersHorizontal, label: 'Control'   },
   ]},
-  { label: 'Tài liệu', color: '#6941C6', tabs: [
+  { label: 'Tài liệu', color: C.primary, tabs: [
     { id: 'documents', icon: FileText, label: 'Tài liệu Test' },
   ]},
 ]

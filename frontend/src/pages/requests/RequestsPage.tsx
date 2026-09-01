@@ -528,7 +528,7 @@ function CRTab() {
       <div style={{ flex: 2, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
         {/* Status tabs */}
         <div style={{
-          display: 'flex', gap: 0, overflowX: 'auto',
+          display: 'flex', gap: 0, overflowX: 'auto', overflowY: 'hidden',
           borderBottom: '2px solid var(--app-neutral-200)',
           marginBottom: 10, flexShrink: 0,
         }}>
@@ -1158,7 +1158,7 @@ function SRTab() {
       <div style={{ flex: 2, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
         {/* Status tabs */}
         <div style={{
-          display: 'flex', gap: 0, overflowX: 'auto',
+          display: 'flex', gap: 0, overflowX: 'auto', overflowY: 'hidden',
           borderBottom: '2px solid var(--app-neutral-200)',
           marginBottom: 10, flexShrink: 0,
         }}>

@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 from app.auth import CurrentUser
 from app.database import get_db
 from app.services.ai_agent import DEFAULT_MODEL, is_oauth_token, mask_key, verify_api_key
+from app.services import skill_loader
 from app.services.audit_service import log_audit
 
 router = APIRouter(tags=["ai-admin"])
@@ -144,7 +145,34 @@ async def list_skills(
         FROM ai_skills ORDER BY is_system DESC, code
         """
     )
-    return {"data": [dict(r) for r in rows]}
+    # Kèm thông tin thư mục trên đĩa: skill hệ thống là dạng thư mục chuẩn Claude skill
+    # (SKILL.md + references/ + templates/), phần trong DB chỉ là bổ sung của đơn vị.
+    out = []
+    for r in rows:
+        item = dict(r)
+        item["bundle"] = skill_loader.describe(r["code"])
+        out.append(item)
+    return {"data": out}
+
+
+@router.get("/ai-skills/bundle-check")
+async def bundle_check(user: CurrentUser) -> dict:
+    """Chẩn đoán bộ skill trên đĩa — dùng sau khi deploy hoặc cập nhật."""
+    return skill_loader.check_all()
+
+
+@router.get("/ai-skills/{skill_id}/files")
+async def get_skill_file(
+    user: CurrentUser,
+    skill_id: str,
+    path: str,
+    db: asyncpg.Connection = Depends(get_db),
+) -> dict:
+    """Xem nội dung một file trong thư mục skill (chỉ đọc — file thuộc Git, sửa qua PR)."""
+    row = await db.fetchrow("SELECT code FROM ai_skills WHERE id = $1", skill_id)
+    if not row:
+        raise HTTPException(404, detail={"code": "NOT_FOUND", "message": "Skill không tồn tại"})
+    return {"data": {"path": path, "content": skill_loader.read_file(row["code"], path)}}
 
 
 @router.get("/ai-skills/{skill_id}")
@@ -156,7 +184,9 @@ async def get_skill(
     row = await db.fetchrow("SELECT * FROM ai_skills WHERE id = $1", skill_id)
     if not row:
         raise HTTPException(404, detail={"code": "NOT_FOUND", "message": "Skill không tồn tại"})
-    return {"data": dict(row)}
+    data = dict(row)
+    data["bundle"] = skill_loader.describe(row["code"])
+    return {"data": data}
 
 
 @router.post("/ai-skills", status_code=201)
@@ -201,6 +231,18 @@ async def update_skill(
     if not updates:
         raise HTTPException(
             400, detail={"code": "VALIDATION_ERROR", "message": "Không có thay đổi nào"}
+        )
+    # Để trống nội dung skill hệ thống sẽ làm đứng cả bước tương ứng của luồng
+    # (load_skill_blocks trả SKILL_EMPTY) mà không có đường hoàn tác.
+    if "content" in updates and not updates["content"].strip():
+        raise HTTPException(
+            400,
+            detail={
+                "code": "SKILL_CONTENT_EMPTY",
+                "message": f"Nội dung skill '{existing['code']}' không được để trống — "
+                           "bước dùng skill này sẽ dừng hoạt động. Muốn ngừng dùng thì "
+                           "tạo skill khác và đổi lựa chọn ở bước tương ứng.",
+            },
         )
     set_parts = [f"{k} = ${i + 3}" for i, k in enumerate(updates.keys())]
     row = await db.fetchrow(

@@ -4,7 +4,7 @@
 
 ## Quyết định áp dụng cho BA_Home (policy)
 - Interactive/primary: Blue 600 `#155EEF` (var --ds-brand / --app-primary mới). Hover đậm `#0040C1`.
-- Tab active (underline): violet #6941C6 TRUNG THÀNH THEO NGUỒN (spec ghi rõ không "sửa" thành blue). Badge variant `primary` giữ violet #7F56D9. Mọi thứ interactive còn lại: Blue 600.
+- Tab active (underline): Blue 600 `#155EEF` — PO chốt 2026-09-01 ĐỒNG BỘ BLUE, bỏ xung đột violet #6941C6 của DS nguồn (mọi tab trong app phải cùng một màu active). Badge variant `primary` vẫn giữ violet #7F56D9 (hiện không được dùng ở đâu). Mọi thứ interactive còn lại: Blue 600.
 - Toast: nguồn DS không có Toast nhưng BA_Home đã dùng khắp nơi — GIỮ hành vi, style lại theo bề mặt inverse (#101828, radius 8, chữ 14/20) như tooltip của DS.
 - Icon: GIỮ lucide-react, size 16, strokeWidth 1.5, currentColor (không migrate sang bộ 233 glyph của DS).
 - Font: Inter 400/500/600/700 qua Google Fonts (đã có sẵn trong dự án); khuyến nghị self-host khi lên intranet.
@@ -193,8 +193,8 @@ LƯU Ý: BA_Home hiện dùng sidebar là chính — có thể chỉ cần topba
 Nguồn: Navigation.dc.html + navigation/_impl/p2.js (TabButtonBase 63:21372, 240 variants). 2 kiểu:
 
 1. UNDERLINE (chuyển section trong trang): font 14/20 Semibold, padding 1px 4px 11px 4px (có badge: 0 4px 10px), items gap 4px, cả hàng có border-bottom 1px #EAECF0.
-- inactive: text #667085, không gạch → hover: text #6941C6 + border-bottom 2px #6941C6 → focus: như default (thêm halo nếu cần a11y)
-- active (current): text #6941C6 + border-bottom 2px #6941C6 (VIOLET 700 — xung đột nguồn được bảo tồn, KHÔNG 'sửa' thành blue)
+- inactive: text #667085, không gạch → hover: text #155EEF + border-bottom 2px #155EEF → focus: như default (thêm halo nếu cần a11y)
+- active (current): text #155EEF + border-bottom 2px #155EEF (Blue 600 = --app-primary. Nguồn DS dùng violet 700 #6941C6, nhưng PO chốt 2026-09-01: tab trong BA_Home phải xanh cho đồng nhất — KHÔNG đổi lại tím)
 - badge đếm (vd 'Chờ duyệt · 5'): Badge pill 12/18 cạnh label.
 
 2. BUTTON WHITE (segmented, chuyển khoảng dữ liệu Ngày/Tuần/Tháng/Năm): khay ngoài bg #F9FAFB radius 8 padding 4px gap 4px; mỗi tab height 30px (đủ 32 với khay), radius 6px, padding 0 12px, font 14/20 Medium.
@@ -233,7 +233,7 @@ Nguồn: components/icons/Icon.jsx + icon-data.js (233 glyph, RUNNABLE — copy 
 
 - Component .jsx CÓ impl thật (không phải wrapper rỗng): mỗi nhóm có _impl/p1..pN.js (400KB/file) là code React materialize từ Figma, các trang .dc.html render được thật. NHƯNG không nên import vào production BA_Home: render bằng <div> thay vì <button>/<input> thật (không a11y, không onClick/onChange), nhiều width cứng (Button width fit-content nhưng Callout width:400, Input width:138, Modal width:1440 khung scrim), state là PROP tĩnh (hover/focused truyền tay, không phải :hover CSS), style inline toàn bộ. → Dùng chúng làm REFERENCE RENDER + nguồn số đo; viết lại component React/Tailwind thật theo componentSpecs.
 - Chỉ 62/296 family được extract. CHƯA CÓ: Toast/notification, Select multiple, Accordion, Card primitive, Comment-chat, Transfer, Timeline, Import/Export, Video player, bộ cell Handsontable, panel trong của Color picker — README cấm 'thêm theo suy diễn'; với BA_Home: multi-select và toast phải TỰ THIẾT KẾ theo token hệ (khuyến nghị: multi-select = khung Combobox + Badge 'x close' làm tag; thông báo = Callout, tránh toast bay).
-- Xung đột violet được bảo tồn: Badge primary (#7F56D9) và Tab underline active (#6941C6) không khớp Blue 600 #155EEF; Checkbox bản 20px md cũng theo violet trong khi CheckboxIcon 16px theo blue. Phải quyết định policy cho BA_Home: trung thành với nguồn (giữ violet cho tab/badge-primary) hay đồng bộ blue — không được trộn lẫn tuỳ tiện.
+- Xung đột violet được bảo tồn: Badge primary (#7F56D9) và Tab underline active (#6941C6) không khớp Blue 600 #155EEF; Checkbox bản 20px md cũng theo violet trong khi CheckboxIcon 16px theo blue. ĐÃ QUYẾT (PO 2026-09-01): Tab active đồng bộ Blue 600; violet chỉ còn ở Badge primary (không dùng) — không trộn lẫn tuỳ tiện.
 - Di sản Ant Design còn sót trong impl: BadgeStatus dùng Roboto 14/22 rgba(0,0,0,.85), Input 3413:5203 là cell-editor 24px radius 3 (KHÔNG phải form input), BadgeDot dùng bảng màu Ant — khi viết lại, chuẩn hoá typography về Inter nhưng giữ màu dot.
 - 'Alert' trong navigation/ chỉ là icon tam giác cảnh báo 16px, không phải message strip như prompt mô tả — dùng Callout cho mọi notice.
 - CellTitle render chữ 'Title' cố định (built vậy trong Figma, không có prop đổi tên cột) — bảng BA_Home phải tự viết header cell nhận label.

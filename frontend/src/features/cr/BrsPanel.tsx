@@ -92,6 +92,9 @@ export function BrsPanel({ crId, crStatus, crCode }: { crId: string; crStatus: s
     setReviseOpen(false)
     setInstruction('')
     addToast(`AI đã cập nhật BRS — v${res.data.version}`, 'success')
+    // Nội dung đổi khi đang review thì BRS bị trả về nháp — phải nói rõ, nếu không
+    // BA tưởng vẫn đang chờ duyệt và không bấm gửi duyệt lại.
+    if (res.meta?.review_reset) addToast(res.meta.message, 'warn')
   })
 
   const doSaveEdit = () => run('save', async () => {

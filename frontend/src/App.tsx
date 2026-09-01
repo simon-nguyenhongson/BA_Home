@@ -27,7 +27,7 @@ const APPS = [
   { key: 'docs'          as const, icon: BookOpen,          label: 'Tài liệu',   sub: 'Dự án · Sản phẩm',              path: '/docs' },
   { key: 'requests'      as const, icon: Ticket,            label: 'Requests',   sub: 'Change Request · Service Request', path: '/requests' },
   { key: 'todos'         as const, icon: CheckSquare,       label: 'To-do',      sub: 'Công việc · Kanban',            path: '/todos' },
-  { key: 'settings'      as const, icon: SlidersHorizontal, label: 'Cài đặt',    sub: 'AI · Kho skill · Danh mục',     path: '/settings' },
+  { key: 'settings'      as const, icon: SlidersHorizontal, label: 'Cài đặt',    sub: 'AI · Skill · Danh mục',     path: '/settings' },
 ]
 
 function Shell() {

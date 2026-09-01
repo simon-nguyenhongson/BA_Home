@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field
 
 from app.auth import CurrentUser
 from app.database import get_db
-from app.services.ai_agent import run_skill
+from app.services.ai_agent import assert_skill_for_step, run_skill
 from app.services.audit_service import log_audit
 
 router = APIRouter(tags=["master-docs"])
@@ -473,6 +473,7 @@ async def merge_brs_into_master_doc(
     db: asyncpg.Connection = Depends(get_db),
 ) -> dict:
     """[Merge Master Doc] — AI sinh bản ĐỀ XUẤT cập nhật Master Doc từ BRS đã golive."""
+    assert_skill_for_step("update_master_doc", body.skill_code)
     brs = await db.fetchrow("SELECT * FROM cr_brs_documents WHERE id = $1", brs_id)
     if not brs:
         raise HTTPException(404, detail={"code": "NOT_FOUND", "message": "BRS không tồn tại"})

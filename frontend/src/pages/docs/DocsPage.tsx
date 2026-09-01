@@ -515,8 +515,8 @@ function ProjectFolderView({ project }: { project: Project }) {
           return (
             <button key={t.track} onClick={() => setActiveTrack(t.track)} style={{
               padding: '6px 14px', border: 'none', background: 'transparent', cursor: 'pointer',
-              borderBottom: active ? `2px solid ${TRACK_COLOR[t.track]}` : '2px solid transparent',
-              color: active ? TRACK_COLOR[t.track] : 'var(--app-neutral-500)',
+              borderBottom: active ? '2px solid var(--app-primary)' : '2px solid transparent',
+              color: active ? 'var(--app-primary)' : 'var(--app-neutral-500)',
               fontWeight: active ? 700 : 400, fontSize: 12, fontFamily: 'var(--font)',
               marginBottom: -2, transition: 'all 0.15s', whiteSpace: 'nowrap',
             }}>

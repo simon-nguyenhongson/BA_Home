@@ -177,6 +177,8 @@ function TaskDetail({ taskId, onBack }: { taskId: string; onBack: () => void }) 
   const doGenerate = () => run('gen', async () => {
     const res = await generateTestCases(taskId)
     addToast(`AI đã sinh ${res.meta.created} test case`, 'success')
+    // Sinh lại sẽ THAY các case chưa map script — nếu QA đã sửa tay thì bản sửa đó mất
+    if (res.meta.replaced > 0) addToast(res.meta.message, 'warn')
     await load()
   })
 

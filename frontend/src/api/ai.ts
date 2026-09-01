@@ -19,11 +19,26 @@ export interface AiSettings {
   updated_at: string | null
 }
 
+/** Thông tin thư mục skill trên đĩa (chuẩn Claude skill: SKILL.md + references/ + templates/) */
+export interface SkillBundleInfo {
+  folder:            string | null
+  name?:             string
+  description?:      string
+  version?:          string
+  templates?:        string[]
+  references?:       string[]
+  missing?:          string[]
+  loaded_elsewhere?: boolean
+  sizes?:            { skill_md: number; templates: number; references: number }
+}
+
 export interface AiSkill {
   id: string
   code: string
   name: string
   description: string
+  /** null = skill do người dùng tự tạo, hướng dẫn nằm hoàn toàn trong DB */
+  bundle?: SkillBundleInfo
   content?: string
   is_system: boolean
   updated_by: string | null
@@ -196,6 +211,15 @@ export const updateAiSettings = (body: {
 export const testAiKey = () => req<{ data: { ok: boolean; model: string } }>('POST', '/settings/ai/test')
 
 export const getAiSkills = () => req<{ data: AiSkill[] }>('GET', '/ai-skills')
+export const checkSkillBundles = () =>
+  req<{ ok: boolean; skills_root: string; skills: Record<string, SkillBundleInfo> }>(
+    'GET', '/ai-skills/bundle-check',
+  )
+/** Xem nội dung một file trong thư mục skill — chỉ đọc, file thuộc Git nên sửa qua PR */
+export const getSkillFile = (skillId: string, path: string) =>
+  req<{ data: { path: string; content: string } }>(
+    'GET', `/ai-skills/${skillId}/files?path=${encodeURIComponent(path)}`,
+  )
 export const getAiSkill = (id: string) => req<{ data: AiSkill }>('GET', `/ai-skills/${id}`)
 export const createAiSkill = (body: { code: string; name: string; description: string; content: string }) =>
   req<{ data: AiSkill }>('POST', '/ai-skills', body)
@@ -208,8 +232,11 @@ export const getBrsOfCr = (crId: string) =>
   req<{ data: BrsDocument | null }>('GET', `/requests/change-requests/${crId}/brs`)
 export const generateBrs = (crId: string, body: { skill_code?: string; note?: string } = {}) =>
   req<{ data: BrsDocument }>('POST', `/requests/change-requests/${crId}/brs/generate`, body)
+/** Sửa BRS bằng AI. Nếu BRS đang review, nội dung đổi sẽ đưa về nháp (meta.review_reset). */
 export const reviseBrs = (brsId: string, instruction: string) =>
-  req<{ data: BrsDocument }>('POST', `/brs/${brsId}/revise`, { instruction })
+  req<{ data: BrsDocument; meta: { review_reset: boolean; message: string } }>(
+    'POST', `/brs/${brsId}/revise`, { instruction },
+  )
 export const updateBrs = (brsId: string, body: { title?: string; content?: string }) =>
   req<{ data: BrsDocument }>('PUT', `/brs/${brsId}`, body)
 export const changeBrsStatus = (brsId: string, action: string, note = '') =>
@@ -283,9 +310,10 @@ export const getAutomationTask = (id: string) =>
     'GET', `/automation/tasks/${id}`,
   )
 export const generateTestCases = (taskId: string, note = '') =>
-  req<{ data: AutomationCase[]; meta: { created: number; kept: number } }>(
-    'POST', `/automation/tasks/${taskId}/generate-cases`, { note },
-  )
+  req<{
+    data: AutomationCase[]
+    meta: { created: number; kept: number; replaced: number; message: string }
+  }>('POST', `/automation/tasks/${taskId}/generate-cases`, { note })
 export const createTestCase = (taskId: string, body: Partial<AutomationCase> & { code: string; title: string }) =>
   req<{ data: AutomationCase }>('POST', `/automation/tasks/${taskId}/cases`, body)
 export const updateTestCase = (caseId: string, body: Partial<AutomationCase>) =>

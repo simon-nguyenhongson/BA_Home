@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Bot, KeyRound, Pencil, Plus, Trash2, Wand2 } from 'lucide-react'
+import { Bot, FileCode2, FolderTree, KeyRound, Pencil, Plus, Trash2, Wand2 } from 'lucide-react'
 import {
   getAiSettings, updateAiSettings, testAiKey,
-  getAiSkills, getAiSkill, createAiSkill, updateAiSkill, deleteAiSkill,
+  getAiSkills, getAiSkill, createAiSkill, updateAiSkill, deleteAiSkill, getSkillFile,
   type AiSettings, type AiSkill,
 } from '../../api/ai'
 import { Badge, Btn, Card, Confirm, EmptyState, Field, AppInput, AppTextarea, Modal } from '../../components/ui'
@@ -41,7 +41,7 @@ export default function SettingsPage() {
           AI Agent
         </button>
         <button className={`ds-tab${tab === 'skills' ? ' active' : ''}`} onClick={() => setTab('skills')}>
-          Kho skill
+          Skill
         </button>
         <button className={`ds-tab${tab === 'catalog' ? ' active' : ''}`} onClick={() => setTab('catalog')}>
           Danh mục
@@ -236,8 +236,12 @@ function SkillsTab() {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <div style={{ fontSize: 14, color: 'var(--app-neutral-500)' }}>
-          Skill là bộ hướng dẫn chuẩn gửi kèm mỗi lần gọi AI. Sửa nội dung skill để đổi cách AI viết tài liệu.
+        <div style={{ fontSize: 14, color: 'var(--app-neutral-500)', maxWidth: 780 }}>
+          Skill hệ thống là <b>thư mục</b> theo chuẩn Claude skill — <code>SKILL.md</code> kèm
+          <code> templates/</code> (hợp đồng đầu ra mà hệ thống parse theo) và
+          <code> references/</code> (tài liệu nạp theo nhu cầu). Phần này nằm trong Git, sửa qua
+          pull request. Trên giao diện, mỗi skill có thêm ô <b>bổ sung của đơn vị</b> — nội dung
+          nối thêm vào cuối hướng dẫn, không ghi đè.
         </div>
         <Btn onClick={() => setCreating(true)}>
           <Plus size={14} strokeWidth={1.5} /> Thêm skill
@@ -256,7 +260,7 @@ function SkillsTab() {
                 <th style={{ width: 180 }}>Mã skill</th>
                 <th>Tên</th>
                 <th>Mô tả</th>
-                <th style={{ width: 100 }}>Độ dài</th>
+                <th style={{ width: 230 }}>Nguồn hướng dẫn</th>
                 <th style={{ width: 120 }}>Loại</th>
                 <th style={{ width: 110 }}></th>
               </tr>
@@ -267,7 +271,35 @@ function SkillsTab() {
                   <td><code style={{ fontSize: 13 }}>{s.code}</code></td>
                   <td style={{ color: 'var(--app-neutral-900)', fontWeight: 500 }}>{s.name}</td>
                   <td>{s.description}</td>
-                  <td>{s.content_length ?? 0} ký tự</td>
+                  <td>
+                    {s.bundle?.folder ? (
+                      <div style={{ fontSize: 12, lineHeight: 1.5 }}>
+                        <div style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 4,
+                          color: 'var(--app-neutral-800)', fontWeight: 500,
+                        }}>
+                          <FolderTree size={12} strokeWidth={1.5} />
+                          {s.bundle.folder}/ <span style={{ color: 'var(--app-neutral-400)' }}>
+                            v{s.bundle.version}
+                          </span>
+                        </div>
+                        <div style={{ color: 'var(--app-neutral-500)' }}>
+                          {(s.bundle.templates?.length ?? 0)} template ·{' '}
+                          {(s.bundle.references?.length ?? 0)} reference
+                          {(s.content_length ?? 0) > 0 && ' · có bổ sung'}
+                        </div>
+                        {!!s.bundle.missing?.length && (
+                          <div style={{ color: 'var(--app-danger)' }}>
+                            thiếu {s.bundle.missing.length} file
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <span style={{ fontSize: 12, color: 'var(--app-neutral-500)' }}>
+                        Chỉ trong DB · {s.content_length ?? 0} ký tự
+                      </span>
+                    )}
+                  </td>
                   <td>
                     {s.is_system
                       ? <Badge variant="info">Hệ thống</Badge>
@@ -318,11 +350,32 @@ function SkillEditor({ skill, onClose, onSaved }: { skill: AiSkill; onClose: () 
   const [description, setDescription] = useState(skill.description)
   const [content, setContent] = useState(skill.content ?? '')
   const [saving, setSaving] = useState(false)
+  const [viewFile, setViewFile] = useState<{ path: string; content: string } | null>(null)
+  const [loadingFile, setLoadingFile] = useState('')
+
+  const bundle = skill.bundle?.folder ? skill.bundle : null
+  const files = bundle
+    ? ['SKILL.md', ...(bundle.templates ?? []), ...(bundle.references ?? [])]
+    : []
+
+  const openFile = async (path: string) => {
+    setLoadingFile(path)
+    try {
+      const res = await getSkillFile(skill.id, path)
+      setViewFile(res.data)
+    } catch (e) {
+      addToast((e as Error).message, 'error')
+    } finally {
+      setLoadingFile('')
+    }
+  }
 
   const save = async () => {
     setSaving(true)
     try {
-      await updateAiSkill(skill.id, { name, description, content })
+      // Với skill dạng thư mục, `content` là phần BỔ SUNG — được phép để trống.
+      // Backend chỉ chặn để trống với skill mà hướng dẫn nằm hoàn toàn trong DB.
+      await updateAiSkill(skill.id, bundle ? { name, description, content } : { name, description, content })
       addToast('Đã lưu skill', 'success')
       onSaved()
     } catch (e) {
@@ -333,23 +386,83 @@ function SkillEditor({ skill, onClose, onSaved }: { skill: AiSkill; onClose: () 
   }
 
   return (
-    <Modal title={`Sửa skill — ${skill.code}`} open onClose={onClose} width="880px">
+    <Modal title={`Skill — ${skill.code}`} open onClose={onClose} width="920px">
+      {bundle && (
+        <div style={{
+          border: '1px solid var(--app-neutral-200)', borderRadius: 12,
+          padding: 12, marginBottom: 16, background: 'var(--app-neutral-50)',
+        }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 6, fontSize: 13,
+            fontWeight: 600, color: 'var(--app-neutral-800)', marginBottom: 8,
+          }}>
+            <FolderTree size={14} strokeWidth={1.5} />
+            {bundle.folder}/ <Badge variant="info">v{bundle.version}</Badge>
+            {bundle.loaded_elsewhere && (
+              <Badge variant="neutral">reference nạp theo loại diagram</Badge>
+            )}
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+            {files.map(f => (
+              <button key={f} onClick={() => void openFile(f)} disabled={loadingFile === f}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                  border: '1px solid var(--app-neutral-200)', background: '#fff',
+                  borderRadius: 8, padding: '3px 9px', cursor: 'pointer',
+                  fontFamily: 'var(--font)', fontSize: 12, color: 'var(--app-neutral-700)',
+                }}>
+                <FileCode2 size={12} strokeWidth={1.5} /> {f}
+              </button>
+            ))}
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--app-neutral-500)', lineHeight: 1.5 }}>
+            Các file trên nằm trong Git tại <code>backend/ppg/app/skills/{bundle.folder}/</code> —
+            chỉ đọc ở đây, sửa qua pull request để thay đổi được review và truy vết được.
+          </div>
+          {!!bundle.missing?.length && (
+            <div className="state-banner state-banner-err" style={{ marginTop: 8, fontSize: 13 }}>
+              Thiếu file khai báo trong SKILL.md: {bundle.missing.join(', ')} — skill vẫn chạy
+              nhưng mất phần hướng dẫn đó. Kiểm tra lại bộ skill trên máy chủ.
+            </div>
+          )}
+        </div>
+      )}
+
       <Field label="Tên"><AppInput value={name} onChange={e => setName(e.target.value)} /></Field>
       <Field label="Mô tả">
         <AppInput value={description} onChange={e => setDescription(e.target.value)} />
       </Field>
-      <Field label="Nội dung hướng dẫn gửi cho AI">
+      <Field label={bundle ? 'Bổ sung của đơn vị (nối thêm sau hướng dẫn trong thư mục)'
+                           : 'Nội dung hướng dẫn gửi cho AI'}>
         <AppTextarea
-          rows={22}
+          rows={bundle ? 12 : 22}
           value={content}
           onChange={e => setContent(e.target.value)}
+          placeholder={bundle
+            ? 'Ví dụ: mọi BRS phải nêu số hiệu Thông tư NHNN liên quan ở mục 1.\n\nĐể trống nếu không cần bổ sung gì.'
+            : 'Viết hướng dẫn cho AI: vai trò, nguyên tắc, cấu trúc đầu ra'}
           style={{ fontFamily: 'var(--font-mono)', fontSize: 13, lineHeight: '20px' }}
         />
       </Field>
+      {bundle && (
+        <div style={{ fontSize: 12, color: 'var(--app-neutral-500)', margin: '-8px 0 16px' }}>
+          Phần này <b>bổ sung</b>, không ghi đè. Khi xung đột về định dạng đầu ra, template
+          trong thư mục thắng — nhờ vậy sửa ở đây không làm hỏng phần mã nguồn parse.
+        </div>
+      )}
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-        <Btn variant="secondary" onClick={onClose}>Cancel</Btn>
+        <Btn variant="secondary" onClick={onClose}>Đóng</Btn>
         <Btn onClick={save} loading={saving}>Lưu</Btn>
       </div>
+
+      <Modal title={viewFile?.path ?? ''} open={!!viewFile} onClose={() => setViewFile(null)} width="900px">
+        <pre style={{
+          whiteSpace: 'pre-wrap', fontFamily: 'var(--font-mono)', fontSize: 12,
+          lineHeight: '19px', background: 'var(--app-neutral-50)',
+          border: '1px solid var(--app-neutral-200)', borderRadius: 8,
+          padding: 12, maxHeight: '62vh', overflow: 'auto', margin: 0,
+        }}>{viewFile?.content}</pre>
+      </Modal>
     </Modal>
   )
 }

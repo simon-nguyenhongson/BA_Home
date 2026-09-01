@@ -319,11 +319,12 @@ dialog[open] > .modal-panel { animation: panelDrop 0.12s ease; }
 .empty-state__title { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--app-neutral-700); margin-bottom: 4px; }
 .empty-state__desc { font-size: 14px; line-height: 20px; color: var(--app-neutral-500); max-width: 360px; margin: 0 auto 16px; }
 
-/* Tabs underline — active violet 700 theo nguồn (không đổi thành blue) */
+/* Tabs underline — active dùng Blue 600 (--app-primary) cho đồng nhất toàn app,
+   theo quyết định PO 2026-09-01: bỏ xung đột violet #6941C6 của DS nguồn */
 .ds-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--app-neutral-200); }
 .ds-tab { padding: 1px 4px 11px; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--app-neutral-500); background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; }
-.ds-tab:hover { color: #6941C6; border-bottom-color: #6941C6; }
-.ds-tab.active { color: #6941C6; border-bottom-color: #6941C6; }
+.ds-tab:hover { color: var(--app-primary); border-bottom-color: var(--app-primary); }
+.ds-tab.active { color: var(--app-primary); border-bottom-color: var(--app-primary); }
 
 /* Tabs segmented (button white) — chuyển khoảng dữ liệu */
 .ds-seg { display: inline-flex; background: var(--app-neutral-100); border-radius: 8px; padding: 4px; gap: 4px; }

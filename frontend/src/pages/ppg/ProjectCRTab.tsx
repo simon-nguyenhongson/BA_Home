@@ -678,7 +678,7 @@ export default function ProjectCRTab({
 
       {/* Status tabs */}
       <div style={{
-        display: 'flex', gap: 0, overflowX: 'auto',
+        display: 'flex', gap: 0, overflowX: 'auto', overflowY: 'hidden',
         borderBottom: '2px solid var(--app-neutral-200)',
         flexShrink: 0,
       }}>

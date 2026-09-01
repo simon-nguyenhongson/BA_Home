@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 
 from app.auth import CurrentUser
 from app.database import get_db
-from app.services.ai_agent import run_skill
+from app.services.ai_agent import assert_skill_for_step, run_skill
 from app.services.audit_service import log_audit
 
 router = APIRouter(tags=["cr-brs"])
@@ -39,7 +39,10 @@ class BrsGenerateRequest(BaseModel):
 
 class BrsReviseRequest(BaseModel):
     instruction: str = Field(..., min_length=3)
-    skill_code: str = "gen_brs"
+    # Bước chỉnh sửa dùng skill RIÊNG, không dùng gen_brs. gen_brs là skill SINH MỚI: nó
+    # yêu cầu viết đủ 12 mục theo cấu trúc, nên khi dùng để "sửa" thì mô hình có xu hướng
+    # viết lại toàn bộ và xoá mất phần BA đã tự sửa tay.
+    skill_code: str = "revise_brs"
 
 
 class BrsUpdate(BaseModel):
@@ -192,6 +195,7 @@ async def generate_brs(
     db: asyncpg.Connection = Depends(get_db),
 ) -> dict:
     """[Gen BRS] — AI sinh BRS từ CR đã duyệt, dùng Master Doc làm bối cảnh AS-IS."""
+    assert_skill_for_step("gen_brs", body.skill_code)
     cr = await _get_cr_or_404(db, cr_id)
     if cr["status"] not in ("approved", "implementing", "implemented"):
         raise HTTPException(
@@ -263,6 +267,7 @@ async def revise_brs(
     db: asyncpg.Connection = Depends(get_db),
 ) -> dict:
     """[AI chỉnh sửa] — AI sửa BRS hiện tại theo chỉ dẫn của BA."""
+    assert_skill_for_step("revise_brs", body.skill_code)
     brs = await _get_brs_or_404(db, brs_id)
     if brs["status"] not in ("draft", "in_review"):
         raise HTTPException(
@@ -284,20 +289,46 @@ async def revise_brs(
     )
     content = await run_skill(db, body.skill_code, prompt)
     new_version = brs["version"] + 1
-    row = await db.fetchrow(
-        """
-        UPDATE cr_brs_documents
-        SET content = $2, version = $3, updated_by = $4, updated_at = NOW()
-        WHERE id = $1 RETURNING *
-        """,
-        brs_id, content, new_version, user.sub,
-    )
-    await _save_history(db, brs_id, new_version, content, "revise", body.instruction, user.sub)
+
+    # Nội dung đổi thì bản đang review không còn là bản người duyệt đã đọc → đưa về nháp.
+    # Không làm bước này thì người duyệt có thể bấm Duyệt trên một nội dung khác hẳn cái họ
+    # xem — maker-checker chỉ còn hình thức.
+    reset_review = brs["status"] == "in_review"
+    new_status = "draft" if reset_review else brs["status"]
+
+    async with db.transaction():
+        row = await db.fetchrow(
+            """
+            UPDATE cr_brs_documents
+            SET content = $2, version = $3, status = $5, updated_by = $4, updated_at = NOW()
+            WHERE id = $1 RETURNING *
+            """,
+            brs_id, content, new_version, user.sub, new_status,
+        )
+        await _save_history(
+            db, brs_id, new_version, content, "revise", body.instruction, user.sub
+        )
+        if reset_review:
+            await _log_cr_history(
+                db, str(brs["cr_id"]), "brs_revised_reset",
+                f"BRS được AI chỉnh khi đang review → trả về nháp để review lại: "
+                f"{body.instruction[:200]}",
+                user.sub, from_status="in_review", to_status="draft",
+            )
     await log_audit(
         db=db, entity_type="cr_brs_documents", entity_id=brs_id, action="UPDATE",
-        changed_by=user.sub, new_values={"version": new_version, "mode": "ai_revise"},
+        changed_by=user.sub,
+        new_values={"version": new_version, "mode": "ai_revise", "status": new_status},
+        notes=body.instruction[:500],
     )
-    return {"data": dict(row)}
+    return {
+        "data": dict(row),
+        "meta": {
+            "review_reset": reset_review,
+            "message": ("Nội dung đã đổi nên BRS trả về trạng thái nháp — cần gửi duyệt lại."
+                        if reset_review else ""),
+        },
+    }
 
 
 @router.put("/brs/{brs_id}")

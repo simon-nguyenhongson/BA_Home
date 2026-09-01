@@ -14,6 +14,8 @@ from typing import Optional
 import asyncpg
 from fastapi import HTTPException
 
+from app.services import skill_loader
+
 logger = logging.getLogger(__name__)
 
 DEFAULT_MODEL = "claude-opus-5"
@@ -67,11 +69,69 @@ async def get_api_key(db: asyncpg.Connection) -> str:
     return key
 
 
-async def get_skill_content(db: asyncpg.Connection, skill_code: str) -> str:
-    """Lấy nội dung skill từ kho skill chuẩn."""
+# Skill hợp lệ cho từng BƯỚC của luồng. Không có bảng này thì skill_code do client truyền
+# lên là chuỗi tự do: gọi bước "sinh BRS" với skill gen_test_report sẽ ghi một bản báo cáo
+# test vào đúng cột nội dung BRS, rồi bản đó đi tiếp qua duyệt → golive → merge Master Doc.
+# Lỗi kiểu đó không có dấu hiệu nào ở tầng dưới để chặn.
+SKILL_STEP_ALLOWED: dict[str, set[str]] = {
+    "gen_brs":           {"gen_brs"},
+    "revise_brs":        {"revise_brs", "gen_brs"},   # gen_brs: tương thích ngược
+    "update_master_doc": {"update_master_doc"},
+    "gen_test_case":     {"gen_test_case"},
+    "gen_test_report":   {"gen_test_report"},
+    "gen_diagram":       {"gen_diagram"},
+}
+
+
+def assert_skill_for_step(step: str, skill_code: str) -> None:
+    """
+    Chặn dùng skill của bước khác. PO vẫn được tự tạo skill riêng, nhưng phải đặt mã
+    thuộc nhóm của bước đó (ví dụ gen_brs_v2 cho bước sinh BRS) — xem tiền tố bên dưới.
+    """
+    allowed = SKILL_STEP_ALLOWED.get(step)
+    if allowed is None:
+        return
+    if skill_code in allowed:
+        return
+    # Cho phép skill tùy biến của PO nếu mã bắt đầu bằng mã skill chuẩn của bước
+    if any(skill_code.startswith(base) for base in allowed):
+        return
+    raise HTTPException(
+        400,
+        detail={
+            "code": "SKILL_WRONG_STEP",
+            "message": f"Skill '{skill_code}' không dùng được cho bước này. "
+                       f"Bước này nhận: {', '.join(sorted(allowed))} "
+                       f"(hoặc skill tùy biến có mã bắt đầu bằng các giá trị đó).",
+        },
+    )
+
+
+async def load_skill_blocks(db: asyncpg.Connection, skill_code: str) -> list[str]:
+    """
+    Dựng các khối system của một skill.
+
+    Skill có thư mục trên đĩa (chuẩn Claude skill: SKILL.md + references/ + templates/) thì
+    nạp từ đó, và phần `ai_skills.content` trong DB được NỐI THÊM làm "Bổ sung của đơn vị" —
+    PO tinh chỉnh được trên UI mà không sửa được hợp đồng đầu ra mà mã nguồn parse theo.
+
+    Skill do PO tự tạo (không có thư mục) thì dùng nguyên nội dung trong DB.
+    """
     row = await db.fetchrow(
         "SELECT content FROM ai_skills WHERE code = $1", skill_code
     )
+    db_content = (row["content"] or "").strip() if row else ""
+
+    if skill_loader.has_folder(skill_code):
+        bundle = skill_loader.load_bundle(skill_code)
+        if bundle.missing:
+            # Thiếu file khai báo trong frontmatter là lỗi cài đặt, không phải lỗi người dùng.
+            # Chạy tiếp với phần còn lại nhưng ghi log để phát hiện khi deploy sai.
+            logger.error(
+                "Skill %s thiếu file: %s", skill_code, ", ".join(bundle.missing)
+            )
+        return bundle.system_blocks(org_addendum=db_content)
+
     if not row:
         raise HTTPException(
             404,
@@ -80,8 +140,7 @@ async def get_skill_content(db: asyncpg.Connection, skill_code: str) -> str:
                 "message": f"Không tìm thấy skill '{skill_code}' trong kho skill.",
             },
         )
-    content = (row["content"] or "").strip()
-    if not content:
+    if not db_content:
         raise HTTPException(
             400,
             detail={
@@ -89,7 +148,7 @@ async def get_skill_content(db: asyncpg.Connection, skill_code: str) -> str:
                 "message": f"Skill '{skill_code}' chưa có nội dung hướng dẫn.",
             },
         )
-    return content
+    return [db_content]
 
 
 async def run_skill(
@@ -127,7 +186,7 @@ async def run_skill(
 
     api_key = await get_api_key(db)
     settings = await get_ai_settings(db)
-    skill_content = await get_skill_content(db, skill_code)
+    skill_blocks = await load_skill_blocks(db, skill_code)
 
     model = (settings.get("anthropic_model") or "").strip() or DEFAULT_MODEL
     if max_tokens is None:
@@ -136,21 +195,20 @@ async def run_skill(
         except ValueError:
             max_tokens = DEFAULT_MAX_TOKENS
 
+    # Anthropic cho tối đa 4 điểm cắt cache. Ưu tiên: khối kỹ thuật lớn từ cached_prefix
+    # (hiện chỉ diagram-design dùng), rồi tới các khối của skill. Khối nào vượt 4 thì vẫn
+    # gửi nhưng không đánh dấu cache.
+    MAX_CACHE_POINTS = 4
     system_blocks: list[dict] = []
-    # Anthropic cho tối đa 4 điểm cắt cache — giữ 1 chỗ cho skill_content bên dưới.
-    for block in (cached_prefix or [])[:3]:
-        if block.strip():
-            system_blocks.append({
-                "type": "text",
-                "text": block,
-                "cache_control": {"type": "ephemeral"},
-            })
-    system_blocks.append({
-        "type": "text",
-        "text": skill_content,
-        # Skill là phần ổn định → cache để giảm chi phí khi gọi lặp lại
-        "cache_control": {"type": "ephemeral"},
-    })
+    marked = 0
+    for block in list(cached_prefix or []) + skill_blocks:
+        if not block.strip():
+            continue
+        item: dict = {"type": "text", "text": block}
+        if marked < MAX_CACHE_POINTS:
+            item["cache_control"] = {"type": "ephemeral"}
+            marked += 1
+        system_blocks.append(item)
     if extra_system.strip():
         system_blocks.append({"type": "text", "text": extra_system})
 
@@ -176,7 +234,7 @@ async def run_skill(
             429,
             detail={
                 "code": "AI_RATE_LIMIT",
-                "message": _rate_limit_message(api_key),
+                "message": _rate_limit_message(api_key, model),
             },
         )
     except APIStatusError as exc:
@@ -205,6 +263,30 @@ async def run_skill(
             detail={
                 "code": "AI_REFUSED",
                 "message": "Claude từ chối thực hiện yêu cầu này. Xem lại nội dung đầu vào.",
+            },
+        )
+
+    # Phản hồi bị cắt vì chạm max_tokens — PHẢI từ chối, không được lưu.
+    #
+    # Đây là lỗi nguy hiểm nhất của luồng tài liệu: mọi skill đều yêu cầu trả về TOÀN BỘ
+    # tài liệu (BRS 12 mục, Master Doc đầy đủ, mảng JSON test case). Một phản hồi bị cắt
+    # giữa vẫn là văn bản hợp lệ về mặt cú pháp, nên nếu không kiểm ở đây thì nó được lưu
+    # như tài liệu hoàn chỉnh: BRS thiếu mục 8–12 vẫn được duyệt rồi merge vào Master Doc,
+    # Master Doc mất phần cuối mà không ai biết.
+    if message.stop_reason == "max_tokens":
+        usage = getattr(message, "usage", None)
+        out_tokens = getattr(usage, "output_tokens", None) if usage else None
+        raise HTTPException(
+            502,
+            detail={
+                "code": "AI_TRUNCATED",
+                "message": (
+                    f"Phản hồi của Claude bị cắt vì chạm giới hạn {max_tokens:,} token đầu ra"
+                    + (f" (đã sinh {out_tokens:,} token)" if out_tokens else "")
+                    + ". Nội dung KHÔNG được lưu vì tài liệu sẽ thiếu phần cuối. "
+                    "Tăng 'Giới hạn token đầu ra' trong Cài đặt → AI Agent, hoặc chia nhỏ "
+                    "yêu cầu (ví dụ: merge Master Doc theo từng chương)."
+                ),
             },
         )
 
@@ -258,7 +340,7 @@ async def verify_api_key(api_key: str, model: str = DEFAULT_MODEL) -> dict:
     except RateLimitError:
         raise HTTPException(
             429,
-            detail={"code": "AI_RATE_LIMIT", "message": _rate_limit_message(api_key)},
+            detail={"code": "AI_RATE_LIMIT", "message": _rate_limit_message(api_key, model)},
         )
     except APIStatusError as exc:
         raise HTTPException(
@@ -280,15 +362,27 @@ async def verify_api_key(api_key: str, model: str = DEFAULT_MODEL) -> dict:
         await client.close()
 
 
-def _rate_limit_message(credential: str) -> str:
-    """Thông báo 429 — nêu rõ nếu đang dùng OAuth token của gói thuê bao."""
+def _rate_limit_message(credential: str, model: str = "") -> str:
+    """
+    Thông báo 429 — nêu rõ nếu đang dùng OAuth token của gói thuê bao.
+
+    Hạn mức của gói thuê bao tính RIÊNG theo từng lớp model: Opus/Sonnet có thể đã cạn
+    trong khi Haiku vẫn gọi được. Vì vậy phải nói rõ model nào bị chặn, nếu không người
+    dùng thấy Claude Code vẫn chạy bình thường và tưởng hệ thống bị lỗi.
+    """
+    which = f" cho model {model}" if model else ""
     if is_oauth_token(credential):
         return (
-            "Đã chạm giới hạn sử dụng của gói thuê bao gắn với OAuth token này. "
-            "Chờ hạn mức được đặt lại, hoặc chuyển sang API key trả theo lượt dùng "
-            "(sk-ant-api...) lấy từ console.anthropic.com."
+            f"Đã chạm giới hạn sử dụng của gói thuê bao gắn với OAuth token này{which}. "
+            "Hạn mức tính riêng theo từng lớp model — thử đổi sang model nhẹ hơn "
+            "(Claude Haiku 4.5) trong Cài đặt → AI Agent, chờ hạn mức đặt lại, "
+            "hoặc chuyển sang API key trả theo lượt dùng (sk-ant-api...) "
+            "lấy từ console.anthropic.com."
         )
-    return "Claude API đang giới hạn tần suất. Thử lại sau ít phút."
+    return (
+        f"Claude API đang giới hạn tần suất{which}. Thử lại sau ít phút, "
+        "hoặc dùng model nhẹ hơn nếu cần chạy liên tục."
+    )
 
 
 def _auth_error_message(credential: str) -> str:
