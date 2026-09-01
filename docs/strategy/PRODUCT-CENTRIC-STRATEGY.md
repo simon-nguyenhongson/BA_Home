@@ -1,118 +1,194 @@
 # Chiến lược tái cấu trúc BA_Home theo hướng Product-Centric
 
-- **Mã:** STRATEGY-001 · **Phiên bản:** 2.0 · **Ngày:** 2026-09-01
-- **Trạng thái:** PO đã chốt QĐ-14/15/16 · P5a đã thực hiện · P1 sẵn sàng khởi động
-- **Thay thế:** v1.0 (2026-09-01 sáng). v2.0 viết lại theo 13 quyết định của PO; v1.0 xem trong Git history.
+- **Mã:** STRATEGY-001 · **Phiên bản:** 3.0 · **Ngày:** 2026-09-01
+- **Trạng thái:** chờ PO quyết 4 câu hỏi kiến trúc (Mục 2) — **2 câu chặn P1**
+- **Thay thế:** v2.1. Bản này ra đời từ đợt rà soát phản biện chính v2 — xem Mục 1.
 
 ---
 
-## 1. Tóm tắt điều hành
+## 1. Kết quả rà soát v2 — 8 lỗi logic đã tìm ra
 
-13 quyết định của PO đã **thu hẹp đáng kể phạm vi** so với v1 và làm rõ trục kiến trúc. Ba thay đổi lớn nhất:
+PO phản hồi "còn nhiều chỗ sai và không logic". Tôi rà lại toàn bộ v2 đối chiếu với mã nguồn thật và tìm ra 8 lỗi. Bốn lỗi đầu là **lỗi thiết kế thật**, không phải lỗi chính tả — nếu code theo v2 thì sẽ phải làm lại.
 
-1. **Bỏ BRD của product** (QĐ-5) — BRD chỉ thuộc Project. Loại bỏ hẳn 3 bảng và 1 AI skill khỏi kế hoạch. Đây là phần nặng nhất của v1, nay không làm nữa.
-2. **Bỏ module Kế hoạch năm** (QĐ-11) — thay bằng Báo cáo theo khoảng thời gian. Gỡ ~2.500 dòng code, 10 bảng ra khỏi luồng sử dụng.
-3. **Đưa automation testcase con vào DB** (QĐ-4) — Capture Studio không còn lưu JSON cục bộ. Đây là **hạng mục kỹ thuật nặng nhất còn lại** và là mắt xích cuối cùng đưa toàn bộ chuỗi truy vết vào một nguồn sự thật.
+### L1 — Mâu thuẫn trực tiếp giữa QĐ-16 và QĐ-11 ⛔
 
-Bù lại có 2 hạng mục **mới hoàn toàn** chưa có trong v1: quản lý **Diagram** (QĐ-9) và **Design System như một thực thể quản lý được** (QĐ-7).
+- QĐ-16: *"CR không bao giờ thuộc Project"* → v2 kết luận bỏ `project_id` khỏi CR.
+- QĐ-11: báo cáo theo kỳ phải *"export công việc đã làm: bao gồm project, product, CR"*.
 
-Cân đối: phạm vi v2 **nhẹ hơn v1 khoảng 25%** dù thêm 2 hạng mục mới, vì bỏ BRD-product và Kế hoạch năm. Ước lượng **5 giai đoạn, 7–10 tuần**.
+**Không thể đồng thời.** Bỏ hẳn `project_id` thì vĩnh viễn không trả lời được *"dự án X đã làm ra những CR nào"* — mà đó chính là báo cáo QĐ-11 yêu cầu.
 
-**Còn 2 câu hỏi cần PO quyết** (Mục 9) — không câu nào chặn tiến độ.
+**Nguyên nhân sai:** v2 lẫn lộn **quyền sở hữu** với **quy kết nguồn gốc**. Đây là hai chuyện khác nhau:
 
----
-
-## 2. Quyết định của PO — đã chốt, khóa vào thiết kế
-
-| # | Quyết định | Ảnh hưởng thiết kế |
+| | Quyền sở hữu (ownership) | Quy kết nguồn (attribution) |
 |---|---|---|
-| 1 | CR theo product; **bỏ bắt buộc project_id**. Output của project ra 1 product | `product_id` bắt buộc (CR mới), `project_id` ngưng dùng. Thêm liên kết project → product *(làm rõ thêm ở QĐ-16)* |
-| 2 | Tài liệu: mỗi **domain** có module cho Product thuộc domain đó — master doc, BRS, test | Cây tài liệu đổi thành domain → product → tài liệu |
-| 3 | Testcase của BRS **gom chung 1 hệ**, không tách riêng, đi theo hướng automation | Không xây hệ test-management riêng. Một hệ automation duy nhất |
-| 4 | Automation testcase con **quản lý ở DB**, không JSON cục bộ | Capture Studio chuyển sang đọc/ghi qua API. DB là nguồn sự thật |
-| 5 | **Bỏ BRD của product** — BRD thuộc Project. Product chỉ có CR và BRS | Loại 3 bảng + skill `gen_brd` khỏi kế hoạch. Dùng `project_briefs` đã có |
-| 6 | Prototype (HTML) quản lý cho **cả project và product** | Bảng dùng chung 2 loại chủ sở hữu |
-| 7 | Design System **cùng cấp với prototype** | DS là thực thể quản lý được, không chỉ là file css |
-| 8 | View tổng hợp per product | Product Home — giữ như v1 |
-| 9 | **Diagram** cho Project, Product, BRS: Workflow / Sequence / Data flow — có quản lý, xem, import | Hạng mục mới hoàn toàn |
-| 10 | Test: report **theo từng testcase**, export theo **skill AI cấu hình được** | Report xuống cấp testcase; skill export nạp từ kho skill |
-| 11 | **Bỏ kế hoạch năm** → báo cáo theo năm / from-date to-date, export công việc đã làm (project, product, CR) | Gỡ module; thêm module Báo cáo |
-| 12 | Trục là **vòng đời**: Project, Product, BA + AI, Test, Tài liệu, CR. Còn lại có thể xóa | Xác nhận trục kiến trúc + cho phép cắt bỏ phần rìa |
-| 13 | API key cứ lưu thoải mái; test báo lỗi nhưng thực tế vẫn gọi được | **Đã xử lý xong** — xem Mục 8 |
-| 14 | Master Doc v1: sinh từ BRD của project, **hoặc** import chủ động, **hoặc** sửa trực tiếp trên giao diện | 3 đường khởi tạo — trả lời CH-2 |
-| 15 | Kế hoạch năm: **bỏ luôn cả DB và ràng buộc** | V050 — **ĐÃ THỰC HIỆN**, trả lời CH-1 |
-| 16 | **Không đảo trục**: output của 1 Project là 1 Product để vận hành và CR lâu dài; project done là dừng, không có CR trên project | Product là trục chính (như v1), Project là giai đoạn sinh ra Product rồi kết thúc. CR **chỉ** thuộc Product |
+| Trả lời câu hỏi | CR này sửa tài liệu của ai? Ai duyệt? | Ai bỏ tiền/công cho CR này? |
+| Thuộc về | **Product** — bắt buộc | **Project** — tùy chọn, có thể trống |
+| Khi project đóng | Không đổi | CR mới ghi trống — đúng tinh thần "project done là dừng" |
+
+**Cách sửa:** giữ `project_id` trên CR nhưng **đổi ý nghĩa và đổi tên thành `source_project_id`** — chỉ để quy kết và báo cáo, không mang quyền sở hữu. `product_id` mới là bắt buộc. Như vậy thỏa cả QĐ-16 lẫn QĐ-11.
+
+### L2 — "Invariant kiểm toán" trong v2 là sai ⛔
+
+v2 tuyên bố: `Master Doc HEAD = v1 + Σ(BRS golive đã merge)`.
+
+**Sai, vì hai lý do độc lập:**
+1. QĐ-14 cho phép **sửa trực tiếp trên giao diện** — vế phải không cộng vế đó.
+2. Code **đang chạy** đã cho sửa tay: `master_docs.py` PUT tạo version `source='manual'`, `status='approved'` **ghi đè Master Doc ngay, không qua duyệt**.
+
+Nói cách khác v2 phát biểu một bất biến mà hệ thống vi phạm ngay từ hôm nay. Trình cho kiểm toán viên mà họ tìm ra một version `manual` là mất uy tín cả tài liệu.
+
+**Cách sửa** — hạ xuống bất biến đúng và bổ sung chốt kiểm soát:
+
+> **Bất biến:** `Master Doc HEAD = version được duyệt gần nhất`, và **mọi** version đều truy được `source ∈ {init, cr_merge, manual}` + người duyệt + thời điểm.
+
+Kèm hai chốt: (a) sửa tay **bắt buộc nhập lý do** (hiện mặc định trống "Cập nhật thủ công" — quá lỏng); (b) sửa tay cũng phải **qua duyệt** như merge từ BRS, thay vì ghi đè thẳng. Báo cáo kiểm toán liệt kê riêng các version `manual` để giải trình.
+
+### L3 — Mô hình "1 Project → 1 Product" không bao phủ đa số thực tế ⛔
+
+v2 chốt `project_product_links` với `UNIQUE(project_id)` — mỗi dự án đẻ đúng 1 sản phẩm.
+
+**Số liệu thực tế phản bác:** DB có **28 sản phẩm / 22 dự án**. Phần lớn sản phẩm (Internet Banking, e-HR, Oracle ERP…) đã chạy nhiều năm, **không sinh ra từ dự án nào trong hệ**. Ngược lại, ở ngân hàng **đa số dự án là nâng cấp hệ thống đang chạy**, không đẻ sản phẩm mới.
+
+Mô hình 1:1 khiến dự án nâng cấp **không có chỗ nối vào sản phẩm nó tác động** — trong khi đó mới là loại dự án phổ biến nhất.
+
+**Cách sửa:** quan hệ project ↔ product là **nhiều-nhiều có vai trò**:
+- `creates` — dự án khai sinh sản phẩm mới. **Tối đa 1 mỗi dự án** (đúng ý QĐ-16 "output của 1 project là 1 product").
+- `enhances` — dự án nâng cấp sản phẩm đang chạy. **Nhiều sản phẩm được**.
+
+Vẫn giữ nguyên tinh thần QĐ-16, nhưng bao phủ được thực tế. **Cần PO xác nhận — CH-1.**
+
+### L4 — Hiểu sai "automation testcase con" ⛔
+
+QĐ-4: *"Automation testcase con cũng phải quản lý ở db chứ không json local nữa."*
+
+v2 hiểu "testcase con" = các **bước thao tác**, nên chỉ thiết kế bảng `automation_case_steps`.
+
+**Kiểm chứng mã nguồn Capture Studio cho thấy hiểu sai:**
+
+```
+capture-studio/lib/store.js:56   type: data.type === 'composite' ? 'composite' : 'atomic'
+capture-studio/lib/store.js:68   tc.children = Array.isArray(data.children) ? ...
+capture-studio/lib/store.js:86   Composites whose children reference the given id
+capture-studio/lib/runner.js:1   executes a test case (atomic or composite)
+```
+
+Studio có sẵn **test case tổng hợp** gồm nhiều **test case con** chạy nối tiếp trong cùng phiên trình duyệt. "Testcase con" trong QĐ-4 chính là cái này. Mô hình chỉ-có-steps của v2 **không biểu diễn được**, nên chuyển sang DB sẽ **mất tính năng ghép test case**.
+
+**Cách sửa:** đưa đúng mô hình của Studio vào DB — 2 quan hệ song song:
+- `automation_case_steps` — các bước của test case đơn (atomic)
+- `automation_case_children` — thứ tự các test case con của test case tổng hợp (composite)
+- thêm cột `case_type ∈ {atomic, composite}` trên `automation_test_cases`
+
+### L5 — Lộ trình sai thứ tự phụ thuộc
+
+v2 xếp **P2** (Product Home 6 tab, gồm tab Prototype+DS và tab Diagram) **trước P3** (mới tạo bảng prototype/DS/diagram). Không thể dựng màn hình cho dữ liệu chưa tồn tại. Đã đảo lại ở Mục 6.
+
+### L6 — Cây tài liệu lẫn lộn hai kiểu lưu trữ
+
+Mục 4.5 của v2 vẽ cây thư mục `{domain}/products/{mã}/master-doc/…` như thể tất cả là file. Thực tế **Master Doc, BRS, testcase nằm trong DB** (cột TEXT), chỉ prototype/diagram/tài liệu đính kèm mới là file trên đĩa. Trang Tài liệu phải nói rõ là **khung nhìn hợp nhất**, không phải cây thư mục vật lý.
+
+### L7 — 3 CR hiện có sẽ kẹt
+
+Kiểm tra DB: **cả 3 CR đều có `project_id`, không CR nào có `product_id`**. Sau khi `product_id` thành bắt buộc, 3 CR này không sinh được BRS, không merge được Master Doc — kẹt vĩnh viễn mà v2 không nói cách xử lý.
+
+**Cách sửa:** khi mở CR cũ chưa gắn sản phẩm, bắt buộc chọn sản phẩm trước khi thao tác tiếp (một lần, ngay trên màn CR).
+
+### L8 — Số liệu và tuyên bố sai rải rác trong v2
+
+| Chỗ | v2 ghi | Thực tế |
+|---|---|---|
+| Quy mô gỡ Kế hoạch năm | "10 bảng ra khỏi luồng sử dụng" | **15 bảng bị xóa hẳn** + cột `projects.plan_id` + 17 khóa ngoại |
+| Số router gỡ | 2 | **3** |
+| Mục 4.6 + bảng rủi ro | "không xóa bảng, chỉ gỡ giao diện" | Mâu thuẫn QĐ-15 và **trái với việc đã làm** |
+| Mục 5 | "Không migration nào DROP…" | V050 **đã DROP** 15 bảng |
+| Mục 9, 11 | CH-1/CH-2 còn chờ PO | PO **đã trả lời** (QĐ-14, QĐ-15) |
+| Đầu tài liệu | "13 quyết định", "v2.0" | **16 quyết định**, bản 2.1 |
+| Mục 1 | "Loại bỏ 3 bảng BRD" | 3 bảng đó **chưa từng tồn tại** — đúng ra là "không xây" |
 
 ---
 
-## 3. Mô hình mục tiêu
+## 2. Bốn câu hỏi kiến trúc cần PO quyết
 
-### 3.1 Product là trục chính — Project là giai đoạn sinh ra Product
+**Chặn P1:**
 
-Theo QĐ-16, **Product là trục xuyên suốt**. Project là khoản đầu tư có thời hạn, bàn giao ra **đúng 1 Product** rồi kết thúc. Khi project done là dừng hẳn — **mọi thay đổi sau đó đều là CR trên Product**, không còn CR trên project.
+1. **CH-1 — Quan hệ Project ↔ Product (L3):** xác nhận cho phép hai vai trò `creates` (tối đa 1/dự án) và `enhances` (nhiều)? Nếu PO muốn giữ đúng 1:1 tuyệt đối thì **dự án nâng cấp hệ thống có sẵn sẽ không nối được vào sản phẩm** — cần PO xác nhận chấp nhận hạn chế này.
+
+2. **CH-2 — Giữ quy kết dự án trên CR (L1):** xác nhận giữ trường `source_project_id` (tùy chọn, chỉ để báo cáo)? Nếu bỏ hẳn thì **báo cáo QĐ-11 không làm được phần "công việc theo project"**.
+
+**Không chặn:**
+
+3. **CH-3 — Sửa tay Master Doc (L2):** có bắt buộc sửa tay cũng phải qua duyệt như merge từ BRS không? Đề xuất: **có**, vì maker-checker của ngân hàng; hiện tại sửa tay ghi đè thẳng.
+
+4. **CH-4 — Phạm vi cắt bỏ phần rìa (QĐ-12):** xác nhận cắt phần nào — trang BA cũ `/ba`, Stage Gate / Health RAG / Stakeholder / Priority scoring, danh mục Vai trò & Quyền (chưa enforce), 3 bảng registry legacy.
+
+---
+
+## 3. Mô hình mục tiêu (đã sửa theo L1, L3, L4)
+
+### 3.1 Product là trục chính, Project quy kết nguồn
 
 ```
-GIAI ĐOẠN ĐẦU TƯ (có thời hạn)          TRỤC CHÍNH — SẢN PHẨM (sống lâu dài)
-──────────────────────────────          ────────────────────────────────────
-projects                                 catalog_products (28 sản phẩm, 7 domain)
-├── project_briefs ← BRD (ĐÃ CÓ)         ├── master_documents (ĐÃ CÓ)
-├── milestones, members, gates           │     └── master_doc_versions → version_crs
-├── prototypes     [MỚI]                 ├── prototypes      [MỚI]
-├── design_systems [MỚI]                 ├── design_systems  [MỚI]
-├── diagrams       [MỚI]                 ├── diagrams        [MỚI]
-│                                        │
-└──── bàn giao ĐÚNG 1 sản phẩm ─────────▶│  project_product_links [MỚI, 1:1]
-      rồi KẾT THÚC                       │
-      (project done = dừng hẳn,          │
-       không còn CR trên project)        │
-                                         ▼
-                              change_requests (product_id BẮT BUỘC)
-                                         │  mọi thay đổi sau bàn giao
-                                         │  đều là CR trên Sản phẩm
-                              cr_brs_documents (ĐÃ CÓ)
-                                         ├── diagrams [MỚI — QĐ-9]
-                                         │
-                              automation_test_tasks (ĐÃ CÓ)
-                                         ├── automation_test_cases (ĐÃ CÓ)
-                                         │     └── automation_case_steps [MỚI — QĐ-4]
-                                         │           kịch bản ghi được, lưu DB
-                                         └── automation_test_runs (ĐÃ CÓ)
-                                               └── automation_case_results [MỚI — QĐ-10]
+projects (giai đoạn đầu tư, có thời hạn)
+├── project_briefs ← BRD (ĐÃ CÓ)
+├── milestones, members, gates
+└── project_product_links [MỚI, M:N có vai trò]
+      ├── role='creates'  → tối đa 1 sản phẩm mới mỗi dự án   (QĐ-16)
+      └── role='enhances' → N sản phẩm đang chạy được nâng cấp (L3)
+                    │
+                    ▼
+catalog_products (TRỤC CHÍNH — 28 sản phẩm, 7 domain, sống lâu dài)
+├── master_documents (ĐÃ CÓ) → master_doc_versions → version_crs
+├── prototypes      [MỚI]  ─┐ đều dùng chung cho project|product
+├── design_systems  [MỚI]  ─┤ (QĐ-6, QĐ-7)
+├── diagrams        [MỚI]  ─┘ (QĐ-9, gắn được cả BRS)
+│
+└── change_requests
+      product_id       BẮT BUỘC  ← quyền sở hữu (QĐ-16)
+      source_project_id TÙY CHỌN ← quy kết nguồn, phục vụ báo cáo (QĐ-11)
+        │
+        └── cr_brs_documents (ĐÃ CÓ)
+              └── automation_test_tasks (ĐÃ CÓ)
+                    ├── automation_test_cases (ĐÃ CÓ) + case_type atomic|composite
+                    │     ├── automation_case_steps    [MỚI] bước của case đơn
+                    │     └── automation_case_children [MỚI] case con của case tổng hợp
+                    └── automation_test_runs (ĐÃ CÓ)
+                          └── automation_case_results [MỚI] kết quả từng case
 ```
 
-**Vì sao Product phải là trục chính:** hệ thống ngân hàng sống 10 năm, dự án sống 6 tháng. Nếu CR bám vào project thì khi project đóng, mọi thay đổi sau đó — vá lỗi vận hành, yêu cầu tuân thủ, tối ưu nhỏ — **không còn chỗ để ghi nhận**. Đó lại chính là phần lớn thay đổi thực tế trong suốt vòng đời hệ thống. Gắn CR vào Product thì tri thức tích lũy liên tục, không đứt khi dự án kết thúc.
+**Vì sao Product là trục chính:** hệ thống ngân hàng sống 10 năm, dự án sống 6 tháng. CR bám project thì khi dự án đóng, mọi thay đổi sau đó — vá lỗi vận hành, yêu cầu tuân thủ, tối ưu nhỏ — không còn chỗ ghi nhận. Gắn CR vào Product thì tri thức tích lũy liên tục.
 
-### 3.2 Thuật ngữ chốt (khóa vào ADR-006)
+**Vì sao vẫn giữ quy kết dự án:** để trả lời được *"kỳ này dự án X đã làm ra gì"* mà không phá quyền sở hữu. Trường này trống với CR phát sinh ngoài dự án — đúng tinh thần "project done là dừng".
 
-- **Product** = 1 dòng `catalog_products`. Chủ sở hữu tài sản tri thức: Master Doc, chuỗi CR/BRS/Test, Prototype, DS, Diagram.
-- **Project** = khoản đầu tư có thời hạn. Chủ sở hữu **BRD** (`project_briefs`), milestone, nguồn lực, gates. Bàn giao **đúng 1 Product** rồi kết thúc.
-- **CR** = đơn vị thay đổi trên **một Product**. Không bao giờ thuộc về Project (QĐ-16).
-- **BRS** = đặc tả của một CR. Là cầu nối duy nhất từ CR sang Master Doc và sang Test.
+### 3.2 Thuật ngữ (khóa vào ADR-006)
+
+- **Product** = 1 dòng `catalog_products`. Sở hữu Master Doc, chuỗi CR/BRS/Test, Prototype, DS, Diagram.
+- **Project** = giai đoạn đầu tư có thời hạn. Sở hữu BRD (`project_briefs`), milestone, nguồn lực, gates. Khai sinh tối đa 1 sản phẩm, nâng cấp nhiều sản phẩm.
+- **CR** = đơn vị thay đổi, **thuộc đúng 1 Product**; ghi kèm dự án tài trợ nếu có.
+- **BRS** = đặc tả của 1 CR — cầu nối duy nhất từ CR sang Master Doc và sang Test.
 - **Master Doc** = đặc tả AS-IS sống của Product.
 
-**Invariant kiểm toán được** (đã bỏ vế BRD theo QĐ-5):
+### 3.3 Bất biến kiểm toán (đã sửa theo L2)
 
-> `Master Doc HEAD = Master Doc v1 (khởi tạo) + Σ (BRS golive đã merge, theo thứ tự)`
+> **Master Doc HEAD = version được duyệt gần nhất.**
+> **Mọi** version truy được: `source ∈ {init, cr_merge, manual}` · người tạo · người duyệt · thời điểm · lý do thay đổi.
 
-Chuỗi này truy vết 100% trong DB qua `master_doc_versions` + `master_doc_version_crs` (đã có). Trả lời được câu hỏi kiểm toán: *"Điều khoản này trong tài liệu đến từ đâu?"* → version nào → BRS nào → CR nào → ai duyệt, lúc nào.
+Trả lời câu hỏi kiểm toán *"điều khoản này đến từ đâu"*: version → nếu `cr_merge` thì ra BRS → CR → người duyệt; nếu `manual` thì ra người sửa + lý do bắt buộc nhập; nếu `init` thì ra nguồn khởi tạo.
 
-### 3.3 Master Doc v1 — ba đường khởi tạo (QĐ-14)
+**Chốt kiểm soát cần bổ sung** (CH-3): sửa tay bắt buộc nhập lý do và đi qua duyệt như merge, thay vì ghi đè thẳng như hiện nay.
 
-| Cách | Mô tả | Khi nào dùng |
+### 3.4 Master Doc v1 — ba đường khởi tạo (QĐ-14)
+
+| Cách | `source` | Khi nào dùng |
 |---|---|---|
-| 1 | **AI sinh từ BRD của project bàn giao** (skill `init_master_doc`) + metadata catalog | Sản phẩm ra đời từ một dự án — tận dụng `project_briefs` 25 cột đã có |
-| 2 | **Import chủ động** — tải lên tài liệu sẵn có (Markdown/Word) | Sản phẩm cũ đã có tài liệu ngoài hệ thống |
-| 3 | **Soạn/sửa trực tiếp trên giao diện** | Sản phẩm nhỏ, hoặc chỉnh sau khi sinh/import |
-
-Cả ba đều tạo ra `master_doc_versions` v1 với `source` tương ứng (`init_ai` / `import` / `manual`). Sau v1, mọi thay đổi chỉ đi qua merge BRS golive có phê duyệt — giữ nguyên invariant kiểm toán ở Mục 3.2.
+| AI sinh từ BRD của dự án khai sinh (skill `init_master_doc`) | `init_ai` | Sản phẩm ra đời từ dự án — dùng `project_briefs` 25 cột đã có |
+| Import tài liệu sẵn có (Markdown/Word) | `init_import` | **Trường hợp phổ biến nhất** — 28 sản phẩm hiện tại phần lớn đã chạy nhiều năm |
+| Soạn trực tiếp trên giao diện | `init_manual` | Sản phẩm nhỏ, hoặc chỉnh sau khi sinh/import |
 
 ---
 
-## 4. Sáu hạng mục xây mới — thiết kế cụ thể
+## 4. Sáu hạng mục xây mới
 
 ### 4.1 Prototype + Design System (QĐ-6, QĐ-7)
-
-Hai thực thể **cùng cấu trúc, cùng cấp**, đều gắn được vào project hoặc product:
 
 ```
 prototypes (owner_type: project|product, owner_id, name, entry_file, status)
@@ -122,13 +198,11 @@ design_systems (owner_type: project|product, owner_id, name, status)
   └── design_system_versions (version, tokens_file, css_file, change_summary, created_by)
 ```
 
-- Lưu file theo ADR-005 (filesystem + đường dẫn trong DB), giống `project_files` đang chạy.
-- Prototype HTML xem trực tiếp trong ứng dụng qua iframe (giống cách nhúng Capture Studio).
-- Liên kết `prototype_versions.cr_id` cho biết CR nào làm đổi màn hình nào — phục vụ QĐ-8 (view tổng hợp).
+Lưu file theo ADR-005 (đĩa + đường dẫn trong DB) giống `project_files` đang chạy. Prototype xem trực tiếp qua iframe. `prototype_versions.cr_id` cho biết CR nào đổi màn hình nào.
 
-**Điểm nối với test:** prototype có `data-testid` ổn định thì Capture Studio ghi được kịch bản **trước khi code thật xong** — rút ngắn vòng lặp BA → QA. Đây là lợi ích lớn nhất của việc quản lý prototype trong hệ.
+**Điểm nối với test:** prototype có `data-testid` ổn định thì Capture Studio ghi được kịch bản **trước khi code thật xong** — rút ngắn vòng lặp BA → QA.
 
-### 4.2 Diagram (QĐ-9) — hạng mục mới
+### 4.2 Diagram (QĐ-9)
 
 ```
 diagrams (owner_type: project|product|brs, owner_id,
@@ -137,36 +211,35 @@ diagrams (owner_type: project|product|brs, owner_id,
           content TEXT, storage_path, version, status)
 ```
 
-- **Import**: dán mã Mermaid/PlantUML, hoặc tải file `.drawio`/ảnh.
-- **View**: Mermaid render thẳng trong trình duyệt (không cần server). PlantUML/drawio/ảnh hiển thị dạng file.
-- Ba loại theo đúng QĐ-9. Gắn được vào BRS nghĩa là **một CR có sơ đồ luồng riêng** — thứ BA ngân hàng cần khi trình duyệt thay đổi.
-- Đề xuất bổ sung: AI skill `gen_diagram` sinh Mermaid từ nội dung BRS (BA chỉnh lại). Không bắt buộc ở v1.
+Mermaid render thẳng trong trình duyệt; PlantUML/drawio/ảnh hiển thị dạng file. Gắn được vào BRS nghĩa là mỗi CR có sơ đồ luồng riêng. Tùy chọn: skill `gen_diagram` sinh Mermaid từ BRS.
 
-### 4.3 Automation testcase con vào DB (QĐ-3, QĐ-4) — hạng mục nặng nhất
+### 4.3 Automation testcase vào DB (QĐ-3, QĐ-4) — đã sửa theo L4
 
-**Hiện trạng:** Capture Studio lưu mỗi testcase là 1 file JSON trong `automation-test/capture-studio/data/testcases/`. Hệ thống chỉ giữ `studio_tc_id` dạng chuỗi — mắt xích ra ngoài DB, không sao lưu, không chia sẻ được giữa người dùng.
+**Hiện trạng:** Capture Studio lưu mỗi test case là 1 file JSON; hệ thống chỉ giữ `studio_tc_id` dạng chuỗi — mắt xích ngoài DB, không sao lưu, không chia sẻ được.
 
-**Mô hình đích — một hệ duy nhất theo QĐ-3:**
+**Mô hình đích — bám đúng mô hình sẵn có của Studio:**
 
 ```
-automation_test_cases (ĐÃ CÓ — testcase nghiệp vụ sinh từ BRS)
-  └── automation_case_steps [MỚI]
-        step_no, action (click|fill|select|check|assert|goto|wait|press),
-        selector, value, assert_type, expected, is_secret, frame_path,
-        params JSONB, source (recorded|manual|ai)
+automation_test_cases (ĐÃ CÓ) + case_type: atomic | composite   [MỚI]
+  ├── automation_case_steps    [MỚI]  ← chỉ với case atomic
+  │     step_no, action (click|fill|select|check|assert|goto|wait|press),
+  │     selector, value, assert_type, expected, is_secret, frame_path,
+  │     params JSONB, source (recorded|manual|ai)
+  └── automation_case_children [MỚI]  ← chỉ với case composite
+        parent_case_id, child_case_id, sort_order
 ```
 
-Không tạo bảng "testcase con" riêng biệt — **kịch bản là các bước của chính testcase đó**. Đúng tinh thần QĐ-3 "gom chung 1 hệ, không tách riêng".
+Một hệ duy nhất theo QĐ-3: test case nghiệp vụ sinh từ BRS **chính là** test case chạy được, không tách hai hệ.
 
-**Cách chuyển Capture Studio (3 bước, giữ nguyên tính năng):**
+**Cách chuyển Studio (giữ nguyên tính năng, gồm cả ghép test case):**
 
 | Bước | Việc | Rủi ro |
 |---|---|---|
-| 1 | Thêm API `/automation/cases/{id}/steps` (CRUD + bulk replace) | Thấp |
-| 2 | `capture-studio/lib/store.js` đổi từ đọc/ghi file sang gọi API PPG (giữ nguyên interface nội bộ để `recorder/runner/codegen` không phải sửa) | **Trung bình** — đây là điểm cần thử kỹ |
-| 3 | Studio nhận `caseId` qua URL: mở từ BA_Home là ghi thẳng vào đúng testcase | Thấp |
+| 1 | API `/automation/cases/{id}/steps` và `/children` (CRUD + thay cả lô) | Thấp |
+| 2 | `capture-studio/lib/store.js` đổi từ đọc/ghi file sang gọi API, **giữ nguyên chữ ký hàm** để `recorder`/`runner`/`codegen` không phải sửa | **Trung bình–cao** — điểm phải thử kỹ |
+| 3 | Studio nhận `caseId` qua URL: mở từ BA_Home ghi thẳng vào đúng test case | Thấp |
 
-**Đổi lại:** kịch bản test được sao lưu cùng DB, nhiều người dùng chung, và truy vết đầy đủ CR → BRS → testcase → từng bước thao tác.
+Ràng buộc phải giữ: Studio hiện **chặn xóa** test case đang được case tổng hợp tham chiếu (`store.js:86`) — API mới phải giữ đúng ràng buộc này.
 
 ### 4.4 Report theo từng testcase + export theo skill (QĐ-10)
 
@@ -176,123 +249,94 @@ automation_case_results [MỚI]
   duration_ms, error_message, evidence_paths JSONB, note
 ```
 
-- Mỗi lượt chạy ghi kết quả **từng testcase**, không chỉ tổng hợp như hiện tại.
-- Export: người dùng chọn **skill export** trong kho skill (QĐ-10 "dựa theo skill ai xuất file tôi cấu hình"). Hệ thống có sẵn `gen_test_report`; PO nạp thêm skill riêng theo mẫu báo cáo của ngân hàng.
-- Xuất được cả **XLSX** (đã có) và **văn bản do AI soạn theo skill**.
+Mỗi lượt chạy ghi kết quả từng test case thay vì chỉ tổng hợp. Export chọn **skill** trong kho skill — PO nạp mẫu báo cáo riêng của ngân hàng. Xuất được XLSX (đã có) và văn bản do AI soạn.
 
-### 4.5 Tài liệu theo domain (QĐ-2)
+### 4.5 Trang Tài liệu theo domain (QĐ-2) — đã sửa theo L6
 
-Cây tài liệu hiện tại là `{domain}/{project}/BA|Tester`. Bổ sung nhánh product:
+**Là khung nhìn hợp nhất, không phải cây thư mục vật lý.** Nguồn dữ liệu từng nhánh:
 
 ```
 {domain}/
-├── projects/{mã dự án}/     ← BRD, biên bản họp, tài liệu bàn giao (đã có)
-└── products/{mã sản phẩm}/  ← MỚI
-      ├── master-doc/        (bản hiện hành + lịch sử version)
-      ├── brs/               (BRS theo từng CR)
-      ├── test/              (testcase + báo cáo test)
-      ├── prototype/
-      └── diagram/
+├── projects/{mã dự án}/     BRD (DB) · biên bản họp (DB) · file đính kèm (đĩa)
+└── products/{mã sản phẩm}/
+      ├── master-doc/        DB — master_documents + versions
+      ├── brs/               DB — cr_brs_documents theo từng CR
+      ├── test/              DB — testcase + kết quả chạy
+      ├── prototype/         đĩa — prototype_versions.storage_path
+      └── diagram/           DB (mermaid) hoặc đĩa (drawio/ảnh)
 ```
 
-Dữ liệu đã sẵn sàng: 12 domain, `catalog_products.domain_code` đã có, 28 sản phẩm thuộc 7 domain.
+Sẵn sàng: 12 domain, `catalog_products.domain_code` đã có, 28 sản phẩm thuộc 7 domain (5 domain chưa có sản phẩm — hiển thị rỗng).
 
-### 4.6 Báo cáo thay Kế hoạch năm (QĐ-11)
+### 4.6 Module Báo cáo theo kỳ (QĐ-11)
 
-**Gỡ:** trang Kế hoạch năm, 2 router, 10 bảng ra khỏi luồng sử dụng.
+Chọn năm hoặc khoảng ngày → xuất công việc đã làm:
+- **Project**: khởi tạo / hoàn thành trong kỳ
+- **Product**: có thay đổi Master Doc trong kỳ
+- **CR**: theo trạng thái, kèm BRS và kết quả test, **nhóm theo dự án tài trợ** — phần này chỉ chạy được nếu giữ `source_project_id` (CH-2)
 
-**Thay bằng** module Báo cáo: chọn khoảng thời gian (theo năm hoặc from-date/to-date) → xuất công việc đã làm gồm **Project** (khởi tạo/hoàn thành trong kỳ), **Product** (thay đổi trong kỳ), **CR** (theo trạng thái, kèm BRS và kết quả test). Xuất XLSX.
-
-**Lưu ý dữ liệu — cần PO xác nhận (CH-1):** hiện có **20 sáng kiến** và **20 dự án đang gắn `plan_id`**. Theo quy ước "migration chỉ additive", tôi **không xóa bảng**, chỉ gỡ khỏi giao diện và luồng. Dữ liệu vẫn nằm trong DB, truy được bằng SQL. Nếu PO muốn giữ tra cứu lịch sử kế hoạch năm thì làm thêm 1 màn hình chỉ-đọc.
+Xuất XLSX. *(Phần gỡ Kế hoạch năm đã thực hiện — xem Mục 7.)*
 
 ---
 
-## 5. Thay đổi mô hình dữ liệu — V051 → V055 (đều additive)
+## 5. Thay đổi mô hình dữ liệu
 
-| Migration | Nội dung | Ghi chú rủi ro |
+| Migration | Nội dung | Ghi chú |
 |---|---|---|
-| ~~**V050**~~ | ~~Gỡ module Kế hoạch năm — 15 bảng + `projects.plan_id`~~ | **ĐÃ THỰC HIỆN 2026-09-01.** Migration phá hủy, có sao lưu trước |
-| **V051** | `change_requests.project_id` bỏ NOT NULL rồi ngưng dùng; `product_id` bắt buộc ở tầng ứng dụng cho CR mới | 3 CR cũ chưa gắn product → không đặt NOT NULL ở DB |
-| **V052** | `project_product_links` — project bàn giao **đúng 1** product (UNIQUE project_id) | Bảng mới, theo QĐ-16 |
-| **V053** | `prototypes` + `prototype_versions`, `design_systems` + `design_system_versions` | Bảng mới, `owner_type` CHECK (project\|product) |
-| **V054** | `diagrams` (owner_type project\|product\|brs, 3 diagram_type) | Bảng mới |
-| **V055** | `automation_case_steps`, `automation_case_results` | Bảng mới — nền cho QĐ-4 và QĐ-10 |
+| ~~V050~~ | ~~Gỡ 15 bảng Kế hoạch năm + `projects.plan_id` + 17 khóa ngoại~~ | **ĐÃ THỰC HIỆN.** Migration **phá hủy** — ngoại lệ có chủ đích với quy ước additive, có sao lưu DB trước |
+| **V051** | CR: đổi `project_id` → `source_project_id` (giữ dữ liệu, bỏ NOT NULL); index `product_id` | `product_id` bắt buộc **ở tầng ứng dụng** cho CR mới — không đặt NOT NULL vì 3 CR cũ chưa gắn (L7) |
+| **V052** | `project_product_links` (project, product, role: creates\|enhances) — UNIQUE một `creates` mỗi dự án | Theo L3 |
+| **V053** | `prototypes` + versions, `design_systems` + versions | `owner_type` CHECK (project\|product) |
+| **V054** | `diagrams` | owner_type project\|product\|brs |
+| **V055** | `automation_test_cases.case_type`; `automation_case_steps`; `automation_case_children`; `automation_case_results` | Theo L4 |
+| **V056** | Master Doc: `change_summary` bắt buộc khác rỗng cho version `manual` | Chỉ khi PO chốt CH-3 |
 
-Không migration nào DROP hay đổi kiểu cột đang dùng. Tuân thủ quy ước trong CLAUDE.md.
-
----
-
-## 6. AI skill cần thêm (nạp vào kho skill đã có)
-
-| Skill | Dùng khi | Bắt buộc? |
-|---|---|---|
-| `init_master_doc` | Khởi tạo Master Doc v1 từ BRD project + metadata catalog | Có — thay vai trò `gen_brd` đã bỏ |
-| `gen_diagram` | Sinh Mermaid (workflow/sequence/dataflow) từ BRS | Không — tiện ích |
-| `gen_case_report` | Report **từng testcase** theo mẫu PO cấu hình (QĐ-10) | Có |
-| `review_brs` | Rà BRS trước khi trình duyệt: thiếu mục, mâu thuẫn Master Doc | Không — nâng chất lượng |
-
-4 skill hệ thống hiện có (`gen_brs`, `update_master_doc`, `gen_test_case`, `gen_test_report`) giữ nguyên, sửa nội dung được trong màn Cài đặt.
+V051 đổi tên cột — dữ liệu giữ nguyên, nhưng **cần sửa đồng bộ** `requests.py` và màn CR. Các migration còn lại thuần additive.
 
 ---
 
-## 7. Lộ trình 5 giai đoạn — mỗi giai đoạn dùng được ngay
+## 6. Lộ trình — đã sửa thứ tự theo L5
 
 | GĐ | Nội dung | Tuần | Giá trị nhận được |
 |---|---|---|---|
-| **P1** | V050+V051: CR gắn product (bỏ ép project), liên kết project→product. Sửa màn CR | 1–2 | CR ghi nhận được **thay đổi ngoài dự án** — vá lỗi, tuân thủ |
-| **P2** | Product Home 6 tab: Tổng quan · Master Doc · CR/BRS · Test · Prototype+DS · Diagram | 2 | **Một màn hình trả lời mọi câu hỏi về một hệ thống** |
-| **P3** | V052+V053: Prototype, Design System, Diagram (quản lý + view + import) | 2 | BA trình bày được thiết kế và sơ đồ ngay trong hệ |
-| **P4** | V054 + chuyển Capture Studio sang DB + report từng testcase + skill export | 2–3 | Chuỗi truy vết **khép kín trong một nguồn sự thật** |
-| ~~**P5a**~~ | ~~Gỡ Kế hoạch năm (DB + code + giao diện)~~ | — | **ĐÃ XONG 2026-09-01** — dashboard chuyển sang trục vòng đời |
-| **P5b** | Thêm module Báo cáo theo kỳ (project/product/CR); dọn phần rìa theo QĐ-12 | 1 | Xuất được công việc đã làm theo năm / khoảng ngày |
+| **P1** | V051+V052: CR gắn Product bắt buộc, giữ quy kết dự án; liên kết project↔product 2 vai trò; xử lý 3 CR cũ; sửa màn CR | 1–2 | CR ghi nhận được thay đổi **ngoài dự án**; nền cho mọi phần sau |
+| **P2** | V053+V054: Prototype, Design System, Diagram — bảng + API + màn quản lý/xem/import | 2 | BA trình bày thiết kế và sơ đồ ngay trong hệ |
+| **P3** | Product Home 6 tab (Tổng quan · Master Doc · CR/BRS · Test · Prototype+DS · Diagram) | 2 | **Một màn hình trả lời mọi câu hỏi về một hệ thống** |
+| **P4** | V055 + chuyển Capture Studio sang DB (gồm case tổng hợp) + report từng testcase + skill export | 2–3 | Chuỗi truy vết khép kín trong một nguồn sự thật |
+| **P5** | Module Báo cáo theo kỳ; dọn phần rìa theo CH-4 | 1 | Xuất công việc đã làm theo năm / khoảng ngày |
 
-**Tổng: 7–10 tuần.** Dừng ở cuối bất kỳ giai đoạn nào hệ thống vẫn nhất quán.
+**Tổng 8–10 tuần.** Dừng ở cuối giai đoạn nào hệ thống vẫn nhất quán.
 
-Đề xuất làm P1 trước vì nó gỡ nút thắt lớn nhất (CR bị trói vào project) và là tiền đề cho mọi thứ sau.
-
----
-
-## 8. Việc đã xử lý xong trong lúc chờ review
-
-**QĐ-13 — "test báo lỗi nhưng thực tế vẫn call được":** đã tìm ra nguyên nhân và sửa.
-
-Thứ PO nhập là **OAuth token** (`sk-ant-oat…`) của gói thuê bao, không phải API key. Anthropic nhận hai kiểu xác thực khác nhau: API key gửi qua header `x-api-key`, OAuth token gửi qua `Authorization: Bearer` kèm header beta. Code cũ luôn gửi kiểu thứ nhất nên token hợp lệ vẫn bị trả 401 "key không hợp lệ".
-
-Đã sửa: hệ thống tự nhận diện loại credential và gửi đúng kiểu; màn Cài đặt hiện rõ đang dùng loại nào; thông báo lỗi nêu đúng nguyên nhân. Xác thực đã thông — hiện còn vướng **429 hết hạn mức của gói thuê bao**, nên chưa chạy được luồng sinh tài liệu thật. **Khuyến nghị: dùng API key trả theo lượt dùng** (`sk-ant-api…`) từ console.anthropic.com để hệ thống chạy ổn định, không tranh hạn mức với Claude Code.
+Thứ tự đã đảo so với v2: **dữ liệu trước, màn hình sau** — P3 (Product Home) chỉ dựng được khi P2 đã có bảng prototype/DS/diagram.
 
 ---
 
-## 9. Câu hỏi cần PO quyết
+## 7. Việc đã thực hiện
 
-~~**CH-1** — Dữ liệu Kế hoạch năm~~ → **PO đã trả lời (QĐ-15): bỏ luôn cả DB và ràng buộc. ĐÃ THỰC HIỆN.**
+**QĐ-15 — Gỡ Kế hoạch năm (2026-09-01):** xóa 15 bảng + cột `projects.plan_id` + 17 khóa ngoại (V050, có sao lưu trước); gỡ 3 router backend và 22 file frontend; **viết lại Dashboard theo trục vòng đời** (KPI dự án/sản phẩm/độ phủ Master Doc/CR đang mở/việc test; thay tab Financial-Risk bằng tab Sản phẩm). 22 dự án không bị ảnh hưởng.
 
-~~**CH-2** — Master Doc v1 sinh từ đâu~~ → **PO đã trả lời (QĐ-14): cả 3 đường — AI sinh từ BRD project, import, hoặc sửa trực tiếp. Xem Mục 3.3.**
-
-**Còn lại, quyết trước khi tới giai đoạn tương ứng:**
-
-1. **CH-3 — Phạm vi "xóa phần rìa" (QĐ-12):** ngoài Kế hoạch năm, các phần sau đang ít giá trị theo trục vòng đời — PO xác nhận cắt phần nào: trang BA cũ `/ba` (thế hệ tài liệu cũ), Stage Gate / Health RAG / Stakeholder / Priority scoring trong PPG, danh mục Vai trò & Quyền (chưa enforce), 3 bảng registry legacy.
-
-2. **CH-4 — Phân quyền:** hiện **mọi người đăng nhập đều duyệt được** BRS và Master Doc. Với quy trình maker-checker của ngân hàng đây là khoảng trống thật. PO chấp nhận ở v1 (làm sau P5), hay cần chặn ngay từ P1?
+**QĐ-13 — Xác thực Claude:** thứ PO nhập là **OAuth token** (`sk-ant-oat…`) của gói thuê bao, không phải API key; hai loại này gửi qua hai cơ chế khác nhau nên token hợp lệ vẫn bị trả 401. Đã sửa để nhận diện đúng cả hai loại, hiển thị loại đang dùng trong Cài đặt, thông báo lỗi nêu đúng nguyên nhân. **Hiện vướng 429 hết hạn mức gói thuê bao** — khuyến nghị dùng API key trả theo lượt dùng để chạy ổn định.
 
 ---
 
-## 10. Rủi ro chính
+## 8. Rủi ro chính
 
 | Rủi ro | Mức | Cách xử lý |
 |---|---|---|
-| Chuyển Capture Studio sang DB làm hỏng tính năng ghi | **Cao** | Giữ nguyên interface `store.js`, chỉ đổi phần lưu trữ; thử kỹ luồng ghi trước khi bỏ đường cũ |
-| Gỡ Kế hoạch năm khi 20 dự án đang gắn | Trung bình | Không xóa bảng, chỉ gỡ giao diện (CH-1) |
-| Chưa có phân quyền → chuỗi phê duyệt chỉ là hình thức | Trung bình | CH-4 — cần PO chốt mức chấp nhận rủi ro |
-| Hạn mức AI của gói thuê bao chặn luồng sinh tài liệu | Trung bình | Chuyển sang API key trả theo lượt dùng |
-| 28 sản phẩm chưa có Master Doc → chuỗi CR→BRS→Merge chưa chạy được | Trung bình | CH-2 — chốt cách khởi tạo trước P2 |
+| Chuyển Capture Studio sang DB làm mất tính năng ghi hoặc ghép test case | **Cao** | Giữ nguyên chữ ký `store.js`, chuyển đúng cả mô hình composite (L4), thử kỹ trước khi bỏ đường cũ |
+| Đổi tên `project_id` → `source_project_id` sót chỗ dùng | Trung bình | Rà toàn bộ `requests.py` + màn CR; đổi trong một migration + một PR |
+| 28 sản phẩm chưa có Master Doc → chuỗi CR→BRS→Merge chưa chạy được | Trung bình | Đường import (Mục 3.4) là lối vào nhanh nhất; ưu tiên sản phẩm có CR trước |
+| Sửa tay Master Doc ghi đè thẳng, không qua duyệt | Trung bình | CH-3 — nếu PO đồng ý thì V056 + đưa sửa tay vào luồng duyệt |
+| Chưa có phân quyền → chuỗi phê duyệt là hình thức | Trung bình | Chưa nằm trong 16 quyết định; đề xuất xử lý sau P5 |
+| Hạn mức AI chặn luồng sinh tài liệu | Trung bình | Dùng API key trả theo lượt dùng |
 
 ---
 
-## 11. Việc cần PO làm tiếp
+## 9. Việc cần PO làm tiếp
 
-1. Đọc Mục 2 xác nhận tôi hiểu đúng 13 quyết định.
-2. Trả lời **CH-1** (chặn P5) và xác nhận thứ tự giai đoạn — đề xuất bắt đầu từ P1.
-3. CH-2, CH-3, CH-4 trả lời sau cũng được, nhưng nên có trước khi tới giai đoạn tương ứng.
-4. Cân nhắc tạo API key trả theo lượt dùng để chạy thật luồng AI.
+1. Đọc **Mục 1** — xác nhận 4 lỗi thiết kế (L1–L4) tôi tìm ra là đúng với ý anh/chị.
+2. Trả lời **CH-1** và **CH-2** — hai câu này chặn P1.
+3. CH-3, CH-4 trả lời sau cũng được.
+4. Cân nhắc API key trả theo lượt dùng để chạy thật luồng AI.
 
-Sau khi PO duyệt, tôi bắt đầu P1 và không đụng tới các phần ngoài phạm vi đã chốt.
+Sau khi PO chốt CH-1 và CH-2, tôi bắt đầu P1.
