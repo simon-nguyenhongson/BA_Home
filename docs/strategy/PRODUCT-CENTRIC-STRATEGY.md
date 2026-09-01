@@ -1,7 +1,7 @@
 # Chiến lược tái cấu trúc BA_Home theo hướng Product-Centric
 
 - **Mã:** STRATEGY-001 · **Phiên bản:** 2.0 · **Ngày:** 2026-09-01
-- **Trạng thái:** chờ PO review vòng 2 — **chưa code gì**
+- **Trạng thái:** PO đã chốt QĐ-14/15/16 · P5a đã thực hiện · P1 sẵn sàng khởi động
 - **Thay thế:** v1.0 (2026-09-01 sáng). v2.0 viết lại theo 13 quyết định của PO; v1.0 xem trong Git history.
 
 ---
@@ -18,7 +18,7 @@ Bù lại có 2 hạng mục **mới hoàn toàn** chưa có trong v1: quản l�
 
 Cân đối: phạm vi v2 **nhẹ hơn v1 khoảng 25%** dù thêm 2 hạng mục mới, vì bỏ BRD-product và Kế hoạch năm. Ước lượng **5 giai đoạn, 7–10 tuần**.
 
-**Còn 4 câu hỏi cần PO quyết** (Mục 9) — trong đó 1 câu chặn tiến độ.
+**Còn 2 câu hỏi cần PO quyết** (Mục 9) — không câu nào chặn tiến độ.
 
 ---
 
@@ -26,7 +26,7 @@ Cân đối: phạm vi v2 **nhẹ hơn v1 khoảng 25%** dù thêm 2 hạng mụ
 
 | # | Quyết định | Ảnh hưởng thiết kế |
 |---|---|---|
-| 1 | CR theo product; **bỏ bắt buộc project_id**. Product và Project **ngang hàng**. Output của project ra 1 product | Đảo ràng buộc: `product_id` bắt buộc (CR mới), `project_id` tùy chọn. Thêm liên kết project → product |
+| 1 | CR theo product; **bỏ bắt buộc project_id**. Output của project ra 1 product | `product_id` bắt buộc (CR mới), `project_id` ngưng dùng. Thêm liên kết project → product *(làm rõ thêm ở QĐ-16)* |
 | 2 | Tài liệu: mỗi **domain** có module cho Product thuộc domain đó — master doc, BRS, test | Cây tài liệu đổi thành domain → product → tài liệu |
 | 3 | Testcase của BRS **gom chung 1 hệ**, không tách riêng, đi theo hướng automation | Không xây hệ test-management riêng. Một hệ automation duy nhất |
 | 4 | Automation testcase con **quản lý ở DB**, không JSON cục bộ | Capture Studio chuyển sang đọc/ghi qua API. DB là nguồn sự thật |
@@ -52,44 +52,41 @@ Cân đối: phạm vi v2 **nhẹ hơn v1 khoảng 25%** dù thêm 2 hạng mụ
 Theo QĐ-16, **Product là trục xuyên suốt**. Project là khoản đầu tư có thời hạn, bàn giao ra **đúng 1 Product** rồi kết thúc. Khi project done là dừng hẳn — **mọi thay đổi sau đó đều là CR trên Product**, không còn CR trên project.
 
 ```
-TRỤC DELIVERY (có thời hạn)              TRỤC TRI THỨC (sống lâu dài)
-─────────────────────────                ────────────────────────────
-projects                                  catalog_products (28 sản phẩm, 7 domain)
-├── project_briefs  ← BRD (ĐÃ CÓ)         ├── master_documents (ĐÃ CÓ)
-├── milestones, members, gates            │     └── master_doc_versions → version_crs
-├── prototypes      [MỚI, dùng chung]     ├── prototypes      [MỚI, dùng chung]
-├── design_systems  [MỚI, dùng chung]     ├── design_systems  [MỚI, dùng chung]
-├── diagrams        [MỚI, dùng chung]     ├── diagrams        [MỚI, dùng chung]
-└──────────┐                              └──────────┐
-           │  ĐIỂM NỐI 1                             │
-           │  project_product_links [MỚI]            │
-           │  "project này bàn giao ra product nào"  │
-           └────────────────┬───────────────────────┘
-                            │
-                     ĐIỂM NỐI 2 — CR
-                            │
-              change_requests (product_id BẮT BUỘC,
-                               project_id TÙY CHỌN)
-                            │
-                 cr_brs_documents (ĐÃ CÓ)
-                            ├── diagrams [MỚI — QĐ-9]
-                            │
-                 automation_test_tasks (ĐÃ CÓ)
-                            ├── automation_test_cases (ĐÃ CÓ)
-                            │     └── automation_case_steps [MỚI — QĐ-4]
-                            │           kịch bản ghi được, lưu DB
-                            └── automation_test_runs (ĐÃ CÓ)
-                                  └── automation_case_results [MỚI — QĐ-10]
-                                        kết quả + report từng testcase
+GIAI ĐOẠN ĐẦU TƯ (có thời hạn)          TRỤC CHÍNH — SẢN PHẨM (sống lâu dài)
+──────────────────────────────          ────────────────────────────────────
+projects                                 catalog_products (28 sản phẩm, 7 domain)
+├── project_briefs ← BRD (ĐÃ CÓ)         ├── master_documents (ĐÃ CÓ)
+├── milestones, members, gates           │     └── master_doc_versions → version_crs
+├── prototypes     [MỚI]                 ├── prototypes      [MỚI]
+├── design_systems [MỚI]                 ├── design_systems  [MỚI]
+├── diagrams       [MỚI]                 ├── diagrams        [MỚI]
+│                                        │
+└──── bàn giao ĐÚNG 1 sản phẩm ─────────▶│  project_product_links [MỚI, 1:1]
+      rồi KẾT THÚC                       │
+      (project done = dừng hẳn,          │
+       không còn CR trên project)        │
+                                         ▼
+                              change_requests (product_id BẮT BUỘC)
+                                         │  mọi thay đổi sau bàn giao
+                                         │  đều là CR trên Sản phẩm
+                              cr_brs_documents (ĐÃ CÓ)
+                                         ├── diagrams [MỚI — QĐ-9]
+                                         │
+                              automation_test_tasks (ĐÃ CÓ)
+                                         ├── automation_test_cases (ĐÃ CÓ)
+                                         │     └── automation_case_steps [MỚI — QĐ-4]
+                                         │           kịch bản ghi được, lưu DB
+                                         └── automation_test_runs (ĐÃ CÓ)
+                                               └── automation_case_results [MỚI — QĐ-10]
 ```
 
-**Vì sao "ngang hàng" quan trọng:** hệ thống ngân hàng sống 10 năm, dự án sống 6 tháng. Buộc CR phải có project (như hiện tại) nghĩa là **không ghi nhận được thay đổi ngoài dự án** — vá lỗi vận hành, yêu cầu tuân thủ, tối ưu nhỏ. Đó chính là phần lớn thay đổi thực tế trên hệ thống đang chạy.
+**Vì sao Product phải là trục chính:** hệ thống ngân hàng sống 10 năm, dự án sống 6 tháng. Nếu CR bám vào project thì khi project đóng, mọi thay đổi sau đó — vá lỗi vận hành, yêu cầu tuân thủ, tối ưu nhỏ — **không còn chỗ để ghi nhận**. Đó lại chính là phần lớn thay đổi thực tế trong suốt vòng đời hệ thống. Gắn CR vào Product thì tri thức tích lũy liên tục, không đứt khi dự án kết thúc.
 
 ### 3.2 Thuật ngữ chốt (khóa vào ADR-006)
 
 - **Product** = 1 dòng `catalog_products`. Chủ sở hữu tài sản tri thức: Master Doc, chuỗi CR/BRS/Test, Prototype, DS, Diagram.
-- **Project** = khoản đầu tư có thời hạn. Chủ sở hữu **BRD** (`project_briefs`), milestone, nguồn lực, gates. **Bàn giao ra Product.**
-- **CR** = đơn vị thay đổi trên **một Product**. Có thể do một Project tài trợ, có thể không.
+- **Project** = khoản đầu tư có thời hạn. Chủ sở hữu **BRD** (`project_briefs`), milestone, nguồn lực, gates. Bàn giao **đúng 1 Product** rồi kết thúc.
+- **CR** = đơn vị thay đổi trên **một Product**. Không bao giờ thuộc về Project (QĐ-16).
 - **BRS** = đặc tả của một CR. Là cầu nối duy nhất từ CR sang Master Doc và sang Test.
 - **Master Doc** = đặc tả AS-IS sống của Product.
 
@@ -99,15 +96,15 @@ projects                                  catalog_products (28 sản phẩm, 7 d
 
 Chuỗi này truy vết 100% trong DB qua `master_doc_versions` + `master_doc_version_crs` (đã có). Trả lời được câu hỏi kiểm toán: *"Điều khoản này trong tài liệu đến từ đâu?"* → version nào → BRS nào → CR nào → ai duyệt, lúc nào.
 
-### 3.3 Master Doc v1 sinh ra từ đâu?
+### 3.3 Master Doc v1 — ba đường khởi tạo (QĐ-14)
 
-Bỏ BRD-product làm mất nguồn khởi tạo mà v1 dự kiến. Ba cách, đề xuất cách 2:
-
-| Cách | Mô tả | Đánh giá |
+| Cách | Mô tả | Khi nào dùng |
 |---|---|---|
-| 1 | BA soạn tay | Đơn giản nhưng tốn công với 28 sản phẩm |
-| 2 | **AI skill `init_master_doc` sinh từ BRD của project bàn giao + metadata catalog** | **Đề xuất** — tận dụng `project_briefs` 25 cột đã có; sản phẩm không có project nguồn thì soạn tay |
-| 3 | Sinh từ prototype | Ngược quy trình, không khuyến nghị |
+| 1 | **AI sinh từ BRD của project bàn giao** (skill `init_master_doc`) + metadata catalog | Sản phẩm ra đời từ một dự án — tận dụng `project_briefs` 25 cột đã có |
+| 2 | **Import chủ động** — tải lên tài liệu sẵn có (Markdown/Word) | Sản phẩm cũ đã có tài liệu ngoài hệ thống |
+| 3 | **Soạn/sửa trực tiếp trên giao diện** | Sản phẩm nhỏ, hoặc chỉnh sau khi sinh/import |
+
+Cả ba đều tạo ra `master_doc_versions` v1 với `source` tương ứng (`init_ai` / `import` / `manual`). Sau v1, mọi thay đổi chỉ đi qua merge BRS golive có phê duyệt — giữ nguyên invariant kiểm toán ở Mục 3.2.
 
 ---
 
@@ -210,15 +207,16 @@ Dữ liệu đã sẵn sàng: 12 domain, `catalog_products.domain_code` đã có
 
 ---
 
-## 5. Thay đổi mô hình dữ liệu — additive, V050 → V054
+## 5. Thay đổi mô hình dữ liệu — V051 → V055 (đều additive)
 
 | Migration | Nội dung | Ghi chú rủi ro |
 |---|---|---|
-| **V050** | `change_requests.project_id` bỏ NOT NULL; thêm index `product_id` | Nới lỏng ràng buộc — an toàn. Bắt buộc `product_id` **enforce ở tầng ứng dụng** cho CR mới (không đặt NOT NULL vì 3 CR cũ chưa gắn product) |
-| **V051** | `project_product_links` (project ↔ product, kèm vai trò: bàn giao mới / nâng cấp) | Bảng mới |
-| **V052** | `prototypes` + `prototype_versions`, `design_systems` + `design_system_versions` | Bảng mới, `owner_type` CHECK (project|product) |
-| **V053** | `diagrams` (owner_type project|product|brs, 3 diagram_type) | Bảng mới |
-| **V054** | `automation_case_steps`, `automation_case_results` | Bảng mới — nền cho QĐ-4 và QĐ-10 |
+| ~~**V050**~~ | ~~Gỡ module Kế hoạch năm — 15 bảng + `projects.plan_id`~~ | **ĐÃ THỰC HIỆN 2026-09-01.** Migration phá hủy, có sao lưu trước |
+| **V051** | `change_requests.project_id` bỏ NOT NULL rồi ngưng dùng; `product_id` bắt buộc ở tầng ứng dụng cho CR mới | 3 CR cũ chưa gắn product → không đặt NOT NULL ở DB |
+| **V052** | `project_product_links` — project bàn giao **đúng 1** product (UNIQUE project_id) | Bảng mới, theo QĐ-16 |
+| **V053** | `prototypes` + `prototype_versions`, `design_systems` + `design_system_versions` | Bảng mới, `owner_type` CHECK (project\|product) |
+| **V054** | `diagrams` (owner_type project\|product\|brs, 3 diagram_type) | Bảng mới |
+| **V055** | `automation_case_steps`, `automation_case_results` | Bảng mới — nền cho QĐ-4 và QĐ-10 |
 
 Không migration nào DROP hay đổi kiểu cột đang dùng. Tuân thủ quy ước trong CLAUDE.md.
 
@@ -245,7 +243,8 @@ Không migration nào DROP hay đổi kiểu cột đang dùng. Tuân thủ quy 
 | **P2** | Product Home 6 tab: Tổng quan · Master Doc · CR/BRS · Test · Prototype+DS · Diagram | 2 | **Một màn hình trả lời mọi câu hỏi về một hệ thống** |
 | **P3** | V052+V053: Prototype, Design System, Diagram (quản lý + view + import) | 2 | BA trình bày được thiết kế và sơ đồ ngay trong hệ |
 | **P4** | V054 + chuyển Capture Studio sang DB + report từng testcase + skill export | 2–3 | Chuỗi truy vết **khép kín trong một nguồn sự thật** |
-| **P5** | Gỡ Kế hoạch năm, thêm module Báo cáo theo kỳ; dọn phần rìa theo QĐ-12 | 1 | Giao diện gọn theo đúng vòng đời PO quan tâm |
+| ~~**P5a**~~ | ~~Gỡ Kế hoạch năm (DB + code + giao diện)~~ | — | **ĐÃ XONG 2026-09-01** — dashboard chuyển sang trục vòng đời |
+| **P5b** | Thêm module Báo cáo theo kỳ (project/product/CR); dọn phần rìa theo QĐ-12 | 1 | Xuất được công việc đã làm theo năm / khoảng ngày |
 
 **Tổng: 7–10 tuần.** Dừng ở cuối bất kỳ giai đoạn nào hệ thống vẫn nhất quán.
 
@@ -265,17 +264,15 @@ Thứ PO nhập là **OAuth token** (`sk-ant-oat…`) của gói thuê bao, khô
 
 ## 9. Câu hỏi cần PO quyết
 
-**Chặn tiến độ:**
+~~**CH-1** — Dữ liệu Kế hoạch năm~~ → **PO đã trả lời (QĐ-15): bỏ luôn cả DB và ràng buộc. ĐÃ THỰC HIỆN.**
 
-1. **CH-1 — Dữ liệu Kế hoạch năm (QĐ-11):** hiện có 20 sáng kiến và 20 dự án đang gắn `plan_id`. Đề xuất: **giữ bảng, gỡ khỏi giao diện**, dữ liệu vẫn tra được bằng SQL. PO có cần màn hình chỉ-đọc để tra lịch sử không, hay bỏ hẳn khỏi tầm nhìn người dùng?
+~~**CH-2** — Master Doc v1 sinh từ đâu~~ → **PO đã trả lời (QĐ-14): cả 3 đường — AI sinh từ BRD project, import, hoặc sửa trực tiếp. Xem Mục 3.3.**
 
-**Không chặn, quyết trước khi tới giai đoạn tương ứng:**
+**Còn lại, quyết trước khi tới giai đoạn tương ứng:**
 
-2. **CH-2 — Master Doc v1 sinh từ đâu (Mục 3.3):** đề xuất AI sinh từ BRD của project bàn giao. Với 28 sản phẩm hiện có mà phần lớn không có project nguồn, PO muốn: BA soạn tay dần, hay sinh từ metadata catalog rồi BA chỉnh?
+1. **CH-3 — Phạm vi "xóa phần rìa" (QĐ-12):** ngoài Kế hoạch năm, các phần sau đang ít giá trị theo trục vòng đời — PO xác nhận cắt phần nào: trang BA cũ `/ba` (thế hệ tài liệu cũ), Stage Gate / Health RAG / Stakeholder / Priority scoring trong PPG, danh mục Vai trò & Quyền (chưa enforce), 3 bảng registry legacy.
 
-3. **CH-3 — Phạm vi "xóa phần rìa" (QĐ-12):** ngoài Kế hoạch năm, các phần sau đang ít giá trị theo trục vòng đời — PO xác nhận cắt phần nào: trang BA cũ `/ba` (thế hệ tài liệu cũ), Stage Gate / Health RAG / Stakeholder / Priority scoring trong PPG, danh mục Vai trò & Quyền (chưa enforce), 3 bảng registry legacy.
-
-4. **CH-4 — Phân quyền:** hiện **mọi người đăng nhập đều duyệt được** BRS và Master Doc. Với quy trình maker-checker của ngân hàng đây là khoảng trống thật. PO chấp nhận ở v1 (làm sau P5), hay cần chặn ngay từ P1?
+2. **CH-4 — Phân quyền:** hiện **mọi người đăng nhập đều duyệt được** BRS và Master Doc. Với quy trình maker-checker của ngân hàng đây là khoảng trống thật. PO chấp nhận ở v1 (làm sau P5), hay cần chặn ngay từ P1?
 
 ---
 
