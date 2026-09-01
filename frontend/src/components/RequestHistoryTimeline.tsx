@@ -1,13 +1,28 @@
 import React from 'react'
 import type { RequestHistoryEntry } from '../api/requests'
 
+/**
+ * toLocaleString('vi-VN') cho ra "23:40:46 1/9/2026" — giờ trước ngày, ngày một chữ số,
+ * khó đối chiếu khi rà soát nhiều dòng và khác định dạng dùng ở panel chi tiết.
+ */
+function fmtStamp(iso: string): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`
+}
+
 const ACTION_LABEL: Record<string, string> = {
-  created:        'Khởi tạo',
-  updated:        'Cập nhật thông tin',
-  status_changed: 'Thay đổi trạng thái',
+  created:                  'Khởi tạo',
+  updated:                  'Cập nhật thông tin',
+  status_changed:           'Thay đổi trạng thái',
+  // Backend ghi action riêng cho nước đi ngoài luồng chuẩn (bỏ qua bước duyệt chẳng hạn).
+  // Không có nhãn thì dòng này hiện nguyên chuỗi mã và trông y như một thay đổi bình thường.
+  status_changed_off_flow:  'Chuyển NGOÀI LUỒNG',
 }
 
 function dotColor(e: RequestHistoryEntry): string {
+  if (e.action === 'status_changed_off_flow') return '#f79009'
   if (e.action === 'created') return '#22c55e'
   const terminal = ['rejected', 'cancelled', 'closed']
   if (e.to_status && terminal.includes(e.to_status)) return '#ef4444'
@@ -59,7 +74,10 @@ export function RequestHistoryTimeline({
             {/* Content */}
             <div style={{ flex: 1, paddingBottom: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--app-neutral-800)' }}>
+                <span style={{
+                  fontSize: 12, fontWeight: e.action === 'status_changed_off_flow' ? 700 : 600,
+                  color: e.action === 'status_changed_off_flow' ? '#B54708' : 'var(--app-neutral-800)',
+                }}>
                   {ACTION_LABEL[e.action] ?? e.action}
                 </span>
                 {e.from_status && e.to_status && (
@@ -80,7 +98,7 @@ export function RequestHistoryTimeline({
                 )}
               </div>
               <div style={{ fontSize: 11, color: 'var(--app-neutral-400)', marginTop: 1 }}>
-                {e.actor} · {new Date(e.created_at).toLocaleString('vi-VN')}
+                {e.actor} · {fmtStamp(e.created_at)}
               </div>
               {e.comment && (
                 <div style={{

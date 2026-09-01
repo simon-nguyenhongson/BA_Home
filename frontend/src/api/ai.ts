@@ -208,7 +208,8 @@ export const updateAiSettings = (body: {
   anthropic_model?: string
   anthropic_max_tokens?: number
 }) => req<{ data: AiSettings }>('PUT', '/settings/ai', body)
-export const testAiKey = () => req<{ data: { ok: boolean; model: string } }>('POST', '/settings/ai/test')
+export const testAiKey = () =>
+  req<{ data: { ok: boolean; model: string; requested_model?: string } }>('POST', '/settings/ai/test')
 
 export const getAiSkills = () => req<{ data: AiSkill[] }>('GET', '/ai-skills')
 export const checkSkillBundles = () =>

@@ -16,10 +16,7 @@ import {
 } from '../../api/requests'
 import { useStore } from '../../stores/auth'
 import { FilterBar, applyTextFilter, applyDateFilter } from '../../components/FilterBar'
-import { CommentModal } from '../../components/CommentModal'
-import { RequestHistoryTimeline } from '../../components/RequestHistoryTimeline'
-import { BrsPanel } from '../../features/cr/BrsPanel'
-import { RequestAttachments } from '../../components/RequestAttachments'
+import { CrDetailPanel } from '../../features/cr/CrDetailPanel'
 import { FileQueueSection } from '../../components/FileQueueSection'
 import { createTodo, type TodoType } from '../../api/todos'
 import { UserSelect } from '../../components/UserSelect'
@@ -79,38 +76,6 @@ function ErrorBanner({ message, onClose }: { message: string; onClose: () => voi
 }
 
 // ── CR flow progress bar ─────────────────────────────────────────
-function FlowBar({ status }: { status: CRStatus }) {
-  // For submitted, treat same position as draft in progress bar
-  const idx = FLOW.indexOf(status)
-  const isTerminal = status === 'rejected' || status === 'cancelled'
-  return (
-    <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap', margin: '8px 0 14px' }}>
-      {FLOW.map((s, i) => (
-        <React.Fragment key={s}>
-          <span style={{
-            padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600,
-            background: !isTerminal && i <= idx ? 'var(--app-primary)' : 'var(--app-neutral-200)',
-            color:      !isTerminal && i <= idx ? '#fff' : 'var(--app-neutral-500)',
-          }}>
-            {STATUS_LABELS[s]}
-          </span>
-          {i < FLOW.length - 1 && (
-            <span style={{ color: 'var(--app-neutral-400)', fontSize: 11 }}>›</span>
-          )}
-        </React.Fragment>
-      ))}
-      {isTerminal && (
-        <span style={{
-          padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600,
-          background: '#fee2e2', color: '#b91c1c',
-        }}>
-          {STATUS_LABELS[status]}
-        </span>
-      )}
-    </div>
-  )
-}
-
 // ── CR Form (create / edit) ──────────────────────────────────────
 function blankForm(projectId: string, username: string | null): CRCreate {
   return {
@@ -555,12 +520,7 @@ export default function ProjectCRTab({
   const [filterFrom, setFFrom]      = useState('')
   const [filterTo,   setFTo]        = useState('')
   const [selected, setSelected]     = useState<ChangeRequest | null>(null)
-  const [editStatus, setEditStatus] = useState<CRStatus>('submitted')
-  const [statusSaving, setStatusSaving] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
-  const [history, setHistory]       = useState<RequestHistoryEntry[]>([])
-  const [historyLoading, setHistoryLoading] = useState(false)
-  const [commentFor, setCommentFor] = useState<CRStatus | null>(null)
   const [showCreateTask, setShowCreateTask] = useState(false)
 
   const load = useCallback(async () => {
@@ -590,16 +550,6 @@ export default function ProjectCRTab({
     }
   }, [items, selected?.id])
 
-  // Load history when a CR is selected
-  useEffect(() => {
-    if (!selected) { setHistory([]); return }
-    setHistoryLoading(true)
-    crApi.history(selected.id)
-      .then(h => setHistory(h))
-      .catch(() => setHistory([]))
-      .finally(() => setHistoryLoading(false))
-  }, [selected?.id])
-
   const tabFilter = STATUS_TABS[activeTabIdx]
   const byTab = tabFilter.values
     ? items.filter(p => tabFilter.values!.includes(p.status))
@@ -614,40 +564,6 @@ export default function ProjectCRTab({
     setFText(''); setFFrom(''); setFTo('')
     setFP(''); setFT('')
   }
-
-  const REQUIRES_COMMENT: CRStatus[] = ['rejected', 'cancelled']
-
-  function handleStatusSaveClick() {
-    if (!selected || editStatus === selected.status) return
-    if (REQUIRES_COMMENT.includes(editStatus)) {
-      setCommentFor(editStatus)
-    } else {
-      doStatusSave(editStatus, undefined)
-    }
-  }
-
-  async function doStatusSave(status: CRStatus, comment: string | undefined) {
-    if (!selected) return
-    const id = selected.id
-    setStatusSaving(true)
-    setCommentFor(null)
-    try {
-      await crApi.update(id, { status, ...(comment ? { comment } : {}) })
-      const [, fresh, hist] = await Promise.all([
-        load(),
-        crApi.get(id),
-        crApi.history(id),
-      ])
-      setSelected(fresh)
-      setEditStatus(fresh.status)
-      setHistory(hist)
-    } catch (err) {
-      setPageError((err as Error).message)
-    } finally {
-      setStatusSaving(false)
-    }
-  }
-
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, height: '100%' }}>
@@ -759,11 +675,18 @@ export default function ProjectCRTab({
           {visible.map(cr => (
             <div
               key={cr.id}
-              onClick={() => { setSelected(cr); setEditStatus(cr.status) }}
+              onClick={() => setSelected(cr)}
               style={{
                 background: '#fff', borderRadius: 10,
-                border: `1px solid ${selected?.id === cr.id ? 'var(--app-primary)' : 'var(--app-neutral-200)'}`,
-                borderLeft: `4px solid ${PRIORITY_BORDER[cr.priority]}`,
+                // Longhand cả 4 cạnh: trộn shorthand `border` với `borderLeft` làm React
+                // cảnh báo "Updating a style property during rerender" mỗi lần chọn dòng
+                borderTopStyle: 'solid', borderRightStyle: 'solid',
+                borderBottomStyle: 'solid', borderLeftStyle: 'solid',
+                borderTopWidth: 1, borderRightWidth: 1, borderBottomWidth: 1, borderLeftWidth: 4,
+                borderTopColor:    selected?.id === cr.id ? 'var(--app-primary)' : 'var(--app-neutral-200)',
+                borderRightColor:  selected?.id === cr.id ? 'var(--app-primary)' : 'var(--app-neutral-200)',
+                borderBottomColor: selected?.id === cr.id ? 'var(--app-primary)' : 'var(--app-neutral-200)',
+                borderLeftColor:   PRIORITY_BORDER[cr.priority],
                 padding: '10px 14px', cursor: 'pointer',
                 boxShadow: selected?.id === cr.id ? '0 0 0 2px rgba(37,99,235,0.15)' : 'none',
                 transition: 'all 0.1s',
@@ -811,175 +734,18 @@ export default function ProjectCRTab({
           ))}
         </div>
 
-        {/* Detail panel */}
+        {/* Detail panel — dùng chung với trang Requests (features/cr/CrDetailPanel) */}
         {selected && (
           <div style={{ flex: 3, minWidth: 0, overflowY: 'auto' }}>
-            <div style={{
-              background: '#fff', borderRadius: 12,
-              border: '1px solid var(--app-neutral-200)',
-              padding: 18, position: 'sticky', top: 0,
-            }}>
-              {/* Header */}
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 4 }}>
-                <div>
-                  <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--app-neutral-500)' }}>
-                    {selected.request_code}
-                  </span>
-                  <h3 style={{ margin: '4px 0 0', fontSize: 15, fontWeight: 700, lineHeight: 1.3 }}>
-                    {selected.title}
-                  </h3>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setSelected(null)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-neutral-400)', fontSize: 18, padding: 2 }}
-                >
-                  
-                </button>
-              </div>
-
-              {/* Flow bar + Tạo Task */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <FlowBar status={selected.status} />
-                <button
-                  type="button"
-                  className="px-3 py-1 text-xs border border-gray-300 rounded text-gray-700 hover:bg-gray-50 font-medium"
-                  style={{ marginLeft: 'auto', flexShrink: 0 }}
-                  onClick={() => setShowCreateTask(true)}
-                >
-                  + Tạo Task
-                </button>
-              </div>
-
-              {/* Meta grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-                <div>
-                  <div style={{ fontSize: 11, color: 'var(--app-neutral-500)', marginBottom: 2 }}>Loại thay đổi</div>
-                  <div style={{ fontSize: 13 }}>{CHANGE_TYPE_LABELS[selected.change_type]}</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 11, color: 'var(--app-neutral-500)', marginBottom: 2 }}>Ưu tiên</div>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${PRIORITY_CSS[selected.priority]}`}>
-                    {PRIORITY_LABELS[selected.priority]}
-                  </span>
-                </div>
-                <div>
-                  <div style={{ fontSize: 11, color: 'var(--app-neutral-500)', marginBottom: 2 }}>Người yêu cầu</div>
-                  <div style={{ fontSize: 13 }}>{selected.requested_by}</div>
-                </div>
-                {selected.assigned_to && (
-                  <div>
-                    <div style={{ fontSize: 11, color: 'var(--app-neutral-500)', marginBottom: 2 }}>Phụ trách</div>
-                    <div style={{ fontSize: 13 }}>{selected.assigned_to}</div>
-                  </div>
-                )}
-                {selected.target_date && (
-                  <div>
-                    <div style={{ fontSize: 11, color: 'var(--app-neutral-500)', marginBottom: 2 }}>Ngày mục tiêu</div>
-                    <div style={{ fontSize: 13 }}>{selected.target_date}</div>
-                  </div>
-                )}
-                {selected.approved_by && (
-                  <div>
-                    <div style={{ fontSize: 11, color: 'var(--app-neutral-500)', marginBottom: 2 }}>Người duyệt</div>
-                    <div style={{ fontSize: 13 }}>{selected.approved_by}</div>
-                  </div>
-                )}
-              </div>
-
-              {selected.description && (
-                <div style={{ marginBottom: 10 }}>
-                  <div style={{ fontSize: 11, color: 'var(--app-neutral-500)', marginBottom: 4 }}>Mô tả</div>
-                  <div style={{ fontSize: 13, whiteSpace: 'pre-wrap', color: 'var(--app-neutral-700)', lineHeight: 1.5 }}>
-                    {selected.description}
-                  </div>
-                </div>
-              )}
-
-              {selected.impact_scope && (
-                <div style={{ marginBottom: 8 }}>
-                  <div style={{ fontSize: 11, color: 'var(--app-neutral-500)', marginBottom: 2 }}>Phạm vi ảnh hưởng</div>
-                  <div style={{ fontSize: 13 }}>{selected.impact_scope}</div>
-                </div>
-              )}
-              {selected.impact_effort && (
-                <div style={{ marginBottom: 12 }}>
-                  <div style={{ fontSize: 11, color: 'var(--app-neutral-500)', marginBottom: 2 }}>Ước tính effort</div>
-                  <div style={{ fontSize: 13 }}>{selected.impact_effort}</div>
-                </div>
-              )}
-              {selected.notes && (
-                <div style={{ marginBottom: 12 }}>
-                  <div style={{ fontSize: 11, color: 'var(--app-neutral-500)', marginBottom: 2 }}>Ghi chú</div>
-                  <div style={{ fontSize: 13, whiteSpace: 'pre-wrap' }}>{selected.notes}</div>
-                </div>
-              )}
-
-              {/* Tài liệu BRS — sinh bằng AI, duyệt, golive, merge Master Doc */}
-              <div style={{
-                borderTop: '1px solid var(--app-neutral-200)',
-                paddingTop: 12, marginTop: 4, marginBottom: 12,
-              }}>
-                <div style={{ fontSize: 11, color: 'var(--app-neutral-500)', marginBottom: 8 }}>
-                  Tài liệu BRS
-                </div>
-                <BrsPanel crId={selected.id} crStatus={selected.status} crCode={selected.request_code} />
-              </div>
-
-              {/* Status update */}
-              <div style={{
-                borderTop: '1px solid var(--app-neutral-200)',
-                paddingTop: 12, marginTop: 4,
-              }}>
-                <div style={{ fontSize: 11, color: 'var(--app-neutral-500)', marginBottom: 6 }}>Cập nhật trạng thái</div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <select
-                    className="input input-sm"
-                    style={{ flex: 1 }}
-                    value={editStatus}
-                    onChange={e => setEditStatus(e.target.value as CRStatus)}
-                  >
-                    {(Object.entries(STATUS_LABELS) as [CRStatus, string][]).map(([v, l]) => (
-                      <option key={v} value={v}>{l}</option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    className="bg-app-blue text-white px-3 py-1 rounded text-xs font-medium disabled:opacity-50"
-                    onClick={handleStatusSaveClick}
-                    disabled={statusSaving || editStatus === selected.status}
-                  >
-                    {statusSaving ? '...' : 'Lưu'}
-                  </button>
-                </div>
-              </div>
-
-              {/* Attachments */}
-              <RequestAttachments
-                refId={selected.id}
-                listFn={crApi.listAttachments}
-                uploadFn={crApi.uploadAttachment}
-              />
-
-              {/* History timeline */}
-              <RequestHistoryTimeline
-                entries={history}
-                statusLabels={STATUS_LABELS}
-                loading={historyLoading}
-              />
-            </div>
+            <CrDetailPanel
+              cr={selected}
+              lockProjectId={projectId}
+              onClose={() => setSelected(null)}
+              onChanged={fresh => { setSelected(fresh); load() }}
+              onDeleted={() => { setSelected(null); load() }}
+              onCreateTask={() => setShowCreateTask(true)}
+            />
           </div>
-        )}
-
-        {/* Comment modal for terminal status actions */}
-        {commentFor && selected && (
-          <CommentModal
-            title={commentFor === 'rejected' ? 'Từ chối CR' : 'Hủy CR'}
-            subtitle={`Vui lòng nhập lý do ${commentFor === 'rejected' ? 'từ chối' : 'hủy'} CR "${selected.title}".`}
-            confirmLabel={commentFor === 'rejected' ? 'Từ chối' : 'Hủy CR'}
-            onClose={() => setCommentFor(null)}
-            onConfirm={comment => doStatusSave(commentFor, comment)}
-          />
         )}
 
         {/* Create task modal */}

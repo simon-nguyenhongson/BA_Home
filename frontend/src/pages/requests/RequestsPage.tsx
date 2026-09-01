@@ -16,130 +16,15 @@ import { RequestAttachments } from '../../components/RequestAttachments'
 import { FileQueueSection } from '../../components/FileQueueSection'
 import { createTodo, TodoType } from '../../api/todos'
 import { UserSelect } from '../../components/UserSelect'
+import { ComboSelect, type ComboOption } from '../../components/ComboSelect'
+import { CrDetailPanel } from '../../features/cr/CrDetailPanel'
 import {
   CR_CHANGE_TYPE_LABELS, CR_STATUS_LABELS, CR_STATUS_TABS,
-  CR_PRIORITY_LABELS as PRIORITY_LABELS, CR_FLOW, TODO_TYPE_LABELS,
+  CR_PRIORITY_LABELS as PRIORITY_LABELS, TODO_TYPE_LABELS,
+  CR_STATUS_VARIANTS, CR_PRIORITY_VARIANTS as PRIORITY_VARIANTS,
 } from '../../features/cr/constants'
 
-// ── ComboSelect — searchable LOV dropdown ────────────────────────────────────
-
-interface ComboOption { value: string; label: string; meta?: string }
-
-function ComboSelect({
-  options, value, onChange, placeholder = 'Tìm kiếm...', loading = false, disabled = false,
-}: {
-  options: ComboOption[]
-  value: string
-  onChange: (val: string, label: string) => void
-  placeholder?: string
-  loading?: boolean
-  disabled?: boolean
-}) {
-  const [query, setQuery]   = useState('')
-  const [open, setOpen]     = useState(false)
-  const ref                 = useRef<HTMLDivElement>(null)
-
-  const selectedLabel = options.find(o => o.value === value)?.label ?? ''
-
-  const filtered = query.trim()
-    ? options.filter(o =>
-        o.label.toLowerCase().includes(query.toLowerCase()) ||
-        (o.meta ?? '').toLowerCase().includes(query.toLowerCase())
-      )
-    : options
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
-
-  return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <div
-        className="input"
-        style={{
-          display: 'flex', alignItems: 'center', gap: 6, cursor: disabled ? 'not-allowed' : 'pointer',
-          background: disabled ? 'var(--app-neutral-100)' : undefined,
-          minHeight: 36, padding: '4px 10px',
-        }}
-        onClick={() => { if (!disabled) setOpen(o => !o) }}
-      >
-        {value ? (
-          <span style={{ flex: 1, fontSize: 13 }}>{selectedLabel}</span>
-        ) : (
-          <span style={{ flex: 1, fontSize: 13, color: 'var(--app-neutral-400)' }}>
-            {loading ? 'Đang tải...' : placeholder}
-          </span>
-        )}
-        <span style={{ color: 'var(--app-neutral-400)', fontSize: 10 }}>{open ? '▲' : '▼'}</span>
-      </div>
-
-      {open && !disabled && (
-        <div style={{
-          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 999,
-          background: '#fff', border: '1px solid var(--app-neutral-300)',
-          borderRadius: 6, boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-          maxHeight: 260, display: 'flex', flexDirection: 'column',
-        }}>
-          <div style={{ padding: '6px 8px', borderBottom: '1px solid var(--app-neutral-200)' }}>
-            <input
-              autoFocus
-              className="input input-sm"
-              style={{ width: '100%' }}
-              placeholder="Tìm..."
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              onClick={e => e.stopPropagation()}
-            />
-          </div>
-          <div style={{ overflowY: 'auto', flex: 1 }}>
-            {filtered.length === 0 && (
-              <div style={{ padding: '10px 12px', color: 'var(--app-neutral-400)', fontSize: 13 }}>
-                Không tìm thấy kết quả
-              </div>
-            )}
-            {filtered.map(opt => (
-              <div
-                key={opt.value}
-                style={{
-                  padding: '8px 12px', cursor: 'pointer', fontSize: 13,
-                  background: opt.value === value ? 'var(--app-primary-50, #e6f0fa)' : undefined,
-                  borderBottom: '1px solid var(--app-neutral-100)',
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'var(--app-neutral-50, #f5f5f5)' }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLDivElement).style.background =
-                    opt.value === value ? 'var(--app-primary-50, #e6f0fa)' : ''
-                }}
-                onClick={() => { onChange(opt.value, opt.label); setOpen(false); setQuery('') }}
-              >
-                <div style={{ fontWeight: opt.value === value ? 600 : 400 }}>{opt.label}</div>
-                {opt.meta && (
-                  <div style={{ fontSize: 11, color: 'var(--app-neutral-500)', marginTop: 1 }}>{opt.meta}</div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
 // ── Constants ─────────────────────────────────────────────────────────────────
-
-const CR_STATUS_VARIANTS: Record<CRStatus, string> = {
-  submitted:    'neutral',
-  reviewing:    'warning',
-  approved:     'info',
-  rejected:     'danger',
-  implementing: 'warning',
-  implemented:  'success',
-  cancelled:    'neutral',
-}
 
 const SR_TYPE_LABELS: Record<SRRequestType, string> = {
   bug_fix: 'Bug Fix', enhancement: 'Cải tiến', support: 'Hỗ trợ',
@@ -177,37 +62,6 @@ const SR_STATUS_TABS: SrStatusTab[] = [
   { label: 'Từ chối',         values: ['rejected'] },
   { label: 'Hủy',             values: ['cancelled'] },
 ]
-
-const PRIORITY_VARIANTS: Record<Priority, string> = {
-  critical: 'danger', high: 'warning', medium: 'info', low: 'neutral',
-}
-
-// ── CR Flow indicator ────────────────────────────────────────────────────────
-
-function CRFlowBar({ current }: { current: CRStatus }) {
-  const idx = CR_FLOW.indexOf(current)
-  const isTerminal = current === 'rejected' || current === 'cancelled'
-  return (
-    <div style={{ display: 'flex', gap: 4, alignItems: 'center', margin: '8px 0', flexWrap: 'wrap' }}>
-      {CR_FLOW.map((s, i) => (
-        <React.Fragment key={s}>
-          <span style={{
-            padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600,
-            background: !isTerminal && i <= idx ? 'var(--app-primary)' : 'var(--app-neutral-200)',
-            color: !isTerminal && i <= idx ? '#fff' : 'var(--app-neutral-500)',
-          }}>{CR_STATUS_LABELS[s]}</span>
-          {i < CR_FLOW.length - 1 && <span style={{ color: 'var(--app-neutral-400)', fontSize: 10 }}>›</span>}
-        </React.Fragment>
-      ))}
-      {isTerminal && (
-        <span style={{
-          padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600,
-          background: '#fee2e2', color: '#b91c1c',
-        }}>{CR_STATUS_LABELS[current]}</span>
-      )}
-    </div>
-  )
-}
 
 const SR_FLOW: SRStatus[] = ['submitted', 'reviewing', 'approved', 'in_progress', 'resolved']
 
@@ -441,11 +295,6 @@ function CRTab() {
   const [projects, setCRProjects]  = useState<Project[]>([])
   const [selected, setSelected]     = useState<ChangeRequest | null>(null)
   const [hoveredId, setCRHovered]  = useState<string | null>(null)
-  const [editStatus, setEditStatus] = useState('')
-  const [saving, setSaving]         = useState(false)
-  const [crHistory, setCrHistory] = useState<RequestHistoryEntry[]>([])
-  const [crHistoryLoading, setCrHistoryLoading] = useState(false)
-  const [crCommentFor, setCrCommentFor] = useState<CRStatus | null>(null)
   const [showCrCreateTask, setShowCrCreateTask] = useState(false)
   const crDialogRef                = useRef<HTMLDialogElement>(null)
 
@@ -464,15 +313,6 @@ function CRTab() {
 
   useEffect(() => { load() }, [load])
 
-  useEffect(() => {
-    if (!selected) { setCrHistory([]); return }
-    setCrHistoryLoading(true)
-    crApi.history(selected.id)
-      .then(h => setCrHistory(h))
-      .catch(() => setCrHistory([]))
-      .finally(() => setCrHistoryLoading(false))
-  }, [selected?.id])
-
   const tabFilter = CR_STATUS_TABS[activeTabIdx]
   const byTab = tabFilter.values
     ? items.filter(p => tabFilter.values!.includes(p.status))
@@ -484,43 +324,6 @@ function CRTab() {
     rows = applyDateFilter(rows, 'created_at', filterFrom, filterTo)
     return rows
   })()
-
-  const CR_REQUIRES_COMMENT: CRStatus[] = ['rejected', 'cancelled']
-
-  function handleStatusUpdateClick() {
-    if (!selected || !editStatus || editStatus === selected.status) return
-    const newStatus = editStatus as CRStatus
-    if (CR_REQUIRES_COMMENT.includes(newStatus)) {
-      setCrCommentFor(newStatus)
-    } else {
-      doCrStatusSave(newStatus, undefined)
-    }
-  }
-
-  async function doCrStatusSave(status: CRStatus, comment: string | undefined) {
-    if (!selected) return
-    const id = selected.id
-    setSaving(true); setCrCommentFor(null)
-    try {
-      await crApi.update(id, { status, ...(comment ? { comment } : {}) })
-      const [, fresh, hist] = await Promise.all([
-        load(),
-        crApi.get(id),
-        crApi.history(id),
-      ])
-      setSelected(fresh)
-      setEditStatus(fresh.status)
-      setCrHistory(hist)
-    } catch (e) { alert((e as Error).message) }
-    finally { setSaving(false) }
-  }
-
-  async function handleDelete(id: string) {
-    if (!confirm('Xoá CR này?')) return
-    await crApi.delete(id)
-    await load()
-    if (selected?.id === id) setSelected(null)
-  }
 
   return (
     <div style={{ display: 'flex', gap: 16, height: '100%' }}>
@@ -606,17 +409,27 @@ function CRTab() {
                 key={cr.id}
                 onMouseEnter={() => setCRHovered(cr.id)}
                 onMouseLeave={() => setCRHovered(null)}
-                onClick={() => { setSelected(cr); setEditStatus(cr.status) }}
+                onClick={() => setSelected(cr)}
                 style={{
                   cursor: 'pointer',
                   background: isSelected
                     ? 'var(--app-primary-50, #eff6ff)'
                     : isHovered ? 'var(--app-neutral-50, #f9fafb)' : '#fff',
                   borderRadius: 8,
-                  border: isSelected
-                    ? '1.5px solid var(--app-primary)'
-                    : '1px solid var(--app-neutral-200)',
-                  borderLeft: `4px solid var(--app-${PRIORITY_VARIANTS[cr.priority]})`,
+                  // Longhand cả 4 cạnh: trộn shorthand `border` với `borderLeft` làm React
+                  // cảnh báo "Updating a style property during rerender" mỗi lần chọn dòng
+                  borderTopStyle: 'solid',
+                  borderRightStyle: 'solid',
+                  borderBottomStyle: 'solid',
+                  borderLeftStyle: 'solid',
+                  borderTopWidth: isSelected ? 1.5 : 1,
+                  borderRightWidth: isSelected ? 1.5 : 1,
+                  borderBottomWidth: isSelected ? 1.5 : 1,
+                  borderLeftWidth: 4,
+                  borderTopColor: isSelected ? 'var(--app-primary)' : 'var(--app-neutral-200)',
+                  borderRightColor: isSelected ? 'var(--app-primary)' : 'var(--app-neutral-200)',
+                  borderBottomColor: isSelected ? 'var(--app-primary)' : 'var(--app-neutral-200)',
+                  borderLeftColor: `var(--app-${PRIORITY_VARIANTS[cr.priority]})`,
                   padding: '10px 14px',
                   boxShadow: isSelected ? '0 0 0 3px rgba(37,99,235,0.1)' : isHovered ? '0 1px 4px rgba(0,0,0,0.07)' : 'none',
                   transition: 'background 0.1s, box-shadow 0.1s, border-color 0.1s',
@@ -682,133 +495,14 @@ function CRTab() {
       {/* Detail panel */}
       {selected && (
         <div style={{ flex: 3, minWidth: 0 }}>
-          <div className="card card-pad" style={{ position: 'sticky', top: 0 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-              <div>
-                <span className="txt_mono" style={{ fontSize: 11, color: 'var(--app-neutral-500)' }}>
-                  {selected.request_code}
-                </span>
-                <h3 style={{ margin: '4px 0 0', fontSize: 16 }}>{selected.title}</h3>
-              </div>
-              <button className="btn btn-ghost btn-sm" onClick={() => setSelected(null)}></button>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <CRFlowBar current={selected.status} />
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                style={{ marginLeft: 'auto', flexShrink: 0 }}
-                onClick={() => setShowCrCreateTask(true)}
-              >
-                + Tạo Task
-              </button>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, margin: '12px 0' }}>
-              <div>
-                <div className="form-label">Loại thay đổi</div>
-                <div>{CR_CHANGE_TYPE_LABELS[selected.change_type]}</div>
-              </div>
-              <div>
-                <div className="form-label">Ưu tiên</div>
-                <span className={`badge badge-${PRIORITY_VARIANTS[selected.priority]}`}>
-                  {PRIORITY_LABELS[selected.priority]}
-                </span>
-              </div>
-              <div>
-                <div className="form-label">Sản phẩm bị tác động</div>
-                <div style={{ fontSize: 13 }}>
-                  {selected.product_name
-                    ?? <span style={{ color: '#B54708' }}>chưa gắn — chưa sinh được BRS</span>}
-                </div>
-              </div>
-              <div>
-                <div className="form-label">Dự án tài trợ</div>
-                <div style={{ fontSize: 13 }}>
-                  {selected.project_name ?? <span style={{ color: 'var(--app-neutral-400)' }}>—</span>}
-                </div>
-              </div>
-              <div>
-                <div className="form-label">Người yêu cầu</div>
-                <div style={{ fontSize: 13 }}>{selected.requested_by}</div>
-              </div>
-              {selected.assigned_to && (
-                <div>
-                  <div className="form-label">Assigned To</div>
-                  <div style={{ fontSize: 13 }}>{selected.assigned_to}</div>
-                </div>
-              )}
-              {selected.target_date && (
-                <div>
-                  <div className="form-label">Target Date</div>
-                  <div style={{ fontSize: 13 }}>{selected.target_date}</div>
-                </div>
-              )}
-            </div>
-
-            {selected.description && (
-              <div style={{ marginBottom: 12 }}>
-                <div className="form-label">Mô tả</div>
-                <div style={{ fontSize: 13, whiteSpace: 'pre-wrap' }}>{selected.description}</div>
-              </div>
-            )}
-
-            {selected.impact_scope && (
-              <div style={{ marginBottom: 8 }}>
-                <div className="form-label">Phạm vi ảnh hưởng</div>
-                <div style={{ fontSize: 13 }}>{selected.impact_scope}</div>
-              </div>
-            )}
-            {selected.impact_effort && (
-              <div style={{ marginBottom: 12 }}>
-                <div className="form-label">Ước tính effort</div>
-                <div style={{ fontSize: 13 }}>{selected.impact_effort}</div>
-              </div>
-            )}
-
-            {/* Status update */}
-            <div style={{ borderTop: '1px solid var(--app-neutral-200)', paddingTop: 12, marginTop: 4 }}>
-              <div className="form-label">Cập nhật trạng thái</div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <select className="input input-sm" value={editStatus} onChange={e => setEditStatus(e.target.value)}>
-                  {(Object.keys(CR_STATUS_LABELS) as CRStatus[]).map(s => (
-                    <option key={s} value={s}>{CR_STATUS_LABELS[s]}</option>
-                  ))}
-                </select>
-                <button
-                  className="btn btn-primary btn-sm"
-                  onClick={handleStatusUpdateClick}
-                  disabled={saving || editStatus === selected.status}
-                >
-                  {saving ? '...' : 'Lưu'}
-                </button>
-              </div>
-            </div>
-
-            <RequestAttachments
-              refId={selected.id}
-              listFn={crApi.listAttachments}
-              uploadFn={crApi.uploadAttachment}
-            />
-
-            <RequestHistoryTimeline
-              entries={crHistory}
-              statusLabels={CR_STATUS_LABELS}
-              loading={crHistoryLoading}
-            />
-          </div>
+          <CrDetailPanel
+            cr={selected}
+            onClose={() => setSelected(null)}
+            onChanged={fresh => { setSelected(fresh); load() }}
+            onDeleted={() => { setSelected(null); load() }}
+            onCreateTask={() => setShowCrCreateTask(true)}
+          />
         </div>
-      )}
-
-      {crCommentFor && selected && (
-        <CommentModal
-          title={crCommentFor === 'rejected' ? 'Từ chối CR' : 'Hủy CR'}
-          subtitle={`Vui lòng nhập lý do ${crCommentFor === 'rejected' ? 'từ chối' : 'hủy'} CR "${selected.title}".`}
-          confirmLabel={crCommentFor === 'rejected' ? 'Từ chối' : 'Hủy CR'}
-          onClose={() => setCrCommentFor(null)}
-          onConfirm={comment => doCrStatusSave(crCommentFor, comment)}
-        />
       )}
 
       {showCrCreateTask && selected && (
@@ -1243,10 +937,20 @@ function SRTab() {
                     ? 'var(--app-primary-50, #eff6ff)'
                     : isHovered ? 'var(--app-neutral-50, #f9fafb)' : '#fff',
                   borderRadius: 8,
-                  border: isSelected
-                    ? '1.5px solid var(--app-primary)'
-                    : '1px solid var(--app-neutral-200)',
-                  borderLeft: `4px solid var(--app-${PRIORITY_VARIANTS[sr.priority]})`,
+                  // Longhand cả 4 cạnh: trộn shorthand `border` với `borderLeft` làm React
+                  // cảnh báo "Updating a style property during rerender" mỗi lần chọn dòng
+                  borderTopStyle: 'solid',
+                  borderRightStyle: 'solid',
+                  borderBottomStyle: 'solid',
+                  borderLeftStyle: 'solid',
+                  borderTopWidth: isSelected ? 1.5 : 1,
+                  borderRightWidth: isSelected ? 1.5 : 1,
+                  borderBottomWidth: isSelected ? 1.5 : 1,
+                  borderLeftWidth: 4,
+                  borderTopColor: isSelected ? 'var(--app-primary)' : 'var(--app-neutral-200)',
+                  borderRightColor: isSelected ? 'var(--app-primary)' : 'var(--app-neutral-200)',
+                  borderBottomColor: isSelected ? 'var(--app-primary)' : 'var(--app-neutral-200)',
+                  borderLeftColor: `var(--app-${PRIORITY_VARIANTS[sr.priority]})`,
                   padding: '10px 14px',
                   boxShadow: isSelected ? '0 0 0 3px rgba(37,99,235,0.1)' : isHovered ? '0 1px 4px rgba(0,0,0,0.07)' : 'none',
                   transition: 'background 0.1s, box-shadow 0.1s, border-color 0.1s',

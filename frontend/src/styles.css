@@ -127,6 +127,27 @@ input, textarea, select { font-family: var(--font); }
 .app-input.has-error:focus { border-color: var(--app-danger); box-shadow: var(--focus-ring-danger); }
 select.app-input { padding-right: 28px; }
 textarea.app-input { padding: 8px 12px; }
+
+/* Bí danh .input / .input-sm cho khung field DS.
+   36 chỗ trong mã nguồn dùng className="input" nhưng CSS chưa hề định nghĩa class này,
+   nên Tailwind preflight (`*, ::before, ::after { border-width: 0 }`) làm mọi ô nhập và
+   textarea MẤT VIỀN — chỉ <select> còn viền nhờ mặc định của trình duyệt. Người dùng
+   thấy giá trị hiện ra như văn bản thường và không biết là ô sửa được.
+   Giữ tên .input thay vì đổi 36 chỗ sang .app-input: một điểm định nghĩa, không rủi ro bỏ sót. */
+.input {
+  width: 100%; border: 1px solid var(--app-neutral-300); border-radius: var(--radius);
+  min-height: 32px; padding: 5px 12px; font-size: 14px; line-height: 20px; font-family: var(--font);
+  background: #fff; outline: none; color: var(--app-neutral-900);
+  box-shadow: var(--shadow-xs); box-sizing: border-box;
+}
+.input::placeholder { color: var(--app-neutral-400); }
+.input:hover:not(:disabled) { border-color: var(--app-neutral-400); }
+.input:focus { border-color: var(--app-primary); box-shadow: var(--focus-ring); }
+.input:disabled { background: #F2F4F7; border-color: var(--app-neutral-200); color: var(--app-neutral-500); box-shadow: none; }
+select.input { padding-right: 28px; }
+textarea.input { padding: 8px 12px; min-height: 64px; }
+.input-sm { min-height: 28px; padding: 3px 10px; font-size: 13px; line-height: 18px; }
+textarea.input-sm { padding: 5px 10px; }
 .app-label { font-size: 12px; line-height: 18px; font-weight: 500; color: var(--app-neutral-700); margin-bottom: 4px; display: block; }
 .app-label .req { color: #F04438; }
 .app-field { margin-bottom: 16px; }
