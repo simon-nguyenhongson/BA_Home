@@ -106,7 +106,17 @@ function AiSettingsTab() {
           {settings?.has_api_key
             ? <Badge variant="success">Đã cấu hình</Badge>
             : <Badge variant="warning">Chưa cấu hình</Badge>}
+          {settings?.credential_type === 'oauth' && <Badge variant="warning">OAuth token</Badge>}
+          {settings?.credential_type === 'api_key' && <Badge variant="info">API key</Badge>}
         </div>
+
+        {settings?.credential_type === 'oauth' && (
+          <div className="state-banner state-banner-warn">
+            Đang dùng OAuth token (sk-ant-oat…) của gói thuê bao — token này sống ngắn hạn
+            và dùng chung hạn mức với gói. Để hệ thống chạy ổn định, nên thay bằng API key
+            trả theo lượt dùng (sk-ant-api…) lấy từ console.anthropic.com.
+          </div>
+        )}
 
         <Field label="API key">
           <AppInput

@@ -12,6 +12,7 @@ const req = <T,>(method: string, path: string, body?: unknown) =>
 export interface AiSettings {
   anthropic_api_key_masked: string
   has_api_key: boolean
+  credential_type: 'oauth' | 'api_key' | 'none'
   anthropic_model: string
   anthropic_max_tokens: number
   updated_by: string | null

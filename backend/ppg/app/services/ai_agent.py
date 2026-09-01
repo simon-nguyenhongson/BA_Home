@@ -20,6 +20,31 @@ DEFAULT_MODEL = "claude-opus-5"
 DEFAULT_MAX_TOKENS = 32000
 
 
+# Anthropic nhận 2 loại thông tin xác thực khác nhau:
+#   - API key  (sk-ant-api...) → gửi qua header x-api-key
+#   - OAuth token (sk-ant-oat...) → gửi qua Authorization: Bearer + header beta oauth
+# Gửi sai kiểu sẽ bị trả 401 dù thông tin hợp lệ.
+OAUTH_PREFIX = "sk-ant-oat"
+OAUTH_BETA_HEADER = "oauth-2025-04-20"
+
+
+def is_oauth_token(credential: str) -> bool:
+    return credential.strip().startswith(OAUTH_PREFIX)
+
+
+def build_client(credential: str):
+    """Tạo AsyncAnthropic đúng kiểu xác thực theo tiền tố của credential."""
+    from anthropic import AsyncAnthropic  # type: ignore[import-not-found]
+
+    credential = credential.strip()
+    if is_oauth_token(credential):
+        return AsyncAnthropic(
+            auth_token=credential,
+            default_headers={"anthropic-beta": OAUTH_BETA_HEADER},
+        )
+    return AsyncAnthropic(api_key=credential)
+
+
 async def get_ai_settings(db: asyncpg.Connection) -> dict[str, str]:
     """Đọc toàn bộ cấu hình AI từ app_settings."""
     rows = await db.fetch(
@@ -83,7 +108,6 @@ async def run_skill(
         from anthropic import (  # type: ignore[import-not-found]
             APIConnectionError,
             APIStatusError,
-            AsyncAnthropic,
             AuthenticationError,
             RateLimitError,
         )
@@ -118,7 +142,7 @@ async def run_skill(
     if extra_system.strip():
         system_blocks.append({"type": "text", "text": extra_system})
 
-    client = AsyncAnthropic(api_key=api_key)
+    client = build_client(api_key)
     try:
         async with client.messages.stream(
             model=model,
@@ -132,7 +156,7 @@ async def run_skill(
             400,
             detail={
                 "code": "AI_KEY_INVALID",
-                "message": "Claude API key không hợp lệ. Kiểm tra lại trong Cài đặt → AI.",
+                "message": _auth_error_message(api_key),
             },
         )
     except RateLimitError:
@@ -140,7 +164,7 @@ async def run_skill(
             429,
             detail={
                 "code": "AI_RATE_LIMIT",
-                "message": "Claude API đang giới hạn tần suất. Thử lại sau ít phút.",
+                "message": _rate_limit_message(api_key),
             },
         )
     except APIStatusError as exc:
@@ -192,8 +216,8 @@ async def verify_api_key(api_key: str, model: str = DEFAULT_MODEL) -> dict:
         from anthropic import (  # type: ignore[import-not-found]
             APIConnectionError,
             APIStatusError,
-            AsyncAnthropic,
             AuthenticationError,
+            RateLimitError,
         )
     except ImportError:
         raise HTTPException(
@@ -204,18 +228,25 @@ async def verify_api_key(api_key: str, model: str = DEFAULT_MODEL) -> dict:
             },
         )
 
-    client = AsyncAnthropic(api_key=api_key)
+    client = build_client(api_key)
     try:
+        # max_tokens phải >= ngưỡng tối thiểu của model đời mới (16 bị API từ chối 400
+        # dù key hợp lệ → nút Test báo lỗi trong khi luồng sinh tài liệu vẫn chạy).
         message = await client.messages.create(
             model=model,
-            max_tokens=16,
-            messages=[{"role": "user", "content": "ping"}],
+            max_tokens=1024,
+            messages=[{"role": "user", "content": "Trả lời đúng 1 từ: pong"}],
         )
         return {"ok": True, "model": message.model}
     except AuthenticationError:
         raise HTTPException(
             400,
-            detail={"code": "AI_KEY_INVALID", "message": "Claude API key không hợp lệ."},
+            detail={"code": "AI_KEY_INVALID", "message": _auth_error_message(api_key)},
+        )
+    except RateLimitError:
+        raise HTTPException(
+            429,
+            detail={"code": "AI_RATE_LIMIT", "message": _rate_limit_message(api_key)},
         )
     except APIStatusError as exc:
         raise HTTPException(
@@ -235,6 +266,28 @@ async def verify_api_key(api_key: str, model: str = DEFAULT_MODEL) -> dict:
         )
     finally:
         await client.close()
+
+
+def _rate_limit_message(credential: str) -> str:
+    """Thông báo 429 — nêu rõ nếu đang dùng OAuth token của gói thuê bao."""
+    if is_oauth_token(credential):
+        return (
+            "Đã chạm giới hạn sử dụng của gói thuê bao gắn với OAuth token này. "
+            "Chờ hạn mức được đặt lại, hoặc chuyển sang API key trả theo lượt dùng "
+            "(sk-ant-api...) lấy từ console.anthropic.com."
+        )
+    return "Claude API đang giới hạn tần suất. Thử lại sau ít phút."
+
+
+def _auth_error_message(credential: str) -> str:
+    """Thông báo 401 nêu đúng nguyên nhân theo loại thông tin xác thực."""
+    if is_oauth_token(credential):
+        return (
+            "OAuth token không hợp lệ hoặc đã hết hạn. OAuth token (sk-ant-oat...) "
+            "chỉ sống ngắn hạn — nên dùng API key vĩnh viễn (sk-ant-api...) "
+            "lấy từ console.anthropic.com để hệ thống chạy ổn định."
+        )
+    return "Claude API key không hợp lệ. Kiểm tra lại trong Cài đặt → AI."
 
 
 def mask_key(key: str) -> str:

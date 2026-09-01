@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 
 from app.auth import CurrentUser
 from app.database import get_db
-from app.services.ai_agent import DEFAULT_MODEL, mask_key, verify_api_key
+from app.services.ai_agent import DEFAULT_MODEL, is_oauth_token, mask_key, verify_api_key
 from app.services.audit_service import log_audit
 
 router = APIRouter(tags=["ai-admin"])
@@ -51,10 +51,15 @@ async def get_ai_settings_masked(
     )
     data = {r["key"]: r["value"] for r in rows}
     updated = next((r for r in rows if r["key"] == "anthropic_api_key"), None)
+    credential = (data.get("anthropic_api_key") or "").strip()
     return {
         "data": {
-            "anthropic_api_key_masked": mask_key(data.get("anthropic_api_key", "")),
-            "has_api_key": bool((data.get("anthropic_api_key") or "").strip()),
+            "anthropic_api_key_masked": mask_key(credential),
+            "has_api_key": bool(credential),
+            "credential_type": (
+                "oauth" if credential and is_oauth_token(credential)
+                else "api_key" if credential else "none"
+            ),
             "anthropic_model": data.get("anthropic_model") or DEFAULT_MODEL,
             "anthropic_max_tokens": int(data.get("anthropic_max_tokens") or 32000),
             "updated_by": updated["updated_by"] if updated else None,
