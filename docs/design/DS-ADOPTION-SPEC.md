@@ -244,3 +244,30 @@ Nguồn: components/icons/Icon.jsx + icon-data.js (233 glyph, RUNNABLE — copy 
 - Tailwind của BA_Home là v3.4 (tailwind.config.js) — map token bằng theme.extend tham chiếu CSS var hoặc hex trực tiếp; frontend đang dùng lucide-react, cần quyết định chuyển sang Icon 233-glyph của DS hay giữ lucide (stroke 1.5/size 16/currentColor).
 - Sample data trong impl đã được mask (PR•••••6098) — nếu tái extract từ .fig phải mask lại; không dùng các chuỗi này làm dữ liệu demo thật.
 - BadgePerfromace giữ nguyên lỗi chính tả của nguồn để khớp lookup Figma — đừng 'sửa' tên khi đối chiếu.
+
+---
+
+## Capture Studio nhúng trong BA_Home (2026-09-01)
+
+Studio là **ứng dụng riêng** chạy ở `localhost:4700`, nhúng vào BA_Home qua iframe. Nó dùng cùng
+bộ token Design System, nhưng nhúng nguyên bản thì vẫn sai — vì nó mang theo cả **vỏ ứng dụng**:
+sidebar riêng, thương hiệu `SOOBINZHONGSON`, dải gradient riêng, bộ từ vựng điều hướng riêng.
+Kết quả là **sidebar trong sidebar, thương hiệu trong thương hiệu, hai dải gradient** — người
+dùng thấy hai ứng dụng xếp lên nhau. Đó là gốc của cảm giác "mỗi chỗ một kiểu", không phải màu.
+
+### Quy tắc bắt buộc khi nhúng bất kỳ ứng dụng ngoài nào
+
+1. **Ứng dụng ngoài chỉ đóng góp vùng làm việc, không đóng góp vỏ.** Phải có chế độ nhúng
+   (`?embed=1`, hoặc tự phát hiện `window.self !== window.top`) ẩn sidebar, thương hiệu, dải
+   trang trí, và lề trang của nó.
+2. **Điều hướng do BA_Home vẽ**, bằng DS của BA_Home. Hai bên nói chuyện qua `postMessage`:
+   `{type:'studio:view'}` vào, `{type:'studio:state', counts, recording}` ra. Không đọc DOM
+   bên trong iframe.
+3. **Không để hai lớp nói cùng một điều.** Tiêu đề bên trong iframe trùng vai trò với nút điều
+   hướng bên ngoài thì ẩn tiêu đề — nhưng **giữ các điều khiển thật** trong đó (nút hành động,
+   ô lọc). Thông tin hữu ích ở dòng phụ phải **chuyển ra ngoài**, không được mất.
+4. **Không kiểm tình trạng ứng dụng ngoài bằng `fetch` cross-origin.** Cách đó phụ thuộc danh
+   sách CORS của bên kia và chết âm thầm khi origin lệch (`localhost` so với `127.0.0.1` là hai
+   origin khác nhau). Dùng chính bắt tay `postMessage` kèm thời gian chờ.
+5. **Danh sách CORS phải nhận cả `localhost` và `127.0.0.1`** cho mọi cổng dev đang dùng, và
+   vẫn là danh sách trắng — không dùng `*` với API ghi/xoá được dữ liệu.

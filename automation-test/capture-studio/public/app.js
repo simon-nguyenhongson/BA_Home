@@ -884,6 +884,8 @@ function modalConfirmDelete(id) {
 /* ---------------- rendering root ---------------- */
 
 function render() {
+  // Báo trạng thái ra BA_Home sau mỗi lần vẽ để tab bên ngoài luôn khớp
+  setTimeout(postStateToHost, 0);
   renderNav();
   $('#view-list').hidden = S.view !== 'list';
   $('#view-record').hidden = S.view !== 'record';
@@ -1403,6 +1405,42 @@ function onWs(msg) {
       break;
     }
   }
+}
+
+/* ---------------- chế độ nhúng: BA_Home làm chủ điều hướng ---------------- */
+/*
+   Khi chạy trong iframe của BA_Home, Studio không vẽ sidebar của mình (CSS đã ẩn).
+   Thay vào đó hai bên nói chuyện qua postMessage:
+     BA_Home → Studio : { type: 'studio:view', view: 'list' | 'record' | 'runs' }
+     Studio → BA_Home : { type: 'studio:state', view, counts: { tcs, runs }, recording }
+   Nhờ vậy BA_Home vẽ tab bằng Design System của chính nó và hiển thị được số lượng,
+   không cần đọc DOM bên trong iframe.
+*/
+const EMBEDDED = document.documentElement.dataset.embed === '1';
+
+function postStateToHost() {
+  if (!EMBEDDED || window.self === window.top) return;
+  try {
+    window.parent.postMessage({
+      type: 'studio:state',
+      view: S.view,
+      counts: { tcs: S.tcs.length, runs: S.runs.length },
+      recording: !!(S.record && S.record.active),
+    }, '*');
+  } catch (_) {
+    /* trang ngoài không nhận được thì Studio vẫn phải chạy bình thường */
+  }
+}
+
+if (EMBEDDED) {
+  window.addEventListener('message', (e) => {
+    const msg = e.data;
+    if (!msg || msg.type !== 'studio:view') return;
+    if (!['list', 'record', 'runs'].includes(msg.view)) return;
+    if (S.view === msg.view) return;
+    S.view = msg.view;
+    render();
+  });
 }
 
 /* ---------------- init ---------------- */

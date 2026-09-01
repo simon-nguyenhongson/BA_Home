@@ -16,9 +16,28 @@ const app = express();
 app.use(express.json({ limit: '5mb' }));
 
 // Cho phép BA_Home frontend (Vite) đọc API studio để map test case và import kết quả chạy.
-const ALLOW_ORIGIN = process.env.STUDIO_ALLOW_ORIGIN || 'http://localhost:5173';
+//
+// Phải nhận CẢ localhost và 127.0.0.1: trình duyệt coi hai cái là hai origin khác nhau, nên nếu
+// chỉ cho một cái thì người mở app bằng địa chỉ còn lại sẽ thấy tích hợp Studio chết ÂM THẦM —
+// fetch bị chặn, giao diện báo "Studio chưa chạy" trong khi Studio đang chạy bình thường.
+// Danh sách vẫn là danh sách trắng (không dùng '*') vì Studio chạy trên máy cá nhân và API của
+// nó ghi/xoá được test case.
+const DEFAULT_ORIGINS = [
+  'http://localhost:5173', 'http://127.0.0.1:5173',
+  'http://localhost:4173', 'http://127.0.0.1:4173',   // vite preview
+  'http://localhost:4700', 'http://127.0.0.1:4700',   // chính Studio
+];
+const ALLOW_ORIGINS = new Set(
+  (process.env.STUDIO_ALLOW_ORIGIN
+    ? process.env.STUDIO_ALLOW_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean)
+    : DEFAULT_ORIGINS)
+);
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', ALLOW_ORIGIN);
+  const origin = req.headers.origin;
+  if (origin && ALLOW_ORIGINS.has(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.sendStatus(204);

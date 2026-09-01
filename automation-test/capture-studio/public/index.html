@@ -6,6 +6,18 @@
   <title>Capture Studio — SOOBINZHONGSON</title>
   <link rel="stylesheet" href="/ds/styles.css" />
   <link rel="stylesheet" href="/studio.css" />
+  <script>
+    /* Chế độ NHÚNG — đặt trước khi vẽ để không nháy vỏ ứng dụng rồi mới ẩn.
+       Khi Studio chạy trong iframe của BA_Home, nó KHÔNG được mang vỏ riêng vào:
+       sidebar + thương hiệu + dải gradient của nó nằm lồng trong sidebar và thương hiệu
+       của BA_Home, thành hai ứng dụng xếp lên nhau. Ở chế độ nhúng, Studio chỉ đóng góp
+       phần làm việc; điều hướng do BA_Home vẽ bằng Design System của chính nó. */
+    (function () {
+      var embedded = new URLSearchParams(location.search).get('embed') === '1'
+        || window.self !== window.top;
+      if (embedded) document.documentElement.dataset.embed = '1';
+    })();
+  </script>
 </head>
 <body>
   <aside class="sidebar">

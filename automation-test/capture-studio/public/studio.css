@@ -603,3 +603,46 @@ select.field { height: var(--ds-control-h-l); }
 }
 .alert-error { border-color: var(--ds-border-danger); background: var(--ds-danger-subtle); color: var(--ds-text-danger); }
 .alert-success { border-color: var(--colors-success-100, #DCFAE6); background: var(--colors-success-100, #DCFAE6); color: var(--colors-success-600, #079455); }
+
+
+/* ---------------- chế độ nhúng trong BA_Home ---------------- */
+/*
+   Studio là ứng dụng độc lập, chạy riêng ở localhost:4700 thì cần vỏ đầy đủ của nó.
+   Nhưng khi nhúng vào BA_Home, phần vỏ đó là dư: sidebar trong sidebar, thương hiệu
+   trong thương hiệu, hai dải gradient, hai bộ từ vựng điều hướng. Chế độ nhúng gỡ hết
+   phần vỏ và chỉ để lại vùng làm việc, để giao diện chỉ còn MỘT hệ.
+*/
+[data-embed="1"] .sidebar,
+[data-embed="1"] .page-rule { display: none; }
+
+[data-embed="1"] body { min-width: 0; }
+
+[data-embed="1"] .main { height: auto; min-height: 100vh; }
+
+/* BA_Home đã có lề trang riêng — thêm lề của Studio nữa thì nội dung bị đẩy vào giữa
+   một vùng trắng rộng, đúng chỗ trông thiếu chuyên nghiệp nhất. */
+[data-embed="1"] .page {
+  padding: 0 0 var(--ds-space-6);
+  overflow: visible;
+}
+
+/* Tiêu đề của Studio trùng vai trò với nút điều hướng mà BA_Home đã vẽ ở ngoài iframe —
+   để cả hai thì cùng một thứ được nói hai lần ngay cạnh nhau. Ẩn khối tiêu đề, GIỮ .actions
+   (nút "Ghi test case mới", ô lọc lượt chạy) vì đó là điều khiển thật, không phải nhãn.
+   Phần thông tin hữu ích trong dòng phụ (mẹo ghép test case, dung lượng evidence) đã được
+   chuyển ra dòng gợi ý của BA_Home. */
+[data-embed="1"] .page-head > div:not(.actions) { display: none; }
+
+/* page-head không có .actions thì chỉ còn là một thanh rỗng → bỏ hẳn */
+[data-embed="1"] .page-head:not(:has(.actions)) { display: none; }
+
+[data-embed="1"] .page-head {
+  margin: 0 0 var(--ds-space-3);
+  padding: 0;
+  border: 0;
+  justify-content: flex-end;
+}
+
+/* Drawer và modal của Studio vẫn dùng được trong iframe, nhưng phải bám khung iframe
+   chứ không bám viewport của trang ngoài. */
+[data-embed="1"] .drawer { height: 100%; }
