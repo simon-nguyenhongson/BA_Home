@@ -168,10 +168,37 @@ describe('CrDetailPanel — chuyển trạng thái theo luồng', () => {
       }))
   })
 
+  it('lý do quá ngắn bị chặn ở giao diện, không để backend trả 400', async () => {
+    renderPanel()
+    await userEvent.click(await screen.findByRole('button', { name: 'Hủy CR' }))
+    await userEvent.type(screen.getByPlaceholderText(/Nhập lý do/), 'ok')  // 2 < 5
+    expect(screen.getByRole('button', { name: 'Xác nhận hủy CR' })).toBeDisabled()
+    expect(screen.getByText(/Cần ít nhất 5 ký tự/)).toBeInTheDocument()
+
+    await userEvent.type(screen.getByPlaceholderText(/Nhập lý do/), 'e nữa')
+    expect(screen.getByRole('button', { name: 'Xác nhận hủy CR' })).toBeEnabled()
+  })
+
   it('trạng thái kết thúc không còn bước tiếp theo', async () => {
     renderPanel({ status: 'implemented' })
     expect(await screen.findByText(/không còn bước tiếp theo/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Mở lại (ngoài luồng)' })).toBeInTheDocument()
+  })
+})
+
+describe('CrDetailPanel — lịch sử', () => {
+  it('nước đi ngoài luồng hiện nhãn riêng, không phải mã thô của DB', async () => {
+    vi.mocked(crApi.history).mockResolvedValue([
+      ...HISTORY_SKIPPED_APPROVAL.slice(0, 2),
+      { id: 'h9', ref_type: 'cr', ref_id: 'cr-1', action: 'status_changed_off_flow',
+        actor: 'admin', from_status: 'reviewing', to_status: 'implementing',
+        comment: 'Hotfix P1 đã lên PROD, hợp thức hoá sau', created_at: '2026-09-01T23:08:29' },
+    ])
+    renderPanel()
+    await userEvent.click(await screen.findByRole('button', { name: /^Lịch sử/ }))
+    expect(await screen.findByText('Chuyển NGOÀI LUỒNG')).toBeInTheDocument()
+    expect(screen.queryByText('status_changed_off_flow')).not.toBeInTheDocument()
+    expect(screen.getByText(/Hotfix P1 đã lên PROD/)).toBeInTheDocument()
   })
 })
 

@@ -261,6 +261,27 @@ async def run_skill(
             },
         )
 
+    # Anthropic có thể TRẢ 200 nhưng đã HẠ MODEL so với model được yêu cầu (gói thuê bao
+    # có cơ chế fallback — header anthropic-ratelimit-unified-fallback-percentage: 0.5).
+    # Đo thực tế 2026-09-01: một request Opus 5 trả về message.model =
+    # claude-haiku-4-5-20251001. Không kiểm ở đây thì BRS/Master Doc do model nhẹ sinh ra
+    # được lưu như thể do Opus sinh: không có dấu hiệu nào trong tài liệu, không truy được
+    # về sau, mà đây là tài liệu nghiệp vụ ngân hàng đi qua duyệt rồi merge vào Master Doc.
+    if not _model_matches(model, message.model):
+        raise HTTPException(
+            502,
+            detail={
+                "code": "AI_MODEL_DOWNGRADED",
+                "message": (
+                    f"Đã yêu cầu model {model} nhưng Anthropic trả kết quả của "
+                    f"{message.model} (gói thuê bao tự hạ model khi chạm hạn mức lớp cao). "
+                    "Nội dung KHÔNG được lưu vì tài liệu sẽ do model yếu hơn sinh ra mà "
+                    "không có dấu vết. Chọn đúng model dùng được trong Cài đặt → AI Agent, "
+                    "hoặc dùng API key trả theo lượt dùng (sk-ant-api...)."
+                ),
+            },
+        )
+
     # Phản hồi bị cắt vì chạm max_tokens — PHẢI từ chối, không được lưu.
     #
     # Đây là lỗi nguy hiểm nhất của luồng tài liệu: mọi skill đều yêu cầu trả về TOÀN BỘ
@@ -326,7 +347,22 @@ async def verify_api_key(api_key: str, model: str = DEFAULT_MODEL) -> dict:
             max_tokens=1024,
             messages=[{"role": "user", "content": "Trả lời đúng 1 từ: pong"}],
         )
-        return {"ok": True, "model": message.model}
+        # Báo "kết nối thành công" trong khi Anthropic đã hạ model là thông tin sai:
+        # người dùng tưởng cấu hình Opus đang chạy, còn tài liệu thật do model nhẹ sinh.
+        if not _model_matches(model, message.model):
+            raise HTTPException(
+                502,
+                detail={
+                    "code": "AI_MODEL_DOWNGRADED",
+                    "message": (
+                        f"Kết nối được, nhưng Anthropic trả kết quả của {message.model} "
+                        f"thay cho {model} đang cấu hình (gói thuê bao tự hạ model khi chạm "
+                        "hạn mức lớp cao). Chọn đúng model dùng được, hoặc nhập API key trả "
+                        "theo lượt dùng (sk-ant-api...)."
+                    ),
+                },
+            )
+        return {"ok": True, "model": message.model, "requested_model": model}
     except AuthenticationError:
         raise HTTPException(
             400,
@@ -353,6 +389,20 @@ async def verify_api_key(api_key: str, model: str = DEFAULT_MODEL) -> dict:
         )
     finally:
         await client.close()
+
+
+def _model_matches(requested: str, actual: str) -> bool:
+    """
+    Model trả về có đúng là model đã yêu cầu hay không.
+
+    API nhận alias không ghi ngày ("claude-haiku-4-5") và trả về id đầy đủ
+    ("claude-haiku-4-5-20251001"), nên so theo tiền tố chứ không so bằng.
+    """
+    if not actual:
+        return True  # không có thông tin thì không kết luận sai
+    req = (requested or "").strip()
+    act = actual.strip()
+    return act == req or act.startswith(req) or req.startswith(act)
 
 
 # Model dùng để ĐO hạn mức còn lại khi gặp 429 không kèm thông tin hạn mức.
@@ -455,13 +505,13 @@ async def _explain_429(credential: str, model: str, exc: object) -> tuple[str, s
         util = probe.get("utilization")
         used = f" (5 giờ qua mới dùng {util * 100:.0f}% hạn mức)" if isinstance(util, float) else ""
         return "AI_MODEL_NOT_ALLOWED", (
-            f"Model {model} KHÔNG dùng được bằng OAuth token của gói thuê bao — đây không "
-            f"phải lỗi hết hạn mức{used}. Anthropic chỉ cho gói thuê bao chạy Opus/Sonnet "
-            f"từ trong ứng dụng Claude / Claude Code; ứng dụng khác chỉ gọi được "
-            f"{QUOTA_PROBE_MODEL}. Hai cách xử lý: đổi Model sang Claude Haiku 4.5 trong "
-            f"Cài đặt → AI Agent (chạy được ngay, chất lượng thấp hơn), hoặc nhập API key "
-            f"trả theo lượt dùng (sk-ant-api...) lấy từ console.anthropic.com để dùng "
-            f"{model}."
+            f"Anthropic từ chối model {model} với OAuth token của gói thuê bao. Đây KHÔNG "
+            f"phải hết hạn mức: cùng token, cùng lúc, {QUOTA_PROBE_MODEL} vẫn gọi được"
+            f"{used}. Gói thuê bao chỉ chạy được Opus/Sonnet từ trong ứng dụng Claude / "
+            f"Claude Code, không dùng cho ứng dụng khác. Hai cách xử lý: đổi Model sang "
+            f"Claude Haiku 4.5 trong Cài đặt → AI Agent (chạy được ngay, chất lượng thấp "
+            f"hơn — không nên dùng cho BRS/Master Doc chính thức), hoặc nhập API key trả "
+            f"theo lượt dùng (sk-ant-api...) lấy từ console.anthropic.com để dùng {model}."
         )
     if probe is not None:  # probe cũng bị 429 → hạn mức của gói đã cạn thật
         return "AI_RATE_LIMIT", (

@@ -30,6 +30,29 @@ CR_STATUSES     = {"submitted", "reviewing", "approved", "rejected", "implementi
 SR_REQUEST_TYPES = {"bug_fix", "enhancement", "support", "incident", "access_request", "data_request", "other"}
 SR_STATUSES      = {"submitted", "reviewing", "approved", "in_progress", "resolved", "rejected", "cancelled"}
 CR_KINDS         = {"standard", "internal"}
+
+# Luồng chuyển trạng thái HỢP LỆ của CR — bản ở TẦNG SERVER.
+#
+# Trước đây bảng này chỉ có ở frontend (features/cr/constants.ts) và chính file đó ghi rõ
+# "backend KHÔNG kiểm tra luồng". Nghĩa là gọi PATCH trực tiếp có thể đưa CR từ 'submitted'
+# sang 'implemented', bỏ qua review và duyệt — mà 'approved' chính là cổng để sinh BRS
+# (cr_brs.py kiểm trạng thái CR trước khi cho gen). Một chuỗi phê duyệt chỉ được canh ở
+# giao diện thì không phải chuỗi phê duyệt.
+#
+# Vẫn giữ đường đi ngoài luồng (vận hành thật cần cửa thoát), nhưng BẮT BUỘC nêu lý do và
+# ghi lại bằng action riêng để hồ sơ kiểm toán phân biệt được nước đi bất thường.
+CR_TRANSITIONS: dict[str, set[str]] = {
+    "submitted":    {"reviewing", "cancelled"},
+    "reviewing":    {"approved", "rejected", "cancelled"},
+    "approved":     {"implementing", "cancelled"},
+    "implementing": {"implemented", "cancelled"},
+    "implemented":  set(),
+    "rejected":     set(),
+    "cancelled":    set(),
+}
+# Chuyển sang các trạng thái này luôn phải nêu lý do, kể cả khi đúng luồng
+CR_STATUS_REQUIRES_REASON = {"rejected", "cancelled"}
+MIN_REASON_LEN = 5
 PRIORITIES       = {"critical", "high", "medium", "low"}
 SEVERITIES       = {"critical", "high", "medium", "low"}
 ENVIRONMENTS     = {"DEV", "SIT", "UAT", "PROD", "DR", "STAGING"}
@@ -421,6 +444,47 @@ async def update_project_change(
         raise HTTPException(404, "CR không tồn tại")
     old_status = current['status']
 
+    # Chuẩn hoá chuỗi rỗng cho các cột KHÔNG phải text. Giao diện gửi '' khi người dùng
+    # xoá nội dung một trường; nếu để nguyên thì '' đi thẳng vào cột uuid/date và asyncpg
+    # trả DataError → 500 thô, người dùng chỉ thấy "lỗi hệ thống" khi bỏ trống ngày
+    # mục tiêu hoặc bỏ quy kết dự án.
+    if "product_id" in updates and not str(updates["product_id"]).strip():
+        # V052: sản phẩm là quyền sở hữu CR — bỏ trống sẽ làm CR mồ côi và chặn sinh BRS
+        raise HTTPException(400, "CR phải gắn một sản phẩm — không thể bỏ trống")
+    if "project_id" in updates and not str(updates["project_id"]).strip():
+        updates["project_id"] = None       # bỏ quy kết dự án tài trợ (QĐ-18: tùy chọn)
+    if "target_date" in updates and not str(updates["target_date"]).strip():
+        updates["target_date"] = None      # xoá ngày mục tiêu
+
+    # ── Kiểm luồng chuyển trạng thái ở TẦNG SERVER ───────────────────────────
+    new_status_req = updates.get("status")
+    off_flow = False
+    if new_status_req and new_status_req != old_status:
+        allowed = CR_TRANSITIONS.get(old_status, set())
+        off_flow = new_status_req not in allowed
+        reason = (comment or "").strip()
+
+        if off_flow and len(reason) < MIN_REASON_LEN:
+            nxt = ", ".join(sorted(allowed)) or "không còn bước tiếp theo"
+            raise HTTPException(
+                400,
+                detail={
+                    "code": "CR_TRANSITION_OFF_FLOW",
+                    "message": f"Chuyển '{old_status}' → '{new_status_req}' là đi ngoài luồng "
+                               f"(bước hợp lệ: {nxt}). Cho phép, nhưng phải nêu lý do ít nhất "
+                               f"{MIN_REASON_LEN} ký tự — lý do đi vào lịch sử CR để giải trình.",
+                },
+            )
+        if new_status_req in CR_STATUS_REQUIRES_REASON and len(reason) < MIN_REASON_LEN:
+            raise HTTPException(
+                400,
+                detail={
+                    "code": "CR_REASON_REQUIRED",
+                    "message": f"Chuyển CR sang '{new_status_req}' phải nêu lý do "
+                               f"ít nhất {MIN_REASON_LEN} ký tự.",
+                },
+            )
+
     # Kiểm tra tham chiếu tồn tại TRƯỚC khi UPDATE. Không có bước này thì UUID sai sẽ
     # vi phạm khóa ngoại và trả 500 thô, người dùng không hiểu vì sao.
     if updates.get("product_id"):
@@ -460,7 +524,11 @@ async def update_project_change(
         raise HTTPException(404, "CR không tồn tại")
 
     new_status = updates.get('status')
-    action = 'status_changed' if new_status and new_status != old_status else 'updated'
+    if new_status and new_status != old_status:
+        # Action riêng để báo cáo kiểm toán lọc được nước đi bất thường
+        action = 'status_changed_off_flow' if off_flow else 'status_changed'
+    else:
+        action = 'updated'
     await _log_history(db, 'cr', cr_id, action, user.sub,
                        from_status=old_status if new_status else None,
                        to_status=new_status or None,

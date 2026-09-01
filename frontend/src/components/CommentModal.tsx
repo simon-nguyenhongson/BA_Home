@@ -7,14 +7,18 @@ export function CommentModal({
   onConfirm,
   onClose,
   confirmLabel = 'Xác nhận',
+  minLength = 1,
 }: {
   title: string
   subtitle?: string
   onConfirm: (comment: string) => void
   onClose: () => void
   confirmLabel?: string
+  /** Độ dài lý do tối thiểu — đặt bằng ngưỡng của backend để không phải chạm vào lỗi 400 */
+  minLength?: number
 }) {
   const [comment, setComment] = useState('')
+  const ok = comment.trim().length >= minLength
 
   return (
     <div
@@ -55,6 +59,11 @@ export function CommentModal({
           value={comment}
           onChange={e => setComment(e.target.value)}
         />
+        {minLength > 1 && !ok && (
+          <div style={{ fontSize: 12, color: 'var(--app-neutral-500)', margin: '-10px 0 12px' }}>
+            Cần ít nhất {minLength} ký tự{comment.trim() ? ` (đang có ${comment.trim().length})` : ''}.
+          </div>
+        )}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button
             onClick={onClose}
@@ -66,12 +75,12 @@ export function CommentModal({
             Hủy
           </button>
           <button
-            onClick={() => { if (comment.trim()) onConfirm(comment.trim()) }}
-            disabled={!comment.trim()}
+            onClick={() => { if (ok) onConfirm(comment.trim()) }}
+            disabled={!ok}
             style={{
               padding: '7px 16px', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600,
-              cursor: comment.trim() ? 'pointer' : 'not-allowed',
-              background: comment.trim() ? 'var(--app-primary, #1d4ed8)' : 'var(--app-neutral-300)',
+              cursor: ok ? 'pointer' : 'not-allowed',
+              background: ok ? 'var(--app-primary, #1d4ed8)' : 'var(--app-neutral-300)',
               color: '#fff',
             }}
           >
