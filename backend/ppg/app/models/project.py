@@ -2,6 +2,9 @@ from datetime import date, datetime
 from typing import Optional
 from uuid import UUID
 from pydantic import BaseModel, Field
+from pydantic import field_validator
+
+from app.models.coercion import empty_str_to_none
 
 
 class ProjectCreate(BaseModel):
@@ -11,6 +14,8 @@ class ProjectCreate(BaseModel):
     start_date: Optional[date] = None
     end_date: Optional[date] = None
 
+    _dates_empty = field_validator("start_date", "end_date", mode="before")(empty_str_to_none)
+
 
 class ProjectUpdate(BaseModel):
     name: Optional[str] = Field(None, max_length=200)
@@ -18,6 +23,8 @@ class ProjectUpdate(BaseModel):
     status: Optional[str] = None
     start_date: Optional[date] = None
     end_date: Optional[date] = None
+
+    _dates_empty = field_validator("start_date", "end_date", mode="before")(empty_str_to_none)
 
 
 class ProjectOut(BaseModel):

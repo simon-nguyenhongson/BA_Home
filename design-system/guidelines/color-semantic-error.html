@@ -1,0 +1,37 @@
+<!-- @dsCard group="Colors" viewport="700x160" name="Semantic — Error" subtitle="The only alarm colour; destructive keeps the button hierarchy" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin: 0; padding: 16px 20px; background: var(--ds-surface-page); }
+  .r { display: flex; flex-direction: row; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+  .c { display: flex; flex-direction: column; gap: 10px; }
+  .sw { display: flex; flex-direction: column; gap: 6px; width: 96px; }
+  .chip { height: 56px; border-radius: var(--ds-radius-md); }
+  .nm { font-size: 11px; font-weight: 500; line-height: 14px; color: var(--ds-text-label); }
+  .hex { font-family: var(--ds-font-mono); font-size: 10px; line-height: 14px; color: var(--ds-text-secondary); }
+  .use { font-size: 10px; line-height: 14px; color: var(--ds-text-placeholder); }
+  .lbl { font-family: var(--ds-font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ds-text-placeholder); }
+</style>
+</head>
+<body>
+<div class="r">
+  <div class="sw"><div class="chip" style="background: #FFFBFA; border: 1px solid var(--ds-border-default);"></div>
+    <div><div class="nm">Error 25</div><div class="hex">#FFFBFA</div></div></div>
+  <div class="sw"><div class="chip" style="background: #FEF3F2; border: 1px solid var(--ds-border-default);"></div>
+    <div><div class="nm">Error 50</div><div class="hex">#FEF3F2</div><div class="use">subtle fill</div></div></div>
+  <div class="sw"><div class="chip" style="background: #FECDCA;"></div>
+    <div><div class="nm">Error 100</div><div class="hex">#FECDCA</div><div class="use">border</div></div></div>
+  <div class="sw"><div class="chip" style="background: #FDA29B;"></div>
+    <div><div class="nm">Error 300</div><div class="hex">#FDA29B</div></div></div>
+  <div class="sw"><div class="chip" style="background: #F04438;"></div>
+    <div><div class="nm">Error 500</div><div class="hex">#F04438</div><div class="use">DANGER · 392×</div></div></div>
+  <div class="sw"><div class="chip" style="background: #D92D20;"></div>
+    <div><div class="nm">Error 600</div><div class="hex">#D92D20</div><div class="use">hover</div></div></div>
+  <div class="sw"><div class="chip" style="background: #B42318;"></div>
+    <div><div class="nm">Error 700</div><div class="hex">#B42318</div><div class="use">text</div></div></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" />
+<link rel="stylesheet" href="./ds/fig-tokens.css" />
+<link rel="stylesheet" href="./ds/fig-assets.css" />
+<style>
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: #FFFFFF; font-family: Inter, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #155EEF; text-decoration: none; }
+  a:hover { color: #004EEB; }
+  ::selection { background: #D1E0FF; }
+</style>
+<script src="./ds/bundle/p1.js"></script>
+<script src="./ds/bundle/p2.js"></script>
+<script src="./ds/bundle/p3.js"></script>
+<script src="./ds/bundle/p4.js"></script>
+<script src="./ds/bundle/p5.js"></script>
+</helmet>
+
+<div style="display: grid; grid-template-columns: 264px minmax(0, 1fr); min-height: 100vh; background: #FFFFFF; color: #101828;">
+
+  <dc-import name="SideNav" page="Badges.dc.html" hint-size="264px,100%"></dc-import>
+
+  <main style="min-width: 0;">
+    <div style="height: 12px; background: linear-gradient(90deg, #027FFE 15.24%, #02CCCC 72.81%, #02E2BD 89.43%);"></div>
+
+    <section id="badge" style="padding: 64px 80px 56px 80px; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 16px; max-width: 860px;">
+        <h1 style="margin: 0; font-size: 60px; line-height: 72px; letter-spacing: -0.02em; font-weight: 600; color: #101828;">Badge</h1>
+        <p style="margin: 0; font-size: 18px; line-height: 28px; color: #475467; text-wrap: pretty;">Nhãn trạng thái và phân loại: 13 màu ngữ nghĩa × 3 size × 8 kiểu icon × cờ outline. Badge không phải là button — không có hover, không bấm được, trừ kiểu <code style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 15px;">x close</code> dùng làm tag có thể xoá.</p>
+      </div>
+
+      <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Color × Outline · 13 màu</span></div>
+        <div style="display: grid; grid-template-columns: 148px repeat(2, minmax(140px, 1fr));">
+          <div style="padding: 10px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"></div>
+          <div style="padding: 10px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"><span style="font-size: 12px; font-weight: 500; color: #475467;">solid</span></div>
+          <div style="padding: 10px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"><span style="font-size: 12px; font-weight: 500; color: #475467;">outline</span></div>
+
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">gray</span></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Badge" color="gray" size="sm" text1="Label" hint-size="56px,24px"></x-import></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Badge" color="gray" size="sm" outline="{{ yes }}" text1="Label" hint-size="56px,24px"></x-import></div>
+
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center; background: #FCFCFD;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">primary</span></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="Badge" color="primary" size="sm" text1="Label" hint-size="56px,24px"></x-import></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="Badge" color="primary" size="sm" outline="{{ yes }}" text1="Label" hint-size="56px,24px"></x-import></div>
+
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">success</span></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Badge" color="success" size="sm" text1="Label" hint-size="56px,24px"></x-import></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Badge" color="success" size="sm" outline="{{ yes }}" text1="Label" hint-size="56px,24px"></x-import></div>
+
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center; background: #FCFCFD;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">warning</span></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="Badge" color="warning" size="sm" text1="Label" hint-size="56px,24px"></x-import></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="Badge" color="warning" size="sm" outline="{{ yes }}" text1="Label" hint-size="56px,24px"></x-import></div>
+
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">error</span></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Badge" color="error" size="sm" text1="Label" hint-size="56px,24px"></x-import></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Badge" color="error" size="sm" outline="{{ yes }}" text1="Label" hint-size="56px,24px"></x-import></div>
+
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center; background: #FCFCFD;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">blue light</span></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="Badge" color="blue light" size="sm" text1="Label" hint-size="56px,24px"></x-import></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="Badge" color="blue light" size="sm" outline="{{ yes }}" text1="Label" hint-size="56px,24px"></x-import></div>
+
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">blue</span></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Badge" color="blue" size="sm" text1="Label" hint-size="56px,24px"></x-import></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Badge" color="blue" size="sm" outline="{{ yes }}" text1="Label" hint-size="56px,24px"></x-import></div>
+
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center; background: #FCFCFD;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">indigo</span></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="Badge" color="indigo" size="sm" text1="Label" hint-size="56px,24px"></x-import></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="Badge" color="indigo" size="sm" outline="{{ yes }}" text1="Label" hint-size="56px,24px"></x-import></div>
+
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">purple</span></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Badge" color="purple" size="sm" text1="Label" hint-size="56px,24px"></x-import></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Badge" color="purple" size="sm" outline="{{ yes }}" text1="Label" hint-size="56px,24px"></x-import></div>
+
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center; background: #FCFCFD;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">pink</span></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="Badge" color="pink" size="sm" text1="Label" hint-size="56px,24px"></x-import></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="Badge" color="pink" size="sm" outline="{{ yes }}" text1="Label" hint-size="56px,24px"></x-import></div>
+
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">rosé</span></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Badge" color="rosé" size="sm" text1="Label" hint-size="56px,24px"></x-import></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Badge" color="rosé" size="sm" outline="{{ yes }}" text1="Label" hint-size="56px,24px"></x-import></div>
+
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center; background: #FCFCFD;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">orange</span></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="Badge" color="orange" size="sm" text1="Label" hint-size="56px,24px"></x-import></div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="Badge" color="orange" size="sm" outline="{{ yes }}" text1="Label" hint-size="56px,24px"></x-import></div>
+
+          <div style="padding: 12px 16px; display: flex; align-items: center;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">blue gray</span></div>
+          <div style="padding: 12px 16px;"><x-import component-from-global-scope="Badge" color="blue gray" size="sm" text1="Label" hint-size="56px,24px"></x-import></div>
+          <div style="padding: 12px 16px;"><x-import component-from-global-scope="Badge" color="blue gray" size="sm" outline="{{ yes }}" text1="Label" hint-size="56px,24px"></x-import></div>
+        </div>
+        <div style="padding: 12px 20px; background: #F9FAFB; border-top: 1px solid #EAECF0; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">8 kiểu icon</span></div>
+        <div style="padding: 28px 20px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 24px; align-items: center;">
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-start;"><span style="font-size: 11px; color: #667085;">false</span><x-import component-from-global-scope="Badge" color="primary" size="sm" icon="false" text1="Label" hint-size="56px,24px"></x-import></div>
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-start;"><span style="font-size: 11px; color: #667085;">dot</span><x-import component-from-global-scope="Badge" color="primary" size="sm" icon="dot" text1="Label" hint-size="66px,24px"></x-import></div>
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-start;"><span style="font-size: 11px; color: #667085;">icon leading</span><x-import component-from-global-scope="Badge" color="primary" size="sm" icon="icon leading" text1="Label" hint-size="76px,24px"></x-import></div>
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-start;"><span style="font-size: 11px; color: #667085;">icon trailing</span><x-import component-from-global-scope="Badge" color="primary" size="sm" icon="icon trailing" text1="Label" hint-size="76px,24px"></x-import></div>
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-start;"><span style="font-size: 11px; color: #667085;">x close</span><x-import component-from-global-scope="Badge" color="primary" size="sm" icon="x close" text1="Label" hint-size="76px,24px"></x-import></div>
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-start;"><span style="font-size: 11px; color: #667085;">only</span><x-import component-from-global-scope="Badge" color="primary" size="sm" icon="only" hint-size="24px,24px"></x-import></div>
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-start;"><span style="font-size: 11px; color: #667085;">avatar</span><x-import component-from-global-scope="Badge" color="primary" size="sm" icon="avatar" text1="Label" hint-size="76px,24px"></x-import></div>
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-start;"><span style="font-size: 11px; color: #667085;">country</span><x-import component-from-global-scope="Badge" color="primary" size="sm" icon="country" text1="Label" hint-size="76px,24px"></x-import></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="badge-special" style="padding: 32px 80px 56px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Dot · Status · Ranking · Performance</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">Bốn họ badge chuyên dụng, bổ sung 10/10/2023. Ranking và Performance dùng trong bảng xếp hạng, có tông riêng cho top 3.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px;">
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Badge/Status · 5 kiểu</span></div>
+          <div style="padding: 28px 20px; display: flex; flex-direction: column; gap: 18px; align-items: flex-start;">
+            <x-import component-from-global-scope="BadgeStatus" type="success" text1="Thành công" hint-size="96px,20px"></x-import>
+            <x-import component-from-global-scope="BadgeStatus" type="processing" text1="Đang xử lý" hint-size="96px,20px"></x-import>
+            <x-import component-from-global-scope="BadgeStatus" type="warning" text1="Cảnh báo" hint-size="88px,20px"></x-import>
+            <x-import component-from-global-scope="BadgeStatus" type="error" text1="Lỗi" hint-size="56px,20px"></x-import>
+            <x-import component-from-global-scope="BadgeStatus" type="default" text1="Nháp" hint-size="64px,20px"></x-import>
+          </div>
+        </div>
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Badge/Dot · 16 màu</span></div>
+          <div style="padding: 28px 20px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 18px; align-items: center;">
+            <x-import component-from-global-scope="BadgeDot" color="blue" hint-size="8px,8px"></x-import>
+            <x-import component-from-global-scope="BadgeDot" color="geek blue" hint-size="8px,8px"></x-import>
+            <x-import component-from-global-scope="BadgeDot" color="cyan" hint-size="8px,8px"></x-import>
+            <x-import component-from-global-scope="BadgeDot" color="green" hint-size="8px,8px"></x-import>
+            <x-import component-from-global-scope="BadgeDot" color="lime" hint-size="8px,8px"></x-import>
+            <x-import component-from-global-scope="BadgeDot" color="gold" hint-size="8px,8px"></x-import>
+            <x-import component-from-global-scope="BadgeDot" color="yellow" hint-size="8px,8px"></x-import>
+            <x-import component-from-global-scope="BadgeDot" color="orange" hint-size="8px,8px"></x-import>
+            <x-import component-from-global-scope="BadgeDot" color="volcano" hint-size="8px,8px"></x-import>
+            <x-import component-from-global-scope="BadgeDot" color="red" hint-size="8px,8px"></x-import>
+            <x-import component-from-global-scope="BadgeDot" color="magenta" hint-size="8px,8px"></x-import>
+            <x-import component-from-global-scope="BadgeDot" color="pink" hint-size="8px,8px"></x-import>
+            <x-import component-from-global-scope="BadgeDot" color="purple" hint-size="8px,8px"></x-import>
+            <x-import component-from-global-scope="BadgeDot" color="gray" hint-size="8px,8px"></x-import>
+            <x-import component-from-global-scope="BadgeDot" color="processing" hint-size="8px,8px"></x-import>
+            <x-import component-from-global-scope="BadgeDot" color="processing-animating" hint-size="8px,8px"></x-import>
+          </div>
+        </div>
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Badge/Ranking</span></div>
+          <div style="padding: 28px 20px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 20px; align-items: center;">
+            <x-import component-from-global-scope="BadgeRanking" property1="1st" text1="1" hint-size="28px,28px"></x-import>
+            <x-import component-from-global-scope="BadgeRanking" property1="2nd" text1="2" hint-size="28px,28px"></x-import>
+            <x-import component-from-global-scope="BadgeRanking" property1="3rd" text1="3" hint-size="28px,28px"></x-import>
+            <x-import component-from-global-scope="BadgeRanking" property1="other" text1="12" hint-size="28px,28px"></x-import>
+          </div>
+        </div>
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Badge/Performance</span></div>
+          <div style="padding: 28px 20px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 20px; align-items: center;">
+            <x-import component-from-global-scope="BadgePerfromace" property1="1st" text1="Star" hint-size="72px,24px"></x-import>
+            <x-import component-from-global-scope="BadgePerfromace" property1="2nd" text1="Tốt" hint-size="64px,24px"></x-import>
+            <x-import component-from-global-scope="BadgePerfromace" property1="3rd" text1="Khá" hint-size="64px,24px"></x-import>
+            <x-import component-from-global-scope="BadgePerfromace" property1="variant4" text1="Trung bình" hint-size="96px,24px"></x-import>
+            <x-import component-from-global-scope="BadgePerfromace" property1="variant5" text1="Cần cải thiện" hint-size="108px,24px"></x-import>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="avatar" style="padding: 32px 80px 56px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Avatar</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">Sáu size từ 24px tới 64px. Bốn kiểu chỉ báo: online, company, verified, hoặc không. Khi không có ảnh, hiển thị 2 chữ cái đầu.</p>
+      </div>
+      <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Size × status icon</span></div>
+        <div style="padding: 32px 24px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 36px; align-items: flex-end;">
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;"><x-import component-from-global-scope="Avatar" size="xs" text="{{ yes }}" text1="AN" hint-size="24px,24px"></x-import><span style="font-size: 11px; color: #667085;">xs · 24</span></div>
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;"><x-import component-from-global-scope="Avatar" size="sm" text="{{ yes }}" text1="AN" hint-size="32px,32px"></x-import><span style="font-size: 11px; color: #667085;">sm · 32</span></div>
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;"><x-import component-from-global-scope="Avatar" size="md" text="{{ yes }}" text1="AN" hint-size="40px,40px"></x-import><span style="font-size: 11px; color: #667085;">md · 40</span></div>
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;"><x-import component-from-global-scope="Avatar" size="lg" statusIcon="online indicator" hint-size="48px,48px"></x-import><span style="font-size: 11px; color: #667085;">lg · online</span></div>
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;"><x-import component-from-global-scope="Avatar" size="xl" statusIcon="verified" hint-size="56px,56px"></x-import><span style="font-size: 11px; color: #667085;">xl · verified</span></div>
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;"><x-import component-from-global-scope="Avatar" size="2xl" statusIcon="company" hint-size="64px,64px"></x-import><span style="font-size: 11px; color: #667085;">2xl · company</span></div>
+        </div>
+        <div style="padding: 12px 20px; background: #F9FAFB; border-top: 1px solid #EAECF0; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Avatar label group</span></div>
+        <div style="padding: 32px 24px; display: flex; flex-direction: column; gap: 24px; align-items: flex-start;">
+          <x-import component-from-global-scope="AvatarLabelGroup" size="sm" statusIcon="false" text1="Nguyễn Minh Anh" text2="minhanh@congty.vn" hint-size="240px,36px"></x-import>
+          <x-import component-from-global-scope="AvatarLabelGroup" size="md" statusIcon="online indicator" text1="Trần Quốc Bảo" text2="quocbao@congty.vn" hint-size="240px,40px"></x-import>
+          <x-import component-from-global-scope="AvatarLabelGroup" size="lg" statusIcon="verified" text1="Lê Thu Hà" text2="thuha@congty.vn" hint-size="260px,48px"></x-import>
+          <x-import component-from-global-scope="AvatarLabelGroup" size="xl" statusIcon="company" text1="Phạm Đức Long" text2="duclong@congty.vn" hint-size="280px,56px"></x-import>
+        </div>
+      </div>
+    </section>
+
+    <section id="selection" style="padding: 32px 80px 56px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Checkbox &amp; Radio</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">Ba trạng thái dữ liệu × bốn trạng thái tương tác. Ô 16×16, ring focus 4px, nhãn cách 8px.</p>
+      </div>
+      <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0; display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 16px;">
+          <span style="font-size: 14px; font-weight: 600; color: #344054;">Checkbox &middot; ô 20&times;20</span>
+          <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">size="md" &middot; text="false"</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 132px repeat(3, minmax(120px, 1fr));">
+          <div style="padding: 10px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"></div>
+          <div style="padding: 10px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"><span style="font-size: 12px; font-weight: 500; color: #475467;">Unchecked</span></div>
+          <div style="padding: 10px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"><span style="font-size: 12px; font-weight: 500; color: #475467;">Checked</span></div>
+          <div style="padding: 10px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"><span style="font-size: 12px; font-weight: 500; color: #475467;">Indeterminate</span></div>
+          <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><span style="font-size: 13px; font-weight: 600; color: #101828;">Default</span></div>
+          <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><x-import component-from-global-scope="Checkbox" size="md" type="checkbox" text="{{ no }}" checked="{{ no }}" indeterminate="{{ no }}" state="default" hint-size="20px,20px"></x-import></div>
+          <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><x-import component-from-global-scope="Checkbox" size="md" type="checkbox" text="{{ no }}" checked="{{ yes }}" indeterminate="{{ no }}" state="default" hint-size="20px,20px"></x-import></div>
+          <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><x-import component-from-global-scope="Checkbox" size="md" type="checkbox" text="{{ no }}" checked="{{ yes }}" indeterminate="{{ yes }}" state="default" hint-size="20px,20px"></x-import></div>
+          <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center; background: #FCFCFD;"><span style="font-size: 13px; font-weight: 600; color: #101828;">Hover</span></div>
+          <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD; display: flex; align-items: center;"><x-import component-from-global-scope="Checkbox" size="md" type="checkbox" text="{{ no }}" checked="{{ no }}" indeterminate="{{ no }}" state="hover" hint-size="20px,20px"></x-import></div>
+          <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD; display: flex; align-items: center;"><x-import component-from-global-scope="Checkbox" size="md" type="checkbox" text="{{ no }}" checked="{{ yes }}" indeterminate="{{ no }}" state="hover" hint-size="20px,20px"></x-import></div>
+          <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD; display: flex; align-items: center;"><x-import component-from-global-scope="Checkbox" size="md" type="checkbox" text="{{ no }}" checked="{{ yes }}" indeterminate="{{ yes }}" state="hover" hint-size="20px,20px"></x-import></div>
+          <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><span style="font-size: 13px; font-weight: 600; color: #101828;">Focused</span></div>
+          <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><x-import component-from-global-scope="Checkbox" size="md" type="checkbox" text="{{ no }}" checked="{{ no }}" indeterminate="{{ no }}" state="focused" hint-size="20px,20px"></x-import></div>
+          <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><x-import component-from-global-scope="Checkbox" size="md" type="checkbox" text="{{ no }}" checked="{{ yes }}" indeterminate="{{ no }}" state="focused" hint-size="20px,20px"></x-import></div>
+          <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><x-import component-from-global-scope="Checkbox" size="md" type="checkbox" text="{{ no }}" checked="{{ yes }}" indeterminate="{{ yes }}" state="focused" hint-size="20px,20px"></x-import></div>
+          <div style="padding: 16px; display: flex; align-items: center; background: #FCFCFD;"><span style="font-size: 13px; font-weight: 600; color: #101828;">Disabled</span></div>
+          <div style="padding: 16px; background: #FCFCFD; display: flex; align-items: center;"><x-import component-from-global-scope="Checkbox" size="md" type="checkbox" text="{{ no }}" checked="{{ no }}" indeterminate="{{ no }}" state="disabled" hint-size="20px,20px"></x-import></div>
+          <div style="padding: 16px; background: #FCFCFD; display: flex; align-items: center;"><x-import component-from-global-scope="Checkbox" size="md" type="checkbox" text="{{ no }}" checked="{{ yes }}" indeterminate="{{ no }}" state="disabled" hint-size="20px,20px"></x-import></div>
+          <div style="padding: 16px; background: #FCFCFD; display: flex; align-items: center;"><x-import component-from-global-scope="Checkbox" size="md" type="checkbox" text="{{ no }}" checked="{{ yes }}" indeterminate="{{ yes }}" state="disabled" hint-size="20px,20px"></x-import></div>
+        </div>
+        <div style="padding: 12px 20px; background: #F9FAFB; border-top: 1px solid #EAECF0; border-bottom: 1px solid #EAECF0; display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 16px;">
+          <span style="font-size: 14px; font-weight: 600; color: #344054;">Radio &middot; type="radio"</span>
+          <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">không có indeterminate</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 132px repeat(2, minmax(120px, 1fr));">
+          <div style="padding: 10px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"></div>
+          <div style="padding: 10px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"><span style="font-size: 12px; font-weight: 500; color: #475467;">Unchecked</span></div>
+          <div style="padding: 10px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"><span style="font-size: 12px; font-weight: 500; color: #475467;">Checked</span></div>
+          <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><span style="font-size: 13px; font-weight: 600; color: #101828;">Default</span></div>
+          <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><x-import component-from-global-scope="Checkbox" size="md" type="radio" text="{{ no }}" checked="{{ no }}" indeterminate="{{ no }}" state="default" hint-size="20px,20px"></x-import></div>
+          <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><x-import component-from-global-scope="Checkbox" size="md" type="radio" text="{{ no }}" checked="{{ yes }}" indeterminate="{{ no }}" state="default" hint-size="20px,20px"></x-import></div>
+          <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center; background: #FCFCFD;"><span style="font-size: 13px; font-weight: 600; color: #101828;">Hover</span></div>
+          <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD; display: flex; align-items: center;"><x-import component-from-global-scope="Checkbox" size="md" type="radio" text="{{ no }}" checked="{{ no }}" indeterminate="{{ no }}" state="hover" hint-size="20px,20px"></x-import></div>
+          <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD; display: flex; align-items: center;"><x-import component-from-global-scope="Checkbox" size="md" type="radio" text="{{ no }}" checked="{{ yes }}" indeterminate="{{ no }}" state="hover" hint-size="20px,20px"></x-import></div>
+          <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><span style="font-size: 13px; font-weight: 600; color: #101828;">Focused</span></div>
+          <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><x-import component-from-global-scope="Checkbox" size="md" type="radio" text="{{ no }}" checked="{{ no }}" indeterminate="{{ no }}" state="focused" hint-size="20px,20px"></x-import></div>
+          <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><x-import component-from-global-scope="Checkbox" size="md" type="radio" text="{{ no }}" checked="{{ yes }}" indeterminate="{{ no }}" state="focused" hint-size="20px,20px"></x-import></div>
+          <div style="padding: 16px; display: flex; align-items: center; background: #FCFCFD;"><span style="font-size: 13px; font-weight: 600; color: #101828;">Disabled</span></div>
+          <div style="padding: 16px; background: #FCFCFD; display: flex; align-items: center;"><x-import component-from-global-scope="Checkbox" size="md" type="radio" text="{{ no }}" checked="{{ no }}" indeterminate="{{ no }}" state="disabled" hint-size="20px,20px"></x-import></div>
+          <div style="padding: 16px; background: #FCFCFD; display: flex; align-items: center;"><x-import component-from-global-scope="Checkbox" size="md" type="radio" text="{{ no }}" checked="{{ yes }}" indeterminate="{{ no }}" state="disabled" hint-size="20px,20px"></x-import></div>
+        </div>
+        <div style="padding: 12px 20px; background: #F9FAFB; border-top: 1px solid #EAECF0; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Checkbox có nhãn &amp; mô tả</span></div>
+        <div style="padding: 28px 24px; display: flex; flex-direction: column; gap: 24px; align-items: flex-start;">
+          <x-import component-from-global-scope="Checkbox" size="md" type="checkbox" text="{{ yes }}" checked="{{ yes }}" state="default" text1="Ghi nhớ đăng nhập" text2="Lưu thông tin cho lần sau." hint-size="344px,44px"></x-import>
+          <x-import component-from-global-scope="Checkbox" size="sm" type="checkbox" text="{{ yes }}" checked="{{ no }}" state="default" text1="Nhận email thông báo" text2="Tối đa 1 email mỗi ngày." hint-size="344px,40px"></x-import>
+          <x-import component-from-global-scope="Checkbox" size="md" type="radio" text="{{ yes }}" checked="{{ yes }}" state="default" text1="Chuyển khoản ngân hàng" text2="Miễn phí, nhận trong 1 ngày làm việc." hint-size="344px,44px"></x-import>
+        </div>
+        <div style="padding: 12px 20px; background: #F9FAFB; border-top: 1px solid #EAECF0; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Check group — vùng bấm gồm cả nhãn</span></div>
+        <div style="padding: 28px 24px; display: flex; flex-direction: column; gap: 16px; align-items: stretch;">
+          <x-import component-from-global-scope="CheckGroup" type="checkbox" selected="{{ yes }}" subText="{{ yes }}" text1="Gói doanh nghiệp" text2="Không giới hạn thành viên" dc-props="{{ fullW }}" hint-size="100%,64px"></x-import>
+          <x-import component-from-global-scope="CheckGroup" type="radio button" selected="{{ no }}" subText="{{ yes }}" text1="Gói cá nhân" text2="Tối đa 3 thành viên" dc-props="{{ fullW }}" hint-size="100%,64px"></x-import>
+          <x-import component-from-global-scope="CheckGroup" type="avatar" selected="{{ no }}" subText="{{ yes }}" text1="Chuyển cho đồng nghiệp" text2="quocbao@congty.vn" dc-props="{{ fullW }}" hint-size="100%,64px"></x-import>
+        </div>
+      </div>
+    </section>
+
+    <section id="misc" style="padding: 32px 80px 96px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Breadcrumb, Divider, Anchor, Callout</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">Breadcrumb tự thu gọn khi vượt 4 cấp. Callout dùng chung bốn tông ngữ nghĩa với badge.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px;">
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Breadcrumb</span></div>
+          <div style="padding: 28px 20px; display: flex; flex-direction: column; gap: 24px; align-items: flex-start;">
+            <x-import component-from-global-scope="Breadcrumbs" breadcrumb="2" hint-size="200px,24px"></x-import>
+            <x-import component-from-global-scope="Breadcrumbs" breadcrumb="4" hint-size="320px,24px"></x-import>
+            <x-import component-from-global-scope="BreadcrumbsNormal" count="3" goBack="{{ yes }}" hint-size="300px,24px"></x-import>
+            <x-import component-from-global-scope="BreadcrumbsNormal" count="many" goBack="{{ no }}" hint-size="320px,24px"></x-import>
+          </div>
+        </div>
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Divider &amp; Anchor</span></div>
+          <div style="padding: 28px 20px; display: flex; flex-direction: column; gap: 24px; align-items: stretch;">
+            <x-import component-from-global-scope="Divider" hint-size="100%,1px"></x-import>
+            <x-import component-from-global-scope="Anchor" state="link" text1="Xem hướng dẫn" hint-size="140px,20px"></x-import>
+            <x-import component-from-global-scope="Anchor" state="link-selected" text1="Đang xem" hint-size="120px,20px"></x-import>
+            <x-import component-from-global-scope="Anchor" state="link-with-subs" text1="Có mục con" hint-size="140px,20px"></x-import>
+          </div>
+        </div>
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Callout · 4 tông</span></div>
+          <div style="padding: 28px 20px; display: flex; flex-direction: column; gap: 20px; align-items: stretch;">
+            <x-import component-from-global-scope="Callout" color="primary" size="md" hint-size="100%,80px"></x-import>
+            <x-import component-from-global-scope="Callout" color="success" size="sm" hint-size="100%,60px"></x-import>
+            <x-import component-from-global-scope="Callout" color="warning" size="sm" hint-size="100%,60px"></x-import>
+            <x-import component-from-global-scope="Callout" color="danger" size="sm" hint-size="100%,60px"></x-import>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return { yes: true, no: false, fullW: { style: { width: "100%", minWidth: 0 } } };
+  }
+}
+</script>
+</body>
+</html>

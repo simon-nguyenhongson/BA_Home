@@ -1,0 +1,32 @@
+<!-- @dsCard group="Type" viewport="700x260" name="Text scale" subtitle="14 / 20 is the working size — it outnumbers every other step" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin: 0; padding: 16px 20px; background: var(--ds-surface-page); }
+  .r { display: flex; flex-direction: row; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+  .c { display: flex; flex-direction: column; gap: 10px; }
+  .lbl { font-family: var(--ds-font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ds-text-placeholder); }
+  .hex { font-family: var(--ds-font-mono); font-size: 10px; line-height: 14px; color: var(--ds-text-secondary); }
+  .use { font-size: 10px; line-height: 14px; color: var(--ds-text-placeholder); }
+  .row { display: grid; grid-template-columns: 108px 132px minmax(0, 1fr); gap: 16px; align-items: baseline; padding: 5px 0; }
+  .nm { font-size: 12px; font-weight: 600; color: var(--ds-text-label); }
+</style>
+</head>
+<body>
+<div class="c" style="gap: 0;">
+  <div class="row"><span class="nm">Text xl</span><span class="hex">20 / 30</span>
+    <span style="font-size: 20px; line-height: 30px; font-weight: 500; letter-spacing: 0; color: var(--ds-text-primary);">Lead paragraph</span></div>
+  <div class="row"><span class="nm">Text lg</span><span class="hex">18 / 28</span>
+    <span style="font-size: 18px; line-height: 28px; font-weight: 500; letter-spacing: 0; color: var(--ds-text-primary);">Intro copy that sits under a page title</span></div>
+  <div class="row"><span class="nm">Text md</span><span class="hex">16 / 24</span>
+    <span style="font-size: 16px; line-height: 24px; font-weight: 400; letter-spacing: 0; color: var(--ds-text-primary);">Long-form body copy</span></div>
+  <div class="row"><span class="nm">Text sm</span><span class="hex">14 / 20</span>
+    <span style="font-size: 14px; line-height: 20px; font-weight: 400; letter-spacing: 0; color: var(--ds-text-primary);">Default UI text — 1,555 regular + 865 medium</span></div>
+  <div class="row"><span class="nm">Text xs</span><span class="hex">12 / 18</span>
+    <span style="font-size: 12px; line-height: 18px; font-weight: 400; letter-spacing: 0; color: var(--ds-text-primary);">Caption, table label, helper text</span></div>
+</div>
+</body>
+</html>

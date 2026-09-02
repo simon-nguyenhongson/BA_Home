@@ -5,7 +5,7 @@
 
 import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
 
 // ---------------------------------------------------------------------------
@@ -138,7 +138,6 @@ function OverviewTabWrapper({
 }) {
   // Inline the OverviewTab rendering as a simple integration test via PPGPage internals
   // We test via data rendered in the DOM
-  const msDone = project.status === 'active' ? 1 : 0
 
   return React.createElement('div', null,
     // Project name

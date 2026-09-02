@@ -1,0 +1,84 @@
+<!-- @dsCard group="Components" viewport="700x520" name="Core — Button, Badge, Avatar, Checkbox" subtitle="21 primitives: actions, labels, people, selection" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Core components</title>
+<link rel="stylesheet" href="../../styles.css" />
+<script type="importmap">
+{ "imports": { "react": "https://esm.sh/react@18.3.1", "react-dom/client": "https://esm.sh/react-dom@18.3.1/client" } }
+</script>
+<style>
+  body { padding: 20px; background: var(--ds-surface-page); }
+  .grid { display: flex; flex-direction: column; gap: 18px; }
+  .row { display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .lbl { font-family: var(--ds-font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ds-text-placeholder); }
+  .sep { height: 1px; background: var(--ds-border-subtle); }
+</style>
+</head>
+<body>
+<div id="root" class="grid"></div>
+<script type="module">
+import React from "react";
+import { createRoot } from "react-dom/client";
+import * as C from "./_impl.js";
+
+const h = React.createElement;
+const Row = (label, ...kids) => h("div", { className: "grid", style: { gap: 8 } },
+  h("span", { className: "lbl" }, label),
+  h("div", { className: "row" }, ...kids));
+
+createRoot(document.getElementById("root")).render(
+  h(React.Fragment, null,
+    Row("Button · hierarchy",
+      h(C.Button, { size: "h32px", hierarchy: "primary", state: "default", leadIcon: false, rightIcon: false, text1: "Primary" }),
+      h(C.Button, { size: "h32px", hierarchy: "secondary gray", state: "default", leadIcon: false, rightIcon: false, text1: "Secondary 1" }),
+      h(C.Button, { size: "h32px", hierarchy: "secondary color", state: "default", leadIcon: false, rightIcon: false, text1: "Secondary 2" }),
+      h(C.Button, { size: "h32px", hierarchy: "ghost gray", state: "default", leadIcon: false, rightIcon: false, text1: "Ghost" }),
+      h(C.Button, { size: "h32px", hierarchy: "link color", state: "default", leadIcon: false, rightIcon: false, text1: "Link" }),
+      h(C.Button, { size: "h32px", hierarchy: "primary", state: "default", destructive: true, leadIcon: false, rightIcon: false, text1: "Delete" }),
+      h(C.Button, { size: "h32px", hierarchy: "primary", state: "disabled", leadIcon: false, rightIcon: false, text1: "Disabled" }),
+      h(C.Button, { size: "h32px", hierarchy: "primary", state: "default", icon: "only" })),
+    h("div", { className: "sep" }),
+    Row("Button · h24 / h32 / h40",
+      h(C.Button, { size: "h24px", hierarchy: "secondary gray", state: "default", leadIcon: true, rightIcon: false, text1: "Small" }),
+      h(C.Button, { size: "h32px", hierarchy: "secondary gray", state: "default", leadIcon: true, rightIcon: false, text1: "Medium" }),
+      h(C.Button, { size: "h40px", hierarchy: "secondary gray", state: "default", leadIcon: true, rightIcon: false, text1: "Large" }),
+      h(C.ButtonCloseX, { size: "sm", color: "gray" }),
+      h(C.ButtonCloseX, { size: "md", color: "gray" }),
+      h(C.ButtonCloseX, { size: "lg", color: "gray" })),
+    h("div", { className: "sep" }),
+    Row("Badge · 13 semantic colours",
+      ...["gray", "primary", "success", "warning", "error", "blue light", "blue", "indigo", "purple", "pink", "rosé", "orange", "blue gray"]
+        .map((color, i) => h(C.Badge, { key: i, color, size: "sm", icon: "false", outline: false, text1: color }))),
+    Row("Badge · outline · dot · status · rank",
+      h(C.Badge, { color: "primary", size: "sm", icon: "false", outline: true, text1: "Outline" }),
+      h(C.Badge, { color: "success", size: "sm", icon: "dot", outline: false, text1: "Dot" }),
+      h(C.BadgeStatus, { type: "success", text1: "Thành công" }),
+      h(C.BadgeStatus, { type: "processing", text1: "Đang xử lý" }),
+      h(C.BadgeRanking, { property1: "1st", text1: "1" }),
+      h(C.BadgeRanking, { property1: "2nd", text1: "2" }),
+      h(C.BadgeRanking, { property1: "other", text1: "12" })),
+    h("div", { className: "sep" }),
+    Row("Avatar",
+      h(C.Avatar, { size: "xs", text: true, text1: "AN" }),
+      h(C.Avatar, { size: "sm", text: true, text1: "AN" }),
+      h(C.Avatar, { size: "md", statusIcon: "online indicator" }),
+      h(C.Avatar, { size: "lg", statusIcon: "verified" }),
+      h("span", { style: { width: 12 } }),
+      h(C.AvatarLabelGroup, { size: "sm", statusIcon: "false", text1: "Nguyễn Minh Anh", text2: "minhanh@congty.vn" })),
+    h("div", { className: "sep" }),
+    Row("Checkbox · Anchor",
+      h(C.CheckboxText, { text: true, subtext: false, checked: false, state: "default", text1: "Unchecked", style: { width: "auto" } }),
+      h(C.CheckboxText, { text: true, subtext: false, checked: true, state: "default", text1: "Checked", style: { width: "auto" } }),
+      h("span", { style: { width: 12 } }),
+      h("div", { className: "row", style: { gap: 6 } },
+        h(C.Checkbox, { size: "md", type: "checkbox", indeterminate: true, checked: true, text: false, state: "default" }),
+        h("span", { className: "lbl" }, "indeterminate · label-less in source")),
+      h("span", { style: { width: 12 } }),
+      h(C.Anchor, { state: "link", text1: "Anchor" }))
+  )
+);
+</script>
+</body>
+</html>

@@ -18,8 +18,11 @@ vi.mock('../pages/LoginPage', () => ({
 vi.mock('../pages/dashboard/DashboardPage', () => ({
   default: () => React.createElement('div', { 'data-testid': 'dashboard-page' }, 'DashboardPage'),
 }))
-vi.mock('../pages/ppg/PPGPage', () => ({
-  default: () => React.createElement('div', { 'data-testid': 'ppg-page' }, 'PPGPage'),
+vi.mock('../pages/ppg/ProjectDetailPage', () => ({
+  default: () => React.createElement('div', { 'data-testid': 'project-detail-page' }, 'ProjectDetailPage'),
+}))
+vi.mock('../pages/workspace/WorkspacePage', () => ({
+  default: () => React.createElement('div', { 'data-testid': 'workspace-page' }, 'WorkspacePage'),
 }))
 vi.mock('../pages/ba-workflow/BAWorkflowPage', () => ({
   default: () => React.createElement('div', { 'data-testid': 'ba-workflow-page' }, 'BAWorkflowPage'),
@@ -66,22 +69,7 @@ vi.mock('../stores/auth', () => ({
 }))
 
 // Import the component under test AFTER all mocks are set up
-import App from '../App'
-
-// ---------------------------------------------------------------------------
-// APPS constant — mirrored from App.tsx for pure unit testing
-// ---------------------------------------------------------------------------
-
-const APPS = [
-  { key: 'dashboard'     as const, label: 'Dashboard',   path: '/dashboard' },
-  { key: 'ppg'           as const, label: 'Project',     path: '/ppg' },
-  { key: 'ba-workflow'   as const, label: 'BA',          path: '/ba-workflow' },
-  { key: 'test'          as const, label: 'Test',        path: '/test' },
-  { key: 'docs'          as const, label: 'Tài liệu',    path: '/docs' },
-  { key: 'requests'      as const, label: 'Requests',    path: '/requests' },
-  { key: 'todos'         as const, label: 'To-do',       path: '/todos' },
-  { key: 'settings'      as const, label: 'Cài đặt',     path: '/settings' },
-]
+import App, { APPS } from '../App'
 
 // ---------------------------------------------------------------------------
 // APPS array structure tests
@@ -102,21 +90,22 @@ describe('App — APPS array structure', () => {
     expect(APPS[0].key).toBe('dashboard')
   })
 
-  it('second item (index 1) is "Project" (đổi tên từ PPG System)', () => {
-    expect(APPS[1].label).toBe('Project')
-    expect(APPS[1].key).toBe('ppg')
-    expect(APPS[1].path).toBe('/ppg')
+  it('second item (index 1) is "To-do" — đưa lên trên Workspace theo yêu cầu PO', () => {
+    expect(APPS[1].label).toBe('To-do')
+    expect(APPS[1].key).toBe('todos')
+    expect(APPS[1].path).toBe('/todos')
   })
 
-  it('third item (index 2) is "BA"', () => {
-    expect(APPS[2].label).toBe('BA')
-    expect(APPS[2].key).toBe('ba-workflow')
+  it('third item (index 2) is "Workspace" — chứa cả Project và Product', () => {
+    expect(APPS[2].label).toBe('Workspace')
+    expect(APPS[2].key).toBe('workspace')
+    expect(APPS[2].path).toBe('/workspace')
   })
 
-  it('fourth item (index 3) is "Test" — module test hợp nhất', () => {
-    expect(APPS[3].label).toBe('Test')
-    expect(APPS[3].key).toBe('test')
-    expect(APPS[3].path).toBe('/test')
+  it('thứ tự đầy đủ của sidebar', () => {
+    expect(APPS.map(a => a.label)).toEqual([
+      'Dashboard', 'To-do', 'Workspace', 'BA', 'Test', 'Tài liệu', 'Requests', 'Cài đặt',
+    ])
   })
 
   it('has "Tài liệu" → /docs', () => {
@@ -162,13 +151,45 @@ describe('App — routing (authenticated)', () => {
     vi.clearAllMocks()
   })
 
-  it('renders PPGPage at /ppg', () => {
+  it('renders WorkspacePage at /workspace', () => {
     render(
-      React.createElement(MemoryRouter, { initialEntries: ['/ppg'] },
+      React.createElement(MemoryRouter, { initialEntries: ['/workspace'] },
         React.createElement(App)
       )
     )
-    expect(screen.getByTestId('ppg-page')).toBeInTheDocument()
+    expect(screen.getByTestId('workspace-page')).toBeInTheDocument()
+  })
+
+  it('/projects/:id mở trang quản trị mở rộng (trước đây không route nào trỏ tới)', () => {
+    render(
+      React.createElement(MemoryRouter, { initialEntries: ['/projects/abc-123'] },
+        React.createElement(App)
+      )
+    )
+    expect(screen.getByTestId('project-detail-page')).toBeInTheDocument()
+  })
+
+  it('/projects/:id vẫn thuộc nhóm Workspace trên sidebar và breadcrumb', () => {
+    render(
+      React.createElement(MemoryRouter, { initialEntries: ['/projects/abc-123'] },
+        React.createElement(App)
+      )
+    )
+    // Không quy về Workspace thì mục đang chọn nhảy về Dashboard (APPS[0])
+    expect(screen.getAllByText('Workspace').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Project · Product').length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('chuyển hướng /ppg và /catalog sang Workspace (bookmark cũ không chết)', () => {
+    for (const legacy of ['/ppg', '/catalog']) {
+      const { unmount } = render(
+        React.createElement(MemoryRouter, { initialEntries: [legacy] },
+          React.createElement(App)
+        )
+      )
+      expect(screen.getByTestId('workspace-page')).toBeInTheDocument()
+      unmount()
+    }
   })
 
   it('renders DocsPage at /docs', () => {
@@ -236,7 +257,7 @@ describe('App — routing (authenticated)', () => {
 describe('App — Shell sidebar', () => {
   it('renders sidebar with BA_HOME brand', () => {
     render(
-      React.createElement(MemoryRouter, { initialEntries: ['/ppg'] },
+      React.createElement(MemoryRouter, { initialEntries: ['/workspace'] },
         React.createElement(App)
       )
     )
@@ -245,12 +266,12 @@ describe('App — Shell sidebar', () => {
 
   it('renders app labels in the sidebar navigation', () => {
     render(
-      React.createElement(MemoryRouter, { initialEntries: ['/ppg'] },
+      React.createElement(MemoryRouter, { initialEntries: ['/workspace'] },
         React.createElement(App)
       )
     )
     // Menu trên đã bỏ — nhãn app chỉ còn ở sidebar
-    expect(screen.getAllByText('Project').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Workspace').length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText('BA').length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText('Test').length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText('Tài liệu').length).toBeGreaterThanOrEqual(1)

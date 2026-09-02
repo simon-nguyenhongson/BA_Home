@@ -31,7 +31,7 @@ export function CommentModal({
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: '#fff', borderRadius: 12, width: 440, maxWidth: '92vw',
+          background: 'var(--app-white)', borderRadius: 12, width: 440, maxWidth: '92vw',
           padding: 24, boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
         }}
       >
@@ -69,7 +69,7 @@ export function CommentModal({
             onClick={onClose}
             style={{
               padding: '7px 16px', border: '1px solid var(--app-neutral-300)',
-              borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13,
+              borderRadius: 8, background: 'var(--app-white)', cursor: 'pointer', fontSize: 13,
             }}
           >
             Hủy
@@ -80,8 +80,8 @@ export function CommentModal({
             style={{
               padding: '7px 16px', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600,
               cursor: ok ? 'pointer' : 'not-allowed',
-              background: ok ? 'var(--app-primary, #1d4ed8)' : 'var(--app-neutral-300)',
-              color: '#fff',
+              background: ok ? 'var(--app-primary)' : 'var(--app-neutral-300)',
+              color: 'var(--app-white)',
             }}
           >
             {confirmLabel}

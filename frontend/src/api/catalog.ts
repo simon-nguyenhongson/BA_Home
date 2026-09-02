@@ -147,6 +147,10 @@ export interface CatalogProduct {
   monitoring_info: MonitoringInfo
   resource_info: ResourceInfo
   business_metadata: BusinessMetadata
+  /** V052 — dự án đã khai sinh sản phẩm (tùy chọn, tối đa 1 sản phẩm mỗi dự án) */
+  origin_project_id?: string
+  origin_project_code?: string
+  origin_project_name?: string
   created_at: string
   updated_at: string
   created_by?: string
@@ -156,6 +160,8 @@ export interface CatalogProductCreate {
   product_code: string
   product_name: string
   product_type: ProductType
+  /** Gắn sản phẩm với dự án đã khai sinh ra nó (V052) */
+  origin_project_id?: string
   description?: string
   domain_code?: string
   business_owner?: string
@@ -410,6 +416,8 @@ export const getProducts = (params?: {
   department?: string
   domain?: string          // domain_code filter
   q?: string
+  /** Chỉ sản phẩm khai sinh từ dự án này — dùng cho tab Sản phẩm của dự án */
+  origin_project_id?: string
 }) => {
   const qs = new URLSearchParams()
   if (params?.product_type) qs.set('product_type', params.product_type)
@@ -417,6 +425,7 @@ export const getProducts = (params?: {
   if (params?.department)   qs.set('department', params.department)
   if (params?.domain)       qs.set('domain', params.domain)
   if (params?.q)            qs.set('q', params.q)
+  if (params?.origin_project_id) qs.set('origin_project_id', params.origin_project_id)
   const q = qs.toString()
   return req<CatalogProduct[]>('GET', `/catalog/products${q ? `?${q}` : ''}`)
 }
@@ -432,6 +441,13 @@ export const updateProduct = (id: string, data: Partial<CatalogProductCreate>) =
 
 export const deleteProduct = (id: string) =>
   req<void>('DELETE', `/catalog/products/${id}`)
+
+/**
+ * Bỏ gắn dự án khai sinh. Endpoint riêng vì PUT loại bỏ trường null khỏi payload
+ * (exclude_none ở backend) nên không gửi được "xoá về NULL".
+ */
+export const unlinkProductOriginProject = (id: string) =>
+  req<CatalogProduct>('DELETE', `/catalog/products/${id}/origin-project`)
 
 // Environments
 export const getProductEnvs = (productId: string) =>

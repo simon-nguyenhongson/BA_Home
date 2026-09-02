@@ -1,0 +1,32 @@
+<!-- @dsCard group="Type" viewport="700x160" name="Logotype & mono" subtitle="IBM Plex Sans is logo-only; mono is for token values" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin: 0; padding: 16px 20px; background: var(--ds-surface-page); }
+  .r { display: flex; flex-direction: row; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+  .c { display: flex; flex-direction: column; gap: 10px; }
+  .lbl { font-family: var(--ds-font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ds-text-placeholder); }
+  .hex { font-family: var(--ds-font-mono); font-size: 10px; line-height: 14px; color: var(--ds-text-secondary); }
+  .use { font-size: 10px; line-height: 14px; color: var(--ds-text-placeholder); }
+  .row { display: grid; grid-template-columns: 108px 132px minmax(0, 1fr); gap: 16px; align-items: baseline; padding: 5px 0; }
+  .nm { font-size: 12px; font-weight: 600; color: var(--ds-text-label); }
+</style>
+</head>
+<body>
+<div class="r" style="gap: 40px;">
+  <div class="c" style="gap: 6px;">
+    <span class="lbl">IBM Plex Sans 700 · logotype only</span>
+    <span style="font-family: var(--ds-font-logo); font-weight: 700; font-size: 22px; letter-spacing: -0.02em; color: var(--ds-text-body);">SOOBINZHONGSON</span>
+    <span class="use">Never used for UI copy or headings.</span>
+  </div>
+  <div class="c" style="gap: 6px;">
+    <span class="lbl">mono · token values</span>
+    <span style="font-family: var(--ds-font-mono); font-size: 14px; color: var(--ds-text-primary);">--ds-brand: #155EEF;</span>
+    <span class="use">System mono stack — no webfont is loaded for it.</span>
+  </div>
+</div>
+</body>
+</html>

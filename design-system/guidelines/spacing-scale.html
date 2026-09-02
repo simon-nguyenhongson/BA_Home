@@ -1,0 +1,39 @@
+<!-- @dsCard group="Spacing" viewport="700x170" name="Spacing scale" subtitle="8px is the base step; 10px and 6px exist and are used" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin: 0; padding: 16px 20px; background: var(--ds-surface-page); }
+  .r { display: flex; flex-direction: row; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+  .c { display: flex; flex-direction: column; gap: 10px; }
+  .lbl { font-family: var(--ds-font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ds-text-placeholder); }
+  .hex { font-family: var(--ds-font-mono); font-size: 10px; line-height: 14px; color: var(--ds-text-secondary); }
+  .use { font-size: 10px; line-height: 14px; color: var(--ds-text-placeholder); }
+  .row { display: grid; grid-template-columns: 108px 132px minmax(0, 1fr); gap: 16px; align-items: baseline; padding: 5px 0; }
+  .nm { font-size: 12px; font-weight: 600; color: var(--ds-text-label); }
+</style>
+</head>
+<body>
+<div class="c" style="gap: 8px;">
+  <div class="r" style="gap: 10px; align-items: flex-end;">
+    <div class="c" style="gap: 5px; align-items: center;"><div style="width: 2px; height: 40px; background: var(--ds-brand); border-radius: 2px;"></div><span class="hex">2</span></div>
+    <div class="c" style="gap: 5px; align-items: center;"><div style="width: 4px; height: 40px; background: var(--ds-brand); border-radius: 2px;"></div><span class="hex">4</span></div>
+    <div class="c" style="gap: 5px; align-items: center;"><div style="width: 6px; height: 40px; background: var(--ds-brand); border-radius: 2px;"></div><span class="hex">6</span></div>
+    <div class="c" style="gap: 5px; align-items: center;"><div style="width: 8px; height: 40px; background: var(--ds-brand); border-radius: 2px;"></div><span class="hex">8</span></div>
+    <div class="c" style="gap: 5px; align-items: center;"><div style="width: 10px; height: 40px; background: var(--ds-brand); border-radius: 2px;"></div><span class="hex">10</span></div>
+    <div class="c" style="gap: 5px; align-items: center;"><div style="width: 12px; height: 40px; background: var(--ds-brand); border-radius: 2px;"></div><span class="hex">12</span></div>
+    <div class="c" style="gap: 5px; align-items: center;"><div style="width: 16px; height: 40px; background: var(--ds-brand); border-radius: 2px;"></div><span class="hex">16</span></div>
+    <div class="c" style="gap: 5px; align-items: center;"><div style="width: 20px; height: 40px; background: var(--ds-brand); border-radius: 2px;"></div><span class="hex">20</span></div>
+    <div class="c" style="gap: 5px; align-items: center;"><div style="width: 24px; height: 40px; background: var(--ds-brand); border-radius: 2px;"></div><span class="hex">24</span></div>
+    <div class="c" style="gap: 5px; align-items: center;"><div style="width: 32px; height: 40px; background: var(--ds-brand); border-radius: 2px;"></div><span class="hex">32</span></div>
+    <div class="c" style="gap: 5px; align-items: center;"><div style="width: 40px; height: 40px; background: var(--ds-brand); border-radius: 2px;"></div><span class="hex">40</span></div>
+    <div class="c" style="gap: 5px; align-items: center;"><div style="width: 48px; height: 40px; background: var(--ds-brand); border-radius: 2px;"></div><span class="hex">48</span></div>
+    <div class="c" style="gap: 5px; align-items: center;"><div style="width: 64px; height: 40px; background: var(--ds-brand); border-radius: 2px;"></div><span class="hex">64</span></div>
+    <div class="c" style="gap: 5px; align-items: center;"><div style="width: 80px; height: 40px; background: var(--ds-brand); border-radius: 2px;"></div><span class="hex">80</span></div>
+  </div>
+  <span class="use">Icon-to-label gap inside any control is always 8px. Page gutter is 80px.</span>
+</div>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" />
+<link rel="stylesheet" href="./ds/fig-tokens.css" />
+<link rel="stylesheet" href="./ds/data/fig-assets.css" />
+<style>
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: #FFFFFF; font-family: Inter, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #155EEF; text-decoration: none; }
+  a:hover { color: #004EEB; }
+  ::selection { background: #D1E0FF; }
+</style>
+<script src="./ds/data/bundle/p1.js"></script>
+<script src="./ds/data/bundle/p2.js"></script>
+<script src="./ds/data/bundle/p3.js"></script>
+<script src="./ds/data/bundle/p4.js"></script>
+<script src="./ds/data/bundle/p5.js"></script>
+<script src="./ds/data/bundle/p6.js"></script>
+<script src="./ds/data/bundle/p7.js"></script>
+</helmet>
+
+<div style="display: grid; grid-template-columns: 264px minmax(0, 1fr); min-height: 100vh; background: #FFFFFF; color: #101828;">
+
+  <dc-import name="SideNav" page="Table.dc.html" hint-size="264px,100%"></dc-import>
+
+  <main style="min-width: 0;">
+    <div style="height: 12px; background: linear-gradient(90deg, #027FFE 15.24%, #02CCCC 72.81%, #02E2BD 89.43%);"></div>
+
+    <section id="assembled" style="padding: 64px 80px 56px 80px; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 16px; max-width: 880px;">
+        <h1 style="margin: 0; font-size: 60px; line-height: 72px; letter-spacing: -0.02em; font-weight: 600; color: #101828;">Table &amp; Data</h1>
+        <p style="margin: 0; font-size: 18px; line-height: 28px; color: #475467; text-wrap: pretty;">Bảng trong hệ thống được dựng từ <strong style="font-weight: 600; color: #344054;">ô</strong>, không phải từ dòng. Mỗi ô cao 40px, viền 1px <code style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 15px;">#EAECF0</code> bốn phía; khi xếp cạnh nhau các ô chồng viền −1px để thành lưới liền.</p>
+      </div>
+      <div style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 12px;">
+        <span style="padding: 4px 10px; border-radius: 6px; background: #F9FAFB; border: 1px solid #EAECF0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: nowrap; color: #475467;">row height 40px</span>
+        <span style="padding: 4px 10px; border-radius: 6px; background: #F9FAFB; border: 1px solid #EAECF0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: nowrap; color: #475467;">padding 0 12px</span>
+        <span style="padding: 4px 10px; border-radius: 6px; background: #F9FAFB; border: 1px solid #EAECF0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: nowrap; color: #475467;">header #F9FAFB</span>
+        <span style="padding: 4px 10px; border-radius: 6px; background: #F9FAFB; border: 1px solid #EAECF0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: nowrap; color: #475467;">9 kiểu header · 50 kiểu ô</span>
+      </div>
+
+      <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0; display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 16px;">
+          <span style="font-size: 14px; font-weight: 600; color: #344054;">Bảng lắp từ cell</span>
+          <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">CellTitle + CellBodyNormal · border collapse −1px</span>
+        </div>
+        <div style="padding: 32px 24px; background: #F9FAFB; display: flex; flex-direction: row; justify-content: flex-start; overflow-x: auto;">
+          <div style="display: flex; flex-direction: column; align-items: flex-start; border-radius: 8px; overflow: hidden; background: #FFFFFF; box-shadow: 0px 1px 3px 0px rgba(16,24,40,0.10), 0px 1px 2px 0px rgba(16,24,40,0.06); width: max-content; min-width: max-content; flex-shrink: 0;">
+            <div style="display: flex; flex-direction: row; align-items: stretch;">
+              <x-import component-from-global-scope="CellTitle" type="checkbox" checkbox="{{ yes }}" dc-props="{{ tCol0 }}" hint-size="48px,40px"></x-import>
+              <x-import component-from-global-scope="CellTitle" type="text" dc-props="{{ tCol1 }}" hint-size="220px,40px"></x-import>
+              <x-import component-from-global-scope="CellTitle" type="text" filter="{{ yes }}" dc-props="{{ tCol2 }}" hint-size="296px,40px"></x-import>
+              <x-import component-from-global-scope="CellTitle" type="number" dc-props="{{ tCol3 }}" hint-size="150px,40px"></x-import>
+              <x-import component-from-global-scope="CellTitle" type="text w tooltip" dc-props="{{ tCol4 }}" hint-size="170px,40px"></x-import>
+              <x-import component-from-global-scope="CellTitle" type="action" dc-props="{{ tCol5 }}" hint-size="262px,40px"></x-import>
+            </div>
+            <div style="display: flex; flex-direction: row; align-items: stretch; margin-top: -1px;">
+              <x-import component-from-global-scope="CellBodyNormal" type="Checkbox" state="checked" dc-props="{{ tCol0 }}" hint-size="48px,40px"></x-import>
+              <x-import component-from-global-scope="CellBodyNormal" type="Text" state="checked" text1="PR•••••6098" dc-props="{{ tCol1 }}" hint-size="220px,40px"></x-import>
+              <x-import component-from-global-scope="CellBodyNormal" type="Status" state="checked" dc-props="{{ tCol2 }}" hint-size="296px,40px"></x-import>
+              <x-import component-from-global-scope="CellBodyNormal" type="Money" state="checked" dc-props="{{ tCol3 }}" hint-size="150px,40px"></x-import>
+              <x-import component-from-global-scope="CellBodyNormal" type="Date picker" state="checked" dc-props="{{ tCol4 }}" hint-size="170px,40px"></x-import>
+              <x-import component-from-global-scope="CellBodyNormal" type="Action button" state="checked" dc-props="{{ tCol5 }}" hint-size="262px,40px"></x-import>
+            </div>
+            <div style="display: flex; flex-direction: row; align-items: stretch; margin-top: -1px;">
+              <x-import component-from-global-scope="CellBodyNormal" type="Checkbox" state="default" dc-props="{{ tCol0 }}" hint-size="48px,40px"></x-import>
+              <x-import component-from-global-scope="CellBodyNormal" type="Link" state="default" text1="PR•••••6099" dc-props="{{ tCol1 }}" hint-size="220px,40px"></x-import>
+              <x-import component-from-global-scope="CellBodyNormal" type="Process" state="default" dc-props="{{ tCol2 }}" hint-size="296px,40px"></x-import>
+              <x-import component-from-global-scope="CellBodyNormal" type="Number" state="default" dc-props="{{ tCol3 }}" hint-size="150px,40px"></x-import>
+              <x-import component-from-global-scope="CellBodyNormal" type="Combo select" state="default" dc-props="{{ tCol4 }}" hint-size="170px,40px"></x-import>
+              <x-import component-from-global-scope="CellBodyNormal" type="Only icon" state="default" dc-props="{{ tCol5 }}" hint-size="262px,40px"></x-import>
+            </div>
+            <div style="display: flex; flex-direction: row; align-items: stretch; margin-top: -1px;">
+              <x-import component-from-global-scope="CellBodyNormal" type="Checkbox" state="hover" dc-props="{{ tCol0 }}" hint-size="48px,40px"></x-import>
+              <x-import component-from-global-scope="CellBodyNormal" type="Text" state="hover" text1="PR•••••6100" dc-props="{{ tCol1 }}" hint-size="220px,40px"></x-import>
+              <x-import component-from-global-scope="CellBodyNormal" type="Toggle" state="hover" dc-props="{{ tCol2 }}" hint-size="296px,40px"></x-import>
+              <x-import component-from-global-scope="CellBodyNormal" type="Decimal" state="hover" dc-props="{{ tCol3 }}" hint-size="150px,40px"></x-import>
+              <x-import component-from-global-scope="CellBodyNormal" type="Tooltip" state="hover" dc-props="{{ tCol4 }}" hint-size="170px,40px"></x-import>
+              <x-import component-from-global-scope="CellBodyNormal" type="Action button" state="hover" dc-props="{{ tCol5 }}" hint-size="262px,40px"></x-import>
+            </div>
+            <div style="display: flex; flex-direction: row; align-items: stretch; margin-top: -1px;">
+              <x-import component-from-global-scope="CellBodyNormal" type="Checkbox" state="default" dc-props="{{ tCol0 }}" hint-size="48px,40px"></x-import>
+              <x-import component-from-global-scope="CellBodyNormal" type="Tree" state="default" text1="Nhóm vật tư" dc-props="{{ tCol1 }}" hint-size="220px,40px"></x-import>
+              <x-import component-from-global-scope="CellBodyNormal" type="Blank" state="default" dc-props="{{ tCol2 }}" hint-size="296px,40px"></x-import>
+              <x-import component-from-global-scope="CellBodyNormal" type="Number input" state="default" dc-props="{{ tCol3 }}" hint-size="150px,40px"></x-import>
+              <x-import component-from-global-scope="CellBodyNormal" type="Description" state="default" dc-props="{{ tCol4 }}" hint-size="170px,40px"></x-import>
+              <x-import component-from-global-scope="CellBodyNormal" type="Confirm button" state="default" dc-props="{{ tCol5 }}" hint-size="262px,40px"></x-import>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="header-cells" style="padding: 32px 80px 56px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Cell Title — 9 kiểu header</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">Header có thêm ba cờ độc lập: <code style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;">filter</code>, <code style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;">error</code>, <code style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;">editColumn</code> và cờ <code style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;">compressed</code> giảm chiều cao dòng.</p>
+      </div>
+      <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 24px; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">blank</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellTitle" type="blank" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">text</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellTitle" type="text" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">text w tooltip</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellTitle" type="text w tooltip" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">number</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellTitle" type="number" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">number w tooltip</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellTitle" type="number w tooltip" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">checkbox</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellTitle" type="checkbox" checkbox="{{ yes }}" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">action</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellTitle" type="action" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">load</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellTitle" type="load" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">hz expand</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellTitle" type="hz expand" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">text · filter</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellTitle" type="text" filter="{{ yes }}" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">text · error</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellTitle" type="text" error="{{ yes }}" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">text · compressed</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellTitle" type="text" compressed="{{ yes }}" dc-props="{{ tCat }}" hint-size="100%,32px"></x-import></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="body-cells" style="padding: 32px 80px 56px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Cell Body Normal — kiểu nội dung</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">50 kiểu nội dung, từ text thuần tới select, date picker, progress và toggle nhúng thẳng trong ô. Ba trạng thái dòng: default, hover, checked.</p>
+      </div>
+      <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Nhóm hiển thị</span></div>
+        <div style="padding: 24px; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; border-bottom: 1px solid #EAECF0;">
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Text</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Text" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Text label</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Text label" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Number</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Number" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Decimal</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Decimal" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Money</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Money" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Status</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Status" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Link</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Link" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Description</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Description" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Tooltip</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Tooltip" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Picture</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Picture" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Pic placeholder</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Pic placeholder" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Blank</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Blank" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+        </div>
+        <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Nhóm nhập liệu trong ô</span></div>
+        <div style="padding: 24px; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; border-bottom: 1px solid #EAECF0;">
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Field input</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Field input" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Number input</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Number input" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Combo select</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Combo select" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Date picker</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Date picker" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Checkbox</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Checkbox" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Toggle</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Toggle" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Input Invalid (Ant D)</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Input Invalid (Ant D)" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">AG typing</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="AG typing" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+        </div>
+        <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Nhóm hành động &amp; tiến trình</span></div>
+        <div style="padding: 24px; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Action button</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Action button" state="hover" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Confirm button</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Confirm button" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Only icon</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Only icon" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Drag</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Drag" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Tree</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Tree" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Process</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Process" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Process Bar</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Process Bar" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">Load</span><div style="overflow: hidden; display: flex; min-width: 0;"><x-import component-from-global-scope="CellBodyNormal" type="Load" state="default" dc-props="{{ tCat }}" hint-size="100%,40px"></x-import></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pagination" style="padding: 32px 80px 56px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Pagination</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">Thanh phân trang chân bảng: số mục mỗi trang, chỉ số trang hiện tại và ô nhảy tới trang. Ba trạng thái: default, load, only one.</p>
+      </div>
+      <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Pagination no count</span></div>
+        <div style="padding: 24px; display: flex; flex-direction: column; gap: 24px; align-items: stretch;">
+          <div style="display: flex; flex-direction: column; gap: 8px;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">state="default" &middot; 1069px · cuộn ngang khi hẹp</span><div style="width: 100%; overflow-x: auto;"><div style="width: 1069px;"><x-import component-from-global-scope="PaginationNoCount" state="default" hada="{{ no }}" text1="50 mục" text2="Trang 1 / 100" text3="Đến trang" hint-size="1069px,64px"></x-import></div></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">state="load" &middot; 1069px · cuộn ngang khi hẹp</span><div style="width: 100%; overflow-x: auto;"><div style="width: 1069px;"><x-import component-from-global-scope="PaginationNoCount" state="load" hada="{{ no }}" text1="50 mục" text2="Trang 1 / 100" text3="Đến trang" hint-size="1069px,64px"></x-import></div></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">state="only one" &middot; 1069px · cuộn ngang khi hẹp</span><div style="width: 100%; overflow-x: auto;"><div style="width: 1069px;"><x-import component-from-global-scope="PaginationNoCount" state="only one" hada="{{ no }}" text1="50 mục" text2="Trang 1 / 100" text3="Đến trang" hint-size="1069px,64px"></x-import></div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="description" style="padding: 32px 80px 96px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Description list</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">Danh sách nhãn — giá trị cho trang chi tiết. 2, 3 hoặc 4 cột × 2 đến 5 dòng.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(728px, 1fr)); gap: 24px;">
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">2 cột × 3 dòng</span></div>
+          <div style="padding: 24px; overflow-x: auto;"><x-import component-from-global-scope="Description" collum="2" line="3" hint-size="100%,140px"></x-import></div>
+        </div>
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">3 cột × 4 dòng</span></div>
+          <div style="padding: 24px; overflow-x: auto;"><x-import component-from-global-scope="Description" collum="3" line="4" hint-size="100%,180px"></x-import></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      tCol0: { style: { width: 48, minWidth: 48, flexShrink: 0 } },
+      tCol1: { style: { width: 220, minWidth: 220, flexShrink: 0, marginLeft: -1, justifyContent: "flex-start" } },
+      tCol2: { style: { width: 300, minWidth: 296, flexShrink: 0, marginLeft: -1 } },
+      tCol3: { style: { width: 150, minWidth: 150, flexShrink: 0, marginLeft: -1 } },
+      tCol4: { style: { width: 170, minWidth: 170, flexShrink: 0, marginLeft: -1 } },
+      tCol5: { style: { width: 262, minWidth: 262, flexShrink: 0, marginLeft: -1 } },
+      tCat: { style: { width: "100%", minWidth: 0 } },
+      yes: true,
+      no: false,
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" />
+<link rel="stylesheet" href="./ds/fig-tokens.css" />
+<link rel="stylesheet" href="./ds/fig-assets.css" />
+<style>
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: #FFFFFF; font-family: Inter, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #155EEF; text-decoration: none; }
+  a:hover { color: #004EEB; }
+  ::selection { background: #D1E0FF; }
+  @keyframes dsSpin { to { transform: rotate(360deg); } }
+</style>
+<script src="./ds/bundle/p1.js"></script>
+<script src="./ds/bundle/p2.js"></script>
+<script src="./ds/bundle/p3.js"></script>
+<script src="./ds/bundle/p4.js"></script>
+<script src="./ds/bundle/p5.js"></script>
+</helmet>
+
+<div style="display: grid; grid-template-columns: 264px minmax(0, 1fr); min-height: 100vh; background: #FFFFFF; color: #101828;">
+
+  <dc-import name="SideNav" page="Buttons.dc.html" hint-size="264px,100%"></dc-import>
+
+  <main style="min-width: 0;">
+    <div style="height: 12px; background: linear-gradient(90deg, #027FFE 15.24%, #02CCCC 72.81%, #02E2BD 89.43%);"></div>
+
+    <section style="padding: 64px 80px 40px 80px; display: flex; flex-direction: column; gap: 20px;">
+      <h1 style="margin: 0; font-size: 60px; line-height: 72px; letter-spacing: -0.02em; font-weight: 600; color: #101828;">Button</h1>
+      <p style="margin: 0; max-width: 860px; font-size: 18px; line-height: 28px; color: #475467; text-wrap: pretty;">Một họ component duy nhất: 3 chiều cao × 7 cấp bậc × 5 kiểu icon × cờ destructive × 4 trạng thái — 240 variant. Bo góc 8px, gap 8px, chữ Inter Medium 14/20 ở mọi size.</p>
+      <div style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 12px; margin-top: 4px;">
+        <span style="padding: 4px 10px; border-radius: 6px; background: #F9FAFB; border: 1px solid #EAECF0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: nowrap; color: #475467;">radius 8px</span>
+        <span style="padding: 4px 10px; border-radius: 6px; background: #F9FAFB; border: 1px solid #EAECF0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: nowrap; color: #475467;">gap 8px</span>
+        <span style="padding: 4px 10px; border-radius: 6px; background: #F9FAFB; border: 1px solid #EAECF0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: nowrap; color: #475467;">icon 16×16</span>
+        <span style="padding: 4px 10px; border-radius: 6px; background: #F9FAFB; border: 1px solid #EAECF0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: nowrap; color: #475467;">Inter Medium 14 / 20</span>
+        <span style="padding: 4px 10px; border-radius: 6px; background: #F9FAFB; border: 1px solid #EAECF0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: nowrap; color: #475467;">shadow xs</span>
+      </div>
+    </section>
+
+    <section id="hierarchy" style="padding: 32px 80px 56px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Cấp bậc của button từ phải qua trái</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">Hành động chính luôn nằm ngoài cùng bên phải. Càng sang trái, cấp bậc càng giảm: Primary → Secondary 1 → Secondary 2 → Link.</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 28px; padding: 32px; border: 1px solid #EAECF0; border-radius: 12px;">
+        <div style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; align-items: center;">
+          <x-import component-from-global-scope="Button" size="h32px" hierarchy="link color" leadIcon="{{ no }}" rightIcon="{{ no }}" text1="Link" hint-size="48px,40px" state="default"></x-import>
+          <x-import component-from-global-scope="Button" size="h40px" hierarchy="secondary color" leadIcon="{{ no }}" rightIcon="{{ no }}" text1="Secondary 2" hint-size="112px,40px" state="default"></x-import>
+          <x-import component-from-global-scope="Button" size="h40px" hierarchy="secondary gray" leadIcon="{{ no }}" rightIcon="{{ no }}" text1="Secondary 1" hint-size="112px,40px" state="default"></x-import>
+          <x-import component-from-global-scope="Button" size="h40px" hierarchy="primary" leadIcon="{{ no }}" rightIcon="{{ no }}" text1="Primary" hint-size="88px,40px" state="default"></x-import>
+        </div>
+        <div style="height: 1px; background: #F2F4F7;"></div>
+        <div style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; align-items: center;">
+          <x-import component-from-global-scope="Button" size="h32px" hierarchy="link gray" leadIcon="{{ no }}" rightIcon="{{ no }}" text1="Cancel" hint-size="64px,40px" state="default"></x-import>
+          <x-import component-from-global-scope="Button" size="h40px" hierarchy="ghost color" leadIcon="{{ no }}" rightIcon="{{ no }}" text1="Save as draft" hint-size="112px,40px" state="default"></x-import>
+          <x-import component-from-global-scope="Button" size="h40px" hierarchy="secondary gray" leadIcon="{{ no }}" rightIcon="{{ no }}" text1="Stage for Publish" hint-size="140px,40px" state="default"></x-import>
+          <x-import component-from-global-scope="Button" size="h40px" hierarchy="primary" leadIcon="{{ yes }}" rightIcon="{{ no }}" text1="Publish now" hint-size="136px,40px" state="default"></x-import>
+          <x-import component-from-global-scope="Button" size="h40px" hierarchy="secondary color" leadIcon="{{ yes }}" rightIcon="{{ no }}" text1="Tạo phiếu đối soát" hint-size="180px,40px" state="default"></x-import>
+        </div>
+      </div>
+    </section>
+
+    <section id="danger" style="padding: 32px 80px 56px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Trường hợp các hành động nguy hiểm</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">Hành động phá huỷ dùng cờ <code style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;">destructive</code>, giữ nguyên cấp bậc. Nút thoát luôn là secondary gray, không phải link.</p>
+      </div>
+      <div style="display: flex; flex-direction: row; gap: 8px; align-items: center; padding: 32px; border: 1px solid #EAECF0; border-radius: 12px;">
+        <x-import component-from-global-scope="Button" size="h40px" hierarchy="secondary gray" leadIcon="{{ no }}" rightIcon="{{ no }}" text1="Cancel" hint-size="79px,40px" state="default"></x-import>
+        <x-import component-from-global-scope="Button" size="h40px" hierarchy="primary" destructive="{{ yes }}" leadIcon="{{ no }}" rightIcon="{{ no }}" text1="Delete" hint-size="76px,40px" state="default"></x-import>
+      </div>
+    </section>
+
+    <section id="donts" style="padding: 32px 80px 56px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Các trường hợp “Không nên”</h2>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px;">
+        <div style="border: 1px solid #FECDCA; border-radius: 12px; overflow: hidden; background: #FFFBFA;">
+          <div style="padding: 12px 20px; background: #FEF3F2; border-bottom: 1px solid #FECDCA; display: flex; flex-direction: row; gap: 10px; align-items: center;">
+            <svg width="16" height="16" viewBox="0 0 16 16" style="display: block; flex-shrink: 0;"><circle cx="8" cy="8" r="7.25" fill="none" stroke="#D92D20" stroke-width="1.5" /><path d="M5.5 5.5 L10.5 10.5 M10.5 5.5 L5.5 10.5" stroke="#D92D20" stroke-width="1.5" stroke-linecap="round" /></svg>
+            <span style="font-size: 14px; font-weight: 600; color: #B42318;">1 · Không phân cấp button</span>
+          </div>
+          <div style="padding: 32px 20px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; align-items: center;">
+            <x-import component-from-global-scope="Button" size="h40px" hierarchy="primary" leadIcon="{{ no }}" rightIcon="{{ no }}" text1="Link" hint-size="64px,40px" state="default"></x-import>
+            <x-import component-from-global-scope="Button" size="h40px" hierarchy="primary" leadIcon="{{ no }}" rightIcon="{{ no }}" text1="Secondary 2" hint-size="112px,40px" state="default"></x-import>
+            <x-import component-from-global-scope="Button" size="h40px" hierarchy="primary" leadIcon="{{ no }}" rightIcon="{{ no }}" text1="Secondary 1" hint-size="112px,40px" state="default"></x-import>
+            <x-import component-from-global-scope="Button" size="h40px" hierarchy="primary" leadIcon="{{ no }}" rightIcon="{{ no }}" text1="Primary" hint-size="88px,40px" state="default"></x-import>
+          </div>
+        </div>
+        <div style="border: 1px solid #FECDCA; border-radius: 12px; overflow: hidden; background: #FFFBFA;">
+          <div style="padding: 12px 20px; background: #FEF3F2; border-bottom: 1px solid #FECDCA; display: flex; flex-direction: row; gap: 10px; align-items: center;">
+            <svg width="16" height="16" viewBox="0 0 16 16" style="display: block; flex-shrink: 0;"><circle cx="8" cy="8" r="7.25" fill="none" stroke="#D92D20" stroke-width="1.5" /><path d="M5.5 5.5 L10.5 10.5 M10.5 5.5 L5.5 10.5" stroke="#D92D20" stroke-width="1.5" stroke-linecap="round" /></svg>
+            <span style="font-size: 14px; font-weight: 600; color: #B42318;">2 · Không dùng Button có border &amp; text cùng màu “thương hiệu” hệ thống</span>
+          </div>
+          <div style="padding: 32px 20px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; align-items: center;">
+            <x-import component-from-global-scope="Button" size="h40px" hierarchy="secondary color" leadIcon="{{ no }}" rightIcon="{{ no }}" text1="Link" hint-size="64px,40px" state="default"></x-import>
+            <x-import component-from-global-scope="Button" size="h40px" hierarchy="secondary color" leadIcon="{{ no }}" rightIcon="{{ no }}" text1="Secondary 2" hint-size="112px,40px" state="default"></x-import>
+            <x-import component-from-global-scope="Button" size="h40px" hierarchy="secondary color" leadIcon="{{ no }}" rightIcon="{{ no }}" text1="Secondary 1" hint-size="112px,40px" state="default"></x-import>
+            <x-import component-from-global-scope="Button" size="h40px" hierarchy="secondary color" leadIcon="{{ no }}" rightIcon="{{ no }}" text1="Primary" hint-size="88px,40px" state="default"></x-import>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="size" style="padding: 32px 80px 56px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Size — Spacing &amp; padding</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">Ba chiều cao cố định. Padding ngang tăng theo size, gap giữa icon và chữ luôn 8px.</p>
+      </div>
+
+      <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(200px, 1fr)); overflow-x: auto;">
+          <div style="padding: 32px 24px; border-right: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 20px; align-items: flex-start;">
+            <div style="display: flex; flex-direction: row; align-items: center; gap: 8px;">
+              <x-import component-from-global-scope="Button" size="h24px" hierarchy="secondary gray" leadIcon="{{ yes }}" rightIcon="{{ no }}" text1="Publish now" hint-size="128px,28px" state="default"></x-import>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <span style="font-size: 14px; font-weight: 600; color: #101828;">Size S</span>
+              <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">H: 28px · padding 8px</span>
+            </div>
+          </div>
+          <div style="padding: 32px 24px; border-right: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 20px; align-items: flex-start; background: #F5F8FF;">
+            <div style="display: flex; flex-direction: row; align-items: center; gap: 8px;">
+              <x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary gray" leadIcon="{{ yes }}" rightIcon="{{ no }}" text1="Publish now" hint-size="136px,32px" state="default"></x-import>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <span style="font-size: 14px; font-weight: 600; color: #155EEF;">Size M · mặc định</span>
+              <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">H: 32px · padding 10px 12px</span>
+            </div>
+          </div>
+          <div style="padding: 32px 24px; display: flex; flex-direction: column; gap: 20px; align-items: flex-start;">
+            <div style="display: flex; flex-direction: row; align-items: center; gap: 8px;">
+              <x-import component-from-global-scope="Button" size="h40px" hierarchy="secondary gray" leadIcon="{{ yes }}" rightIcon="{{ no }}" text1="Publish now" hint-size="148px,40px" state="default"></x-import>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <span style="font-size: 14px; font-weight: 600; color: #101828;">Size L</span>
+              <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">H: 40px · padding 10px 16px</span>
+            </div>
+          </div>
+        </div>
+        <div style="padding: 20px 24px; background: #F9FAFB; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; flex-direction: row; gap: 10px; align-items: flex-start;"><span style="color: #155EEF; font-size: 14px; line-height: 20px;">•</span><span style="font-size: 14px; line-height: 20px; color: #475467;">Size M: sử dụng chính trong các trang của SooBinZHongSon.</span></div>
+          <div style="display: flex; flex-direction: row; gap: 10px; align-items: flex-start;"><span style="color: #155EEF; font-size: 14px; line-height: 20px;">•</span><span style="font-size: 14px; line-height: 20px; color: #475467;">Size S &amp; L: sử dụng tuỳ tình huống, ví dụ trên những space nhỏ. Ưu tiên size M.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="type" style="padding: 32px 80px 56px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Type &amp; Action</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">Năm kiểu bố cục icon và bảy cấp bậc màu, kết hợp tự do với nhau.</p>
+      </div>
+
+      <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Type</span></div>
+        <div style="display: grid; grid-template-columns: repeat(5, minmax(140px, 1fr)); overflow-x: auto;">
+          <div style="padding: 24px 20px 20px 20px; border-right: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 20px;"><span style="font-size: 12px; color: #667085;">Text</span><x-import component-from-global-scope="Button" size="{{ sz }}" hierarchy="primary" leadIcon="{{ no }}" rightIcon="{{ no }}" hint-size="76px,32px" state="default"></x-import></div>
+          <div style="padding: 24px 20px 20px 20px; border-right: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 20px;"><span style="font-size: 12px; color: #667085;">Leading icon</span><x-import component-from-global-scope="Button" size="{{ sz }}" hierarchy="primary" leadIcon="{{ yes }}" rightIcon="{{ no }}" hint-size="100px,32px" state="default"></x-import></div>
+          <div style="padding: 24px 20px 20px 20px; border-right: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 20px;"><span style="font-size: 12px; color: #667085;">Trailing icon</span><x-import component-from-global-scope="Button" size="{{ sz }}" hierarchy="primary" leadIcon="{{ no }}" rightIcon="{{ yes }}" hint-size="100px,32px" state="default"></x-import></div>
+          <div style="padding: 24px 20px 20px 20px; border-right: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 20px;"><span style="font-size: 12px; color: #667085;">Leading + Trailing</span><x-import component-from-global-scope="Button" size="{{ sz }}" hierarchy="primary" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="124px,32px" state="default"></x-import></div>
+          <div style="padding: 24px 20px 20px 20px; display: flex; flex-direction: column; gap: 20px;"><span style="font-size: 12px; color: #667085;">Icon only</span><x-import component-from-global-scope="Button" size="{{ sz }}" hierarchy="primary" icon="only" hint-size="32px,32px" state="default"></x-import></div>
+        </div>
+        <div style="padding: 12px 20px; background: #F9FAFB; border-top: 1px solid #EAECF0; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Action · 7 cấp bậc</span></div>
+        <div style="display: grid; grid-template-columns: repeat(7, minmax(120px, 1fr)); overflow-x: auto;">
+          <div style="padding: 24px 16px 20px 16px; border-right: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 20px;"><span style="font-size: 12px; color: #667085;">Primary</span><x-import component-from-global-scope="Button" size="{{ sz }}" hierarchy="primary" leadIcon="{{ no }}" rightIcon="{{ no }}" hint-size="76px,32px" state="default"></x-import></div>
+          <div style="padding: 24px 16px 20px 16px; border-right: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 20px;"><span style="font-size: 12px; color: #667085;">Secondary gray</span><x-import component-from-global-scope="Button" size="{{ sz }}" hierarchy="secondary gray" leadIcon="{{ no }}" rightIcon="{{ no }}" hint-size="76px,32px" state="default"></x-import></div>
+          <div style="padding: 24px 16px 20px 16px; border-right: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 20px;"><span style="font-size: 12px; color: #667085;">Secondary color</span><x-import component-from-global-scope="Button" size="{{ sz }}" hierarchy="secondary color" leadIcon="{{ no }}" rightIcon="{{ no }}" hint-size="76px,32px" state="default"></x-import></div>
+          <div style="padding: 24px 16px 20px 16px; border-right: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 20px;"><span style="font-size: 12px; color: #667085;">Ghost gray</span><x-import component-from-global-scope="Button" size="{{ sz }}" hierarchy="ghost gray" leadIcon="{{ no }}" rightIcon="{{ no }}" hint-size="76px,32px" state="default"></x-import></div>
+          <div style="padding: 24px 16px 20px 16px; border-right: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 20px;"><span style="font-size: 12px; color: #667085;">Ghost color</span><x-import component-from-global-scope="Button" size="{{ sz }}" hierarchy="ghost color" leadIcon="{{ no }}" rightIcon="{{ no }}" hint-size="76px,32px" state="default"></x-import></div>
+          <div style="padding: 24px 16px 20px 16px; border-right: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 20px;"><span style="font-size: 12px; color: #667085;">Link gray</span><x-import component-from-global-scope="Button" size="{{ sz }}" hierarchy="link gray" leadIcon="{{ no }}" rightIcon="{{ no }}" text1="Link" hint-size="40px,32px" state="default"></x-import></div>
+          <div style="padding: 24px 16px 20px 16px; display: flex; flex-direction: column; gap: 20px;"><span style="font-size: 12px; color: #667085;">Link color</span><x-import component-from-global-scope="Button" size="{{ sz }}" hierarchy="link color" leadIcon="{{ no }}" rightIcon="{{ no }}" text1="Link" hint-size="40px,32px" state="default"></x-import></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="states" style="padding: 32px 80px 56px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Các trạng thái của button</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">Bốn trạng thái cho mỗi cấp bậc. Trục variant trong file là <code style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;">default · hover · focused · disabled</code> — <em>focused</em> tương ứng trạng thái Pressed trong tài liệu.</p>
+      </div>
+
+      <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">State — không destructive</span></div>
+        <div style="overflow-x: auto;">
+          <div style="display: grid; grid-template-columns: 88px repeat(7, minmax(116px, 1fr)); min-width: 900px;">
+            <div style="padding: 12px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"></div>
+            <div style="padding: 12px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"><span style="font-size: 12px; font-weight: 500; color: #475467;">Primary</span></div>
+            <div style="padding: 12px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"><span style="font-size: 12px; font-weight: 500; color: #475467;">Secondary gray</span></div>
+            <div style="padding: 12px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"><span style="font-size: 12px; font-weight: 500; color: #475467;">Secondary color</span></div>
+            <div style="padding: 12px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"><span style="font-size: 12px; font-weight: 500; color: #475467;">Ghost gray</span></div>
+            <div style="padding: 12px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"><span style="font-size: 12px; font-weight: 500; color: #475467;">Ghost color</span></div>
+            <div style="padding: 12px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"><span style="font-size: 12px; font-weight: 500; color: #475467;">Link gray</span></div>
+            <div style="padding: 12px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"><span style="font-size: 12px; font-weight: 500; color: #475467;">Link color</span></div>
+
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><span style="font-size: 13px; font-weight: 600; color: #101828;">Default</span></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="primary" state="default" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary gray" state="default" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary color" state="default" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="ghost gray" state="default" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="ghost color" state="default" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="link gray" state="default" leadIcon="{{ yes }}" rightIcon="{{ yes }}" text1="Link" hint-size="80px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="link color" state="default" leadIcon="{{ yes }}" rightIcon="{{ yes }}" text1="Link" hint-size="80px,32px"></x-import></div>
+
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center; background: #FCFCFD;"><span style="font-size: 13px; font-weight: 600; color: #101828;">Hover</span></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="primary" state="hover" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary gray" state="hover" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary color" state="hover" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="ghost gray" state="hover" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="ghost color" state="hover" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="link gray" state="hover" leadIcon="{{ yes }}" rightIcon="{{ yes }}" text1="Link" hint-size="80px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="link color" state="hover" leadIcon="{{ yes }}" rightIcon="{{ yes }}" text1="Link" hint-size="80px,32px"></x-import></div>
+
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><span style="font-size: 13px; font-weight: 600; color: #101828;">Pressed</span></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="primary" state="focused" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary gray" state="focused" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary color" state="focused" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="ghost gray" state="focused" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="ghost color" state="focused" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="link gray" state="focused" leadIcon="{{ yes }}" rightIcon="{{ yes }}" text1="Link" hint-size="80px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="link color" state="focused" leadIcon="{{ yes }}" rightIcon="{{ yes }}" text1="Link" hint-size="80px,32px"></x-import></div>
+
+            <div style="padding: 20px 16px; display: flex; align-items: center; background: #FCFCFD;"><span style="font-size: 13px; font-weight: 600; color: #101828;">Disable</span></div>
+            <div style="padding: 20px 16px; background: #FCFCFD;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="primary" state="disabled" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; background: #FCFCFD;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary gray" state="disabled" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; background: #FCFCFD;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary color" state="disabled" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; background: #FCFCFD;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="ghost gray" state="disabled" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; background: #FCFCFD;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="ghost color" state="disabled" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; background: #FCFCFD;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="link gray" state="disabled" leadIcon="{{ yes }}" rightIcon="{{ yes }}" text1="Link" hint-size="80px,32px"></x-import></div>
+            <div style="padding: 20px 16px; background: #FCFCFD;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="link color" state="disabled" leadIcon="{{ yes }}" rightIcon="{{ yes }}" text1="Link" hint-size="80px,32px"></x-import></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="border: 1px solid #FECDCA; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 12px 20px; background: #FEF3F2; border-bottom: 1px solid #FECDCA;"><span style="font-size: 14px; font-weight: 600; color: #B42318;">State — with destructive</span></div>
+        <div style="overflow-x: auto;">
+          <div style="display: grid; grid-template-columns: 88px repeat(5, minmax(124px, 1fr)); min-width: 708px;">
+            <div style="padding: 12px 16px; border-bottom: 1px solid #EAECF0; background: #FFFBFA;"></div>
+            <div style="padding: 12px 16px; border-bottom: 1px solid #EAECF0; background: #FFFBFA;"><span style="font-size: 12px; font-weight: 500; color: #475467;">Primary</span></div>
+            <div style="padding: 12px 16px; border-bottom: 1px solid #EAECF0; background: #FFFBFA;"><span style="font-size: 12px; font-weight: 500; color: #475467;">Secondary gray</span></div>
+            <div style="padding: 12px 16px; border-bottom: 1px solid #EAECF0; background: #FFFBFA;"><span style="font-size: 12px; font-weight: 500; color: #475467;">Secondary color</span></div>
+            <div style="padding: 12px 16px; border-bottom: 1px solid #EAECF0; background: #FFFBFA;"><span style="font-size: 12px; font-weight: 500; color: #475467;">Ghost color</span></div>
+            <div style="padding: 12px 16px; border-bottom: 1px solid #EAECF0; background: #FFFBFA;"><span style="font-size: 12px; font-weight: 500; color: #475467;">Link color</span></div>
+
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><span style="font-size: 13px; font-weight: 600; color: #101828;">Default</span></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="primary" destructive="{{ yes }}" state="default" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary gray" destructive="{{ yes }}" state="default" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary color" destructive="{{ yes }}" state="default" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="ghost color" destructive="{{ yes }}" state="default" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="link color" destructive="{{ yes }}" state="default" leadIcon="{{ yes }}" rightIcon="{{ yes }}" text1="Link" hint-size="80px,32px"></x-import></div>
+
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center; background: #FFFBFA;"><span style="font-size: 13px; font-weight: 600; color: #101828;">Hover</span></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; background: #FFFBFA;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="primary" destructive="{{ yes }}" state="hover" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; background: #FFFBFA;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary gray" destructive="{{ yes }}" state="hover" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; background: #FFFBFA;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary color" destructive="{{ yes }}" state="hover" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; background: #FFFBFA;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="ghost color" destructive="{{ yes }}" state="hover" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; background: #FFFBFA;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="link color" destructive="{{ yes }}" state="hover" leadIcon="{{ yes }}" rightIcon="{{ yes }}" text1="Link" hint-size="80px,32px"></x-import></div>
+
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><span style="font-size: 13px; font-weight: 600; color: #101828;">Pressed</span></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="primary" destructive="{{ yes }}" state="focused" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary gray" destructive="{{ yes }}" state="focused" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary color" destructive="{{ yes }}" state="focused" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="ghost color" destructive="{{ yes }}" state="focused" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="link color" destructive="{{ yes }}" state="focused" leadIcon="{{ yes }}" rightIcon="{{ yes }}" text1="Link" hint-size="80px,32px"></x-import></div>
+
+            <div style="padding: 20px 16px; display: flex; align-items: center; background: #FFFBFA;"><span style="font-size: 13px; font-weight: 600; color: #101828;">Disable</span></div>
+            <div style="padding: 20px 16px; background: #FFFBFA;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="primary" destructive="{{ yes }}" state="disabled" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; background: #FFFBFA;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary gray" destructive="{{ yes }}" state="disabled" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; background: #FFFBFA;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary color" destructive="{{ yes }}" state="disabled" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; background: #FFFBFA;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="ghost color" destructive="{{ yes }}" state="disabled" leadIcon="{{ yes }}" rightIcon="{{ yes }}" hint-size="112px,32px"></x-import></div>
+            <div style="padding: 20px 16px; background: #FFFBFA;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="link color" destructive="{{ yes }}" state="disabled" leadIcon="{{ yes }}" rightIcon="{{ yes }}" text1="Link" hint-size="80px,32px"></x-import></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="icon-button" style="padding: 32px 80px 56px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Icon button, Filter button, Loading</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">Với icon button khi hover → show tool-tip (loại trừ X).</p>
+      </div>
+
+      <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Icon button · 7 cấp bậc + destructive</span></div>
+        <div style="padding: 32px 24px; display: flex; flex-direction: column; gap: 24px;">
+          <div style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 20px; align-items: center;">
+            <x-import component-from-global-scope="Button" size="h32px" hierarchy="primary" icon="only" hint-size="32px,32px" state="default"></x-import>
+            <x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary gray" icon="only" hint-size="32px,32px" state="default"></x-import>
+            <x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary color" icon="only" hint-size="32px,32px" state="default"></x-import>
+            <x-import component-from-global-scope="Button" size="h32px" hierarchy="ghost gray" icon="only" hint-size="32px,32px" state="default"></x-import>
+            <x-import component-from-global-scope="Button" size="h32px" hierarchy="ghost color" icon="only" hint-size="32px,32px" state="default"></x-import>
+            <div style="width: 1px; height: 32px; background: #EAECF0;"></div>
+            <x-import component-from-global-scope="Button" size="h32px" hierarchy="primary" destructive="{{ yes }}" icon="only" hint-size="32px,32px" state="default"></x-import>
+            <x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary gray" destructive="{{ yes }}" icon="only" hint-size="32px,32px" state="default"></x-import>
+            <x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary color" destructive="{{ yes }}" icon="only" hint-size="32px,32px" state="default"></x-import>
+            <x-import component-from-global-scope="Button" size="h32px" hierarchy="ghost color" destructive="{{ yes }}" icon="only" hint-size="32px,32px" state="default"></x-import>
+          </div>
+          <div style="display: flex; flex-direction: row; gap: 12px; align-items: center;">
+            <span style="display: inline-flex; padding: 8px 12px; border-radius: 8px; background: #101828; font-size: 12px; line-height: 18px; color: #FFFFFF; box-shadow: 0px 4px 16px -4px rgba(16,24,40,0.08), 0px 4px 6px -2px rgba(16,24,40,0.03);">This is a tooltip</span>
+            <span style="font-size: 13px; color: #667085;">tooltip xuất hiện phía dưới, cách 6px</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px;">
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Filter button</span></div>
+          <div style="display: grid; grid-template-columns: 96px 1fr 1fr;">
+            <div style="padding: 12px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"></div>
+            <div style="padding: 12px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"><span style="font-size: 12px; font-weight: 500; color: #475467;">No apply</span></div>
+            <div style="padding: 12px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"><span style="font-size: 12px; font-weight: 500; color: #475467;">Applied</span></div>
+
+            <div style="padding: 18px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><span style="font-size: 13px; font-weight: 600; color: #101828;">Default</span></div>
+            <div style="padding: 18px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary gray" icon="only" state="default" dc-props="{{ filterPlain }}" hint-size="32px,32px"></x-import></div>
+            <div style="padding: 18px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary gray" icon="only" state="default" dc-props="{{ filterApplied }}" hint-size="32px,32px"></x-import></div>
+
+            <div style="padding: 18px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center; background: #FCFCFD;"><span style="font-size: 13px; font-weight: 600; color: #101828;">Hover</span></div>
+            <div style="padding: 18px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary gray" icon="only" state="hover" dc-props="{{ filterPlain }}" hint-size="32px,32px"></x-import></div>
+            <div style="padding: 18px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary gray" icon="only" state="hover" dc-props="{{ filterApplied }}" hint-size="32px,32px"></x-import></div>
+
+            <div style="padding: 18px 16px; display: flex; align-items: center;"><span style="font-size: 13px; font-weight: 600; color: #101828;">Pressed</span></div>
+            <div style="padding: 18px 16px;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary gray" icon="only" state="focused" dc-props="{{ filterPlain }}" hint-size="32px,32px"></x-import></div>
+            <div style="padding: 18px 16px;"><x-import component-from-global-scope="Button" size="h32px" hierarchy="secondary gray" icon="only" state="focused" dc-props="{{ filterApplied }}" hint-size="32px,32px"></x-import></div>
+          </div>
+        </div>
+
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0; display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 16px;">
+            <span style="font-size: 14px; font-weight: 600; color: #344054;">Loading button</span>
+            <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">vẽ trực tiếp trong file, không phải variant</span>
+          </div>
+          <div style="padding: 32px 24px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px 16px; align-items: start;">
+            <div style="display: flex; flex-direction: column; gap: 14px; align-items: flex-start;">
+              <span style="font-size: 12px; color: #667085;">Primary</span>
+              <div style="height: 32px; border-radius: 8px; background: #B2CCFF; box-shadow: 0px 1px 2px 0px rgba(16,24,40,0.05); display: flex; flex-direction: row; gap: 8px; padding: 8px 12px; justify-content: center; align-items: center;">
+                <span style="width: 16px; height: 16px; display: block; border-radius: 50%; border: 1px solid #F2F4F7; border-top-color: #155EEF; animation: dsSpin 0.8s linear infinite;"></span>
+                <span style="font-size: 14px; font-weight: 500; line-height: 20px; color: #FFFFFF;">Chờ...</span>
+              </div>
+              <div style="width: 40px; height: 32px; border-radius: 8px; background: #B2CCFF; box-shadow: 0px 1px 2px 0px rgba(16,24,40,0.05); display: flex; justify-content: center; align-items: center;">
+                <span style="width: 16px; height: 16px; display: block; border-radius: 50%; border: 1px solid #F2F4F7; border-top-color: #84ADFF; animation: dsSpin 0.8s linear infinite;"></span>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 14px; align-items: flex-start;">
+              <span style="font-size: 12px; color: #667085;">Secondary gray</span>
+              <div style="height: 32px; border-radius: 8px; background: #FFFFFF; box-shadow: inset 0 0 0 1px #EAECF0, 0px 1px 2px 0px rgba(16,24,40,0.05); display: flex; flex-direction: row; gap: 8px; padding: 8px 12px; justify-content: center; align-items: center;">
+                <span style="width: 16px; height: 16px; display: block; border-radius: 50%; border: 1px solid #F2F4F7; border-top-color: #98A2B3; animation: dsSpin 0.8s linear infinite;"></span>
+                <span style="font-size: 14px; font-weight: 500; line-height: 20px; color: #98A2B3;">Chờ...</span>
+              </div>
+              <div style="width: 40px; height: 32px; border-radius: 8px; background: #FFFFFF; box-shadow: inset 0 0 0 1px #EAECF0, 0px 1px 2px 0px rgba(16,24,40,0.05); display: flex; justify-content: center; align-items: center;">
+                <span style="width: 16px; height: 16px; display: block; border-radius: 50%; border: 1px solid #F2F4F7; border-top-color: #98A2B3; animation: dsSpin 0.8s linear infinite;"></span>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 14px; align-items: flex-start;">
+              <span style="font-size: 12px; color: #667085;">Secondary color</span>
+              <div style="height: 32px; border-radius: 8px; background: #FFFFFF; box-shadow: inset 0 0 0 1px #D1E0FF, 0px 1px 2px 0px rgba(16,24,40,0.05); display: flex; flex-direction: row; gap: 8px; padding: 8px 12px; justify-content: center; align-items: center;">
+                <span style="width: 16px; height: 16px; display: block; border-radius: 50%; border: 1px solid #EFF4FF; border-top-color: #84ADFF; animation: dsSpin 0.8s linear infinite;"></span>
+                <span style="font-size: 14px; font-weight: 500; line-height: 20px; color: #84ADFF;">Chờ...</span>
+              </div>
+              <div style="width: 40px; height: 32px; border-radius: 8px; background: #FFFFFF; box-shadow: inset 0 0 0 1px #D1E0FF, 0px 1px 2px 0px rgba(16,24,40,0.05); display: flex; justify-content: center; align-items: center;">
+                <span style="width: 16px; height: 16px; display: block; border-radius: 50%; border: 1px solid #EFF4FF; border-top-color: #84ADFF; animation: dsSpin 0.8s linear infinite;"></span>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 14px; align-items: flex-start;">
+              <span style="font-size: 12px; color: #667085;">Ghost</span>
+              <div style="height: 32px; border-radius: 8px; display: flex; flex-direction: row; gap: 8px; padding: 8px 12px; justify-content: center; align-items: center;">
+                <span style="width: 16px; height: 16px; display: block; border-radius: 50%; border: 1px solid #F2F4F7; border-top-color: #98A2B3; animation: dsSpin 0.8s linear infinite;"></span>
+                <span style="font-size: 14px; font-weight: 500; line-height: 20px; color: #98A2B3;">Chờ...</span>
+              </div>
+              <div style="width: 40px; height: 32px; border-radius: 8px; display: flex; justify-content: center; align-items: center;">
+                <span style="width: 16px; height: 16px; display: block; border-radius: 50%; border: 1px solid #F2F4F7; border-top-color: #98A2B3; animation: dsSpin 0.8s linear infinite;"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="group" style="padding: 32px 80px 96px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Button group &amp; Button bar</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">Button group là một khối liền, dùng cho lựa chọn loại trừ. Button bar là hàng hành động ở chân form hoặc chân bảng — luôn dồn về phải, primary ngoài cùng.</p>
+      </div>
+
+      <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Button group · 3 kiểu icon</span></div>
+        <div style="padding: 32px 24px; display: flex; flex-direction: column; gap: 24px; align-items: flex-start;">
+          <x-import component-from-global-scope="ButtonGroup" icon="false" hint-size="240px,40px"></x-import>
+          <x-import component-from-global-scope="ButtonGroup" icon="leading" hint-size="320px,40px"></x-import>
+          <x-import component-from-global-scope="ButtonGroup" icon="only" hint-size="140px,40px"></x-import>
+        </div>
+        <div style="padding: 12px 20px; background: #F9FAFB; border-top: 1px solid #EAECF0; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Button group items · current &amp; state</span></div>
+        <div style="padding: 32px 24px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 20px; align-items: center;">
+          <x-import component-from-global-scope="ButtonGroupItems" current="{{ yes }}" icon="false" state="default" text1="Đang chọn" hint-size="96px,40px"></x-import>
+          <x-import component-from-global-scope="ButtonGroupItems" current="{{ no }}" icon="false" state="default" text1="Mặc định" hint-size="88px,40px"></x-import>
+          <x-import component-from-global-scope="ButtonGroupItems" current="{{ no }}" icon="false" state="hover" text1="Hover" hint-size="72px,40px"></x-import>
+          <x-import component-from-global-scope="ButtonGroupItems" current="{{ no }}" icon="false" state="disabled" text1="Disabled" hint-size="80px,40px"></x-import>
+          <x-import component-from-global-scope="ButtonGroupItems" current="{{ no }}" icon="leading" badge="{{ yes }}" state="default" text1="Có badge" hint-size="120px,40px"></x-import>
+        </div>
+      </div>
+
+      <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Button bar · 1 → 5 hành động</span></div>
+        <div style="display: flex; flex-direction: column;">
+          <div style="padding: 20px 24px; border-bottom: 1px solid #F2F4F7; display: flex; flex-direction: row; justify-content: flex-end; gap: 8px;">
+            <x-import component-from-global-scope="Button" size="h40px" hierarchy="primary" leadIcon="{{ yes }}" rightIcon="{{ no }}" hint-size="112px,40px" state="default"></x-import>
+          </div>
+          <div style="padding: 20px 24px; border-bottom: 1px solid #F2F4F7; display: flex; flex-direction: row; justify-content: flex-end; gap: 8px;">
+            <x-import component-from-global-scope="Button" size="h40px" hierarchy="secondary gray" leadIcon="{{ yes }}" rightIcon="{{ no }}" hint-size="112px,40px" state="default"></x-import>
+            <x-import component-from-global-scope="Button" size="h40px" hierarchy="primary" leadIcon="{{ yes }}" rightIcon="{{ no }}" hint-size="112px,40px" state="default"></x-import>
+          </div>
+          <div style="padding: 20px 24px; border-bottom: 1px solid #F2F4F7; display: flex; flex-direction: row; justify-content: flex-end; gap: 8px;">
+            <x-import component-from-global-scope="Button" size="h40px" hierarchy="secondary gray" leadIcon="{{ yes }}" rightIcon="{{ no }}" hint-size="112px,40px" state="default"></x-import>
+            <x-import component-from-global-scope="Button" size="h40px" hierarchy="secondary gray" leadIcon="{{ yes }}" rightIcon="{{ no }}" hint-size="112px,40px" state="default"></x-import>
+            <x-import component-from-global-scope="Button" size="h40px" hierarchy="primary" leadIcon="{{ yes }}" rightIcon="{{ no }}" hint-size="112px,40px" state="default"></x-import>
+          </div>
+          <div style="padding: 20px 24px; border-bottom: 1px solid #F2F4F7; display: flex; flex-direction: row; justify-content: flex-end; gap: 8px;">
+            <x-import component-from-global-scope="Button" size="h40px" hierarchy="secondary gray" leadIcon="{{ yes }}" rightIcon="{{ no }}" hint-size="112px,40px" state="default"></x-import>
+            <x-import component-from-global-scope="Button" size="h40px" hierarchy="secondary gray" leadIcon="{{ yes }}" rightIcon="{{ no }}" hint-size="112px,40px" state="default"></x-import>
+            <x-import component-from-global-scope="Button" size="h40px" hierarchy="secondary gray" leadIcon="{{ yes }}" rightIcon="{{ no }}" hint-size="112px,40px" state="default"></x-import>
+            <x-import component-from-global-scope="Button" size="h40px" hierarchy="primary" leadIcon="{{ yes }}" rightIcon="{{ no }}" hint-size="112px,40px" state="default"></x-import>
+          </div>
+          <div style="padding: 20px 24px; display: flex; flex-direction: row; justify-content: flex-end; gap: 8px;">
+            <x-import component-from-global-scope="Button" size="h40px" hierarchy="secondary gray" leadIcon="{{ yes }}" rightIcon="{{ no }}" hint-size="112px,40px" state="default"></x-import>
+            <x-import component-from-global-scope="Button" size="h40px" hierarchy="secondary gray" leadIcon="{{ yes }}" rightIcon="{{ no }}" hint-size="112px,40px" state="default"></x-import>
+            <x-import component-from-global-scope="Button" size="h40px" hierarchy="secondary gray" leadIcon="{{ yes }}" rightIcon="{{ no }}" hint-size="112px,40px" state="default"></x-import>
+            <x-import component-from-global-scope="Button" size="h40px" hierarchy="secondary gray" leadIcon="{{ yes }}" rightIcon="{{ no }}" hint-size="112px,40px" state="default"></x-import>
+            <x-import component-from-global-scope="Button" size="h40px" hierarchy="primary" leadIcon="{{ yes }}" rightIcon="{{ no }}" hint-size="112px,40px" state="default"></x-import>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;scale&quot;: {
+    &quot;editor&quot;: &quot;enum&quot;,
+    &quot;options&quot;: [&quot;sm&quot;, &quot;md&quot;, &quot;lg&quot;],
+    &quot;default&quot;: &quot;md&quot;,
+    &quot;tsType&quot;: &quot;string&quot;,
+    &quot;section&quot;: &quot;Mẫu Type &amp; Action&quot;
+  }
+}">
+class Component extends DCLogic {
+  state = { icons: null };
+
+  componentDidMount() {
+    import("./ds/icons/icon-data.js")
+      .then((m) => this.setState({ icons: m.default || m }))
+      .catch(() => this.setState({ icons: {} }));
+  }
+
+  icon(name, size) {
+    const d = (this.state.icons || {})[name];
+    if (!d) return null;
+    return React.createElement("svg", {
+      width: size,
+      height: size,
+      viewBox: d.viewBox,
+      fill: "none",
+      style: { display: "block" },
+      dangerouslySetInnerHTML: { __html: d.body },
+    });
+  }
+
+  renderVals() {
+    const scale = this.props.scale ?? "md";
+    const funnel = this.icon("IconFilter", 16);
+    return {
+      sz: scale === "sm" ? "h24px" : scale === "lg" ? "h40px" : "h32px",
+      filterPlain: { changeRight: funnel },
+      filterApplied: {
+        changeRight: React.createElement(
+          "div",
+          { style: { position: "relative", width: 16, height: 16 } },
+          funnel,
+          React.createElement("span", {
+            style: {
+              position: "absolute",
+              right: -1,
+              top: -1,
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              backgroundColor: "#155EEF",
+              boxShadow: "0 0 0 1.5px #FFFFFF",
+            },
+          })
+        ),
+      },
+      yes: true,
+      no: false,
+    };
+  }
+}
+</script>
+</body>
+</html>

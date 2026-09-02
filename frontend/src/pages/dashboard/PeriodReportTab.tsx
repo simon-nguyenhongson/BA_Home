@@ -86,7 +86,7 @@ export function PeriodReportTab() {
       p.crs.forEach(cr => push(p.product_name ?? '', p.product_code ?? '', p.domain_code ?? '', cr)))
     data.unassigned.forEach(cr => push('(chưa gắn sản phẩm)', '', '', cr))
 
-    // ﻿ để Excel trên Windows đọc đúng dấu tiếng Việt
+    // BOM (U+FEFF) để Excel trên Windows đọc đúng dấu tiếng Việt
     const csv = '﻿' + rows
       .map(r => r.map(c => `"${(c ?? '').replace(/"/g, '""')}"`).join(','))
       .join('\r\n')
@@ -132,7 +132,7 @@ export function PeriodReportTab() {
             <button key={p.label} onClick={() => { setFromDate(p.from); setToDate(p.to) }}
               style={{
                 height: 32, padding: '0 10px', borderRadius: 8, cursor: 'pointer',
-                border: '1px solid var(--app-neutral-200)', background: '#fff',
+                border: '1px solid var(--app-neutral-200)', background: 'var(--app-white)',
                 fontFamily: 'var(--font)', fontSize: 12, color: 'var(--app-neutral-700)',
               }}>
               {p.label}
@@ -236,7 +236,7 @@ export function PeriodReportTab() {
                   </span>
                   {p.projects.map(pr => (
                     <span key={pr.project_id ?? 'none'} style={{
-                      background: '#F2F4F7', color: 'var(--app-neutral-700)',
+                      background: 'var(--ds-border-subtle)', color: 'var(--app-neutral-700)',
                       padding: '1px 8px', borderRadius: 16,
                     }}>
                       {pr.project_code ?? pr.project_name} · {pr.cr_count} CR
@@ -266,11 +266,11 @@ export function PeriodReportTab() {
             <>
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600,
-                color: '#B54708', margin: '18px 0 10px',
+                color: 'var(--app-warning)', margin: '18px 0 10px',
               }}>
                 <AlertCircle size={15} strokeWidth={1.5} /> CR chưa gắn sản phẩm ({data.unassigned.length})
               </div>
-              <div style={{ border: '1px solid #FEDF89', borderRadius: 12, overflowX: 'auto' }}>
+              <div style={{ border: '1px solid var(--app-warning-bg)', borderRadius: 12, overflowX: 'auto' }}>
                 <table className="ds-table" style={{ fontSize: 12 }}>
                   <thead>
                     <tr>{['Mã CR', 'Tiêu đề', 'Loại', 'Trạng thái', 'BRS', 'Test', 'Dự án', 'Ngày tạo'].map(h =>

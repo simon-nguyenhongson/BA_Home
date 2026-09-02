@@ -24,13 +24,13 @@ import { CR_STATUS_LABELS, CR_PRIORITY_LABELS } from '../../features/cr/constant
 import { useStore } from '../../stores/auth'
 
 const STATUS_STYLE: Record<string, { color: string; bg: string }> = {
-  submitted:    { color: '#B54708', bg: '#FFFAEB' },
-  reviewing:    { color: '#B54708', bg: '#FFFAEB' },
-  approved:     { color: '#027A48', bg: '#ECFDF3' },
-  implementing: { color: '#175CD3', bg: '#EFF8FF' },
-  implemented:  { color: '#175CD3', bg: '#EFF8FF' },
-  rejected:     { color: '#B42318', bg: '#FEF3F2' },
-  cancelled:    { color: '#667085', bg: '#F2F4F7' },
+  submitted:    { color: 'var(--app-warning)', bg: 'var(--app-warning-bg)' },
+  reviewing:    { color: 'var(--app-warning)', bg: 'var(--app-warning-bg)' },
+  approved:     { color: 'var(--app-success)', bg: 'var(--app-success-bg)' },
+  implementing: { color: 'var(--app-primary)', bg: 'var(--app-info-bg)' },
+  implemented:  { color: 'var(--app-primary)', bg: 'var(--app-info-bg)' },
+  rejected:     { color: 'var(--ds-text-danger)', bg: 'var(--app-danger-bg)' },
+  cancelled:    { color: 'var(--app-neutral-500)', bg: 'var(--ds-border-subtle)' },
 }
 
 export default function BAWorkflowPage() {
@@ -132,7 +132,7 @@ export default function BAWorkflowPage() {
         {/* Danh sách CR */}
         <div style={{
           width: 380, flexShrink: 0, border: '1px solid var(--app-neutral-200)',
-          borderRadius: 12, overflowY: 'auto', background: '#fff',
+          borderRadius: 12, overflowY: 'auto', background: 'var(--app-white)',
         }}>
           {loading && (
             <div style={{ padding: 14, fontSize: 12, color: 'var(--app-neutral-400)' }}>Đang tải…</div>
@@ -151,7 +151,7 @@ export default function BAWorkflowPage() {
                   padding: '10px 12px', cursor: 'pointer',
                   borderBottom: '1px solid var(--app-neutral-100)',
                   borderLeft: active ? '3px solid var(--app-primary)' : '3px solid transparent',
-                  background: active ? '#EFF4FF' : 'transparent',
+                  background: active ? 'var(--ds-brand-subtle)' : 'transparent',
                 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--app-neutral-900)' }}>
@@ -171,7 +171,7 @@ export default function BAWorkflowPage() {
                 </div>
                 <div style={{
                   display: 'flex', alignItems: 'center', gap: 5, marginTop: 4,
-                  fontSize: 11, color: cr.product_name ? 'var(--app-neutral-500)' : '#B54708',
+                  fontSize: 11, color: cr.product_name ? 'var(--app-neutral-500)' : 'var(--app-warning)',
                 }}>
                   <Package size={11} strokeWidth={1.5} />
                   {cr.product_name ?? 'chưa gắn sản phẩm'}

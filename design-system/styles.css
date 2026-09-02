@@ -1,0 +1,15 @@
+/* SooBinZHongSon Design System — global CSS entry point.
+   Consumers link this one file. Import lines only; never add rules here. */
+
+@import "./tokens/fonts.css";
+@import "./tokens/palette.css";
+@import "./tokens/semantic.css";
+@import "./tokens/typography.css";
+@import "./tokens/elevation.css";
+@import "./tokens/layout.css";
+@import "./tokens/figma-variables.css";
+@import "./tokens/base.css";
+@import "./components/core/assets.css";
+@import "./components/forms/assets.css";
+@import "./components/navigation/assets.css";
+@import "./components/data/assets.css";

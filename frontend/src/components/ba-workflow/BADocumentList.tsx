@@ -7,18 +7,9 @@ import React, { useState } from 'react'
 import { Plus, Edit, ArrowRight } from 'lucide-react'
 import { StatusBadge, Btn, EmptyState } from '../ui'
 import type { BADocument, BADocType, BADocStatus } from '../../lib/types/workflow-doc'
+import { DOC_TYPE_COLORS as CATEGORICAL_DOC_TYPE_COLORS } from '../../styles/categorical'
 
-const DOC_TYPE_COLORS: Record<BADocType, string> = {
-  BRD: 'var(--app-primary)',
-  BRS: 'var(--app-success)',
-  FSD: '#6B21A8',
-  API_SPEC: 'var(--app-warning)',
-  ERD: '#0F766E',
-  DATA_DICT: '#7C3AED',
-  WIREFRAME: '#DB2777',
-  PROCESS_FLOW: '#EA580C',
-  MASTER_DOC: '#4285F4',
-}
+const DOC_TYPE_COLORS: Record<BADocType, string> = CATEGORICAL_DOC_TYPE_COLORS
 
 const STATUS_ORDER: BADocStatus[] = ['draft', 'review', 'approved', 'archived']
 
@@ -108,8 +99,7 @@ export function BADocumentList({
       {loading ? (
         <div className="empty-state">Đang tải...</div>
       ) : filtered.length === 0 ? (
-        <EmptyState
-          icon=""
+        <EmptyState 
           title="Không có tài liệu"
           desc="Chưa có tài liệu BA nào"
           action={

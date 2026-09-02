@@ -136,6 +136,9 @@ class CatalogProductCreate(BaseModel):
     status:              ProductStatus = 'active'
     tags:                list[str] = []
     notes:               str | None = None
+    # V052 — dự án đã khai sinh sản phẩm này. TÙY CHỌN, tối đa 1 sản phẩm mỗi dự án
+    # (UNIQUE partial index). Sản phẩm tiếp nhận từ trước để trống.
+    origin_project_id:   UUID | None = None
     # Common sections
     architecture_info:   ArchitectureInfo = Field(default_factory=ArchitectureInfo)
     deployment_info:     DeploymentInfo = Field(default_factory=DeploymentInfo)
@@ -153,6 +156,9 @@ class CatalogProductCreate(BaseModel):
 class CatalogProductUpdate(BaseModel):
     product_name:        str | None = None
     description:         str | None = None
+    # Gắn / đổi dự án khai sinh. Bỏ gắn dùng endpoint riêng: exclude_none của PATCH
+    # không phân biệt được "không sửa" với "xoá về NULL".
+    origin_project_id:   UUID | None = None
     domain_code:         str | None = None
     business_owner:      str | None = None
     technical_owner:     str | None = None
@@ -191,6 +197,9 @@ class CatalogProductOut(BaseModel):
     monitoring_info:     dict[str, Any]
     resource_info:       dict[str, Any]
     business_metadata:   dict[str, Any]
+    origin_project_id:   UUID | None = None
+    origin_project_code: str | None = None
+    origin_project_name: str | None = None
     created_at:          datetime
     updated_at:          datetime
     created_by:          str | None = None

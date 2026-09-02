@@ -90,7 +90,7 @@ export function UserSelect({
       {open && !disabled && (
         <div style={{
           position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1200,
-          background: '#fff', border: '1px solid var(--app-neutral-300)',
+          background: 'var(--app-white)', border: '1px solid var(--app-neutral-300)',
           borderRadius: 6, boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
           maxHeight: 280, display: 'flex', flexDirection: 'column', minWidth: 220,
         }}>
@@ -124,11 +124,11 @@ export function UserSelect({
                 key={u.id}
                 style={{
                   padding: '8px 12px', cursor: 'pointer', fontSize: 12,
-                  background: u.full_name === value ? 'var(--app-primary-50,#e6f0fa)' : undefined,
+                  background: u.full_name === value ? 'var(--ds-surface-selected)' : undefined,
                   borderBottom: '1px solid var(--app-neutral-100)',
                 }}
-                onMouseEnter={e => { if (u.full_name !== value) (e.currentTarget as HTMLDivElement).style.background = 'var(--app-neutral-50,#f5f5f5)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = u.full_name === value ? 'var(--app-primary-50,#e6f0fa)' : '' }}
+                onMouseEnter={e => { if (u.full_name !== value) (e.currentTarget as HTMLDivElement).style.background = 'var(--app-neutral-50)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = u.full_name === value ? 'var(--ds-surface-selected)' : '' }}
                 onClick={() => { onChange(u.full_name); setOpen(false); setQuery('') }}
               >
                 <div style={{ fontWeight: u.full_name === value ? 600 : 400, color: 'var(--app-neutral-800)' }}>

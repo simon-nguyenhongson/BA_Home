@@ -11,15 +11,18 @@ diagram có <script> hoặc tài nguyên mạng ngoài bị TỪ CHỐI, không 
 """
 from __future__ import annotations
 
+import logging
 from typing import Optional
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from fastapi.responses import StreamingResponse   # cần cho annotation trả về của 2 endpoint SSE
 from pydantic import BaseModel, Field
 
 from app.auth import CurrentUser
-from app.database import get_db
+from app.database import get_conn, get_db
 from app.services.ai_agent import run_skill
+from app.services.ai_sse import sse_response
 from app.services.audit_service import log_audit
 from app.services.diagram_skill import (
     DIAGRAM_TYPES,
@@ -30,6 +33,8 @@ from app.services.diagram_skill import (
     list_types,
     sanitize_diagram_html,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/diagrams", tags=["diagrams"])
 
@@ -588,6 +593,11 @@ async def regenerate_diagram(
     row = await db.fetchrow(
         """
         UPDATE diagrams SET content = $2, version = $3, source = 'ai',
+                            -- run_skill của skill này luôn trả về MỘT file HTML hoàn
+                            -- chỉnh (sanitize_diagram_html từ chối thứ khác), nên format
+                            -- phải theo. Thiếu dòng này thì sơ đồ nhập từ Mermaid sau khi
+                            -- vẽ lại vẫn bị hiển thị dưới dạng mã nguồn.
+                            format = 'html',
                             updated_by = $4, updated_at = NOW()
         WHERE id = $1::uuid RETURNING *
         """,
@@ -704,3 +714,241 @@ async def import_diagram(
     out = _row_to_dict(row)
     out["sanitized"] = stripped
     return {"data": out}
+
+
+# ── Vẽ bằng AI, có tường thuật tiến độ (SSE) ─────────────────────────────────
+#
+# Vì sao cần: một lượt vẽ mất hàng chục giây tới vài phút. Bản chỉ-có-nút-mờ
+# ("Đang vẽ…") làm người dùng tưởng hệ thống treo và bấm lại — mỗi lần bấm lại là một
+# lượt gọi Claude nữa, tốn hạn mức thật.
+#
+# Nguyên tắc: mọi số liệu tường thuật đều là số ĐO ĐƯỢC (dung lượng bộ quy tắc nạp từ
+# đĩa, số ký tự bối cảnh, số ký tự/token mô hình đã sinh, danh sách thành phần bị chặn
+# khi kiểm an toàn). KHÔNG có phần trăm phỏng đoán: độ dài tài liệu chưa biết trước, nên
+# giao diện dùng thanh chạy vô định thay vì bịa ra con số.
+#
+# Vì sao POST + fetch chứ không EventSource: EventSource chỉ gửi được GET và KHÔNG gắn
+# được header Authorization, mà các endpoint này cần token như mọi endpoint khác.
+
+# Các bước THẬT của một lượt vẽ, khớp đúng thứ tự mã chạy bên dưới.
+GENERATE_STEPS = [
+    {"id": "owner",   "label": "Xác minh đối tượng gắn sơ đồ"},
+    {"id": "skill",   "label": "Nạp bộ quy tắc dựng hình"},
+    {"id": "context", "label": "Nạp bối cảnh từ hệ thống"},
+    {"id": "ai",      "label": "Claude vẽ sơ đồ"},
+    {"id": "safety",  "label": "Kiểm chứng an toàn HTML"},
+    {"id": "save",    "label": "Lưu sơ đồ và phiên bản"},
+]
+REGENERATE_STEPS = [
+    {"id": "load",    "label": "Đọc bản hiện tại"},
+    {"id": "skill",   "label": "Nạp bộ quy tắc dựng hình"},
+    {"id": "ai",      "label": "Claude chỉnh sơ đồ"},
+    {"id": "safety",  "label": "Kiểm chứng an toàn HTML"},
+    {"id": "save",    "label": "Lưu phiên bản mới"},
+]
+
+
+def _error_event(exc: BaseException) -> dict:
+    """
+    Đổi lỗi thành sự kiện `error`.
+
+    Thân phản hồi SSE đã bắt đầu chảy nên KHÔNG đổi được mã HTTP nữa. Vì vậy lỗi phải đi
+    ra dưới dạng sự kiện, giữ nguyên code/message như endpoint thường để giao diện hiển
+    thị đúng nguyên nhân (AI_RATE_LIMIT, AI_TRUNCATED, AI_MODEL_DOWNGRADED…).
+    """
+    if isinstance(exc, HTTPException):
+        detail = exc.detail
+        if isinstance(detail, dict):
+            return {"type": "error", "code": detail.get("code", "ERROR"),
+                    "message": detail.get("message", str(detail))}
+        return {"type": "error", "code": "ERROR", "message": str(detail)}
+    logger.exception("Lỗi không lường trước trong luồng vẽ diagram")
+    return {"type": "error", "code": "UNEXPECTED",
+            "message": f"Lỗi không lường trước: {exc}"}
+
+
+def _skill_bundle_stats(prefix: list[str]) -> dict:
+    """Số đo thật của bộ quy tắc nạp từ đĩa — để tường thuật, không phải ước lượng."""
+    total = sum(len(b) for b in prefix)
+    return {"blocks": len(prefix), "chars": total, "kb": round(total / 1024, 1)}
+
+
+def _make_generate_work(body: GenerateRequest, actor: str, request: Request):
+    async def work(db: asyncpg.Connection, emit) -> dict:
+        async def hook(ev: dict) -> None:
+            emit(ev)
+
+        owner_label = await _assert_owner(db, body.owner_type, body.owner_id)
+        emit({"type": "step", "id": "owner", "state": "done",
+                         "detail": owner_label})
+
+        emit({"type": "step", "id": "skill", "state": "running"})
+        cached_prefix = build_cached_prefix(body.diagram_type)
+        stats = _skill_bundle_stats(cached_prefix)
+        emit({"type": "step", "id": "skill", "state": "done",
+                         "detail": f"{stats['blocks']} khối · {stats['kb']} KB "
+                                   f"(dùng lại từ cache nếu đã nạp)"})
+
+        if not body.brief.strip() and not body.include_context:
+            raise HTTPException(400, detail={
+                "code": "BRIEF_REQUIRED",
+                "message": "Cần mô tả nội dung cần vẽ, hoặc bật nạp bối cảnh từ hệ thống.",
+            })
+
+        emit({"type": "step", "id": "context", "state": "running"})
+        context = ""
+        if body.include_context:
+            context = await _load_context(db, body.owner_type, body.owner_id)
+        emit({
+            "type": "step", "id": "context", "state": "done",
+            "detail": (f"{len(context):,} ký tự bối cảnh".replace(",", ".")
+                       if context else "không nạp bối cảnh — chỉ dùng mô tả của BA"),
+        })
+
+        prompt_parts = [
+            f"Vẽ diagram loại '{body.diagram_type}' cho {body.owner_type} «{owner_label}».",
+            f"Tên diagram: {body.name}",
+        ]
+        if body.brief.strip():
+            prompt_parts.append("Mô tả của BA về nội dung cần vẽ:\n" + body.brief.strip())
+        if context:
+            prompt_parts.append("Bối cảnh lấy từ dữ liệu đang có trong hệ thống:\n" + context)
+        prompt_parts.append(
+            "Trả về đúng một file HTML hoàn chỉnh, không kèm bất kỳ lời giải thích nào."
+        )
+
+        emit({"type": "step", "id": "ai", "state": "running"})
+        html = await run_skill(
+            db, SKILL_CODE, "\n\n".join(prompt_parts),
+            cached_prefix=cached_prefix, on_event=hook,
+        )
+        emit({"type": "step", "id": "ai", "state": "done"})
+
+        emit({"type": "step", "id": "safety", "state": "running"})
+        html, stripped = sanitize_diagram_html(html)
+        emit({"type": "step", "id": "safety", "state": "done",
+                         "detail": (f"đã gỡ: {', '.join(stripped)}" if stripped
+                                    else "không có thành phần nào phải gỡ")})
+
+        emit({"type": "step", "id": "save", "state": "running"})
+        owner_col = OWNER_FK_COLUMN[body.owner_type]
+        row = await db.fetchrow(
+            """
+            INSERT INTO diagrams
+                (owner_type, owner_id, {owner_col}, diagram_type, name, description, format,
+                 content, source, created_by, updated_by)
+            VALUES ($1, $2::uuid, $2::uuid, $3, $4, $5, 'html', $6, 'ai', $7, $7)
+            RETURNING *
+            """.format(owner_col=owner_col),
+            body.owner_type, body.owner_id, body.diagram_type, body.name,
+            body.brief.strip()[:2000], html, actor,
+        )
+        await _save_version(db, str(row["id"]), 1, html, "AI sinh lần đầu", "ai", actor)
+        await log_audit(
+            db, "diagram", str(row["id"]), "CREATE", actor,
+            new_values={"name": body.name, "diagram_type": body.diagram_type,
+                        "source": "ai"},
+            request=request,
+        )
+        emit({"type": "step", "id": "save", "state": "done",
+                         "detail": f"v1 · {len(html):,} ký tự".replace(",", ".")})
+
+        out = _row_to_dict(row)
+        out["sanitized"] = stripped
+        return out
+
+    return work
+
+
+def _make_regenerate_work(diagram_id: str, instruction: str, actor: str, request: Request):
+    async def work(db: asyncpg.Connection, emit) -> dict:
+        async def hook(ev: dict) -> None:
+            emit(ev)
+
+        current = await db.fetchrow(
+            "SELECT * FROM diagrams WHERE id = $1::uuid", diagram_id
+        )
+        if not current:
+            raise HTTPException(404, detail={
+                "code": "NOT_FOUND", "message": "Không tìm thấy diagram."})
+        emit({"type": "step", "id": "load", "state": "done",
+                         "detail": f"«{current['name']}» v{current['version']}"})
+
+        emit({"type": "step", "id": "skill", "state": "running"})
+        cached_prefix = build_cached_prefix(current["diagram_type"])
+        stats = _skill_bundle_stats(cached_prefix)
+        emit({"type": "step", "id": "skill", "state": "done",
+                         "detail": f"{stats['blocks']} khối · {stats['kb']} KB"})
+
+        prompt = (
+            f"Đây là diagram HTML hiện tại (loại '{current['diagram_type']}', "
+            f"tên «{current['name']}»):\n\n{current['content']}\n\n"
+            f"Yêu cầu chỉnh sửa: {instruction}\n\n"
+            "Trả về đúng một file HTML hoàn chỉnh ĐÃ ÁP DỤNG yêu cầu trên. "
+            "Giữ nguyên những phần không được yêu cầu đổi. Không kèm lời giải thích."
+        )
+
+        emit({"type": "step", "id": "ai", "state": "running"})
+        html = await run_skill(
+            db, SKILL_CODE, prompt, cached_prefix=cached_prefix, on_event=hook,
+        )
+        emit({"type": "step", "id": "ai", "state": "done"})
+
+        emit({"type": "step", "id": "safety", "state": "running"})
+        html, stripped = sanitize_diagram_html(html)
+        emit({"type": "step", "id": "safety", "state": "done",
+                         "detail": (f"đã gỡ: {', '.join(stripped)}" if stripped
+                                    else "không có thành phần nào phải gỡ")})
+
+        emit({"type": "step", "id": "save", "state": "running"})
+        version = current["version"] + 1
+        row = await db.fetchrow(
+            """
+            UPDATE diagrams SET content = $2, version = $3, source = 'ai',
+                                format = 'html',   -- xem ghi chú ở regenerate_diagram
+                                updated_by = $4, updated_at = NOW()
+            WHERE id = $1::uuid RETURNING *
+            """,
+            diagram_id, html, version, actor,
+        )
+        await _save_version(
+            db, diagram_id, version, html,
+            f"AI chỉnh: {instruction[:200]}", "ai", actor,
+        )
+        await log_audit(
+            db, "diagram", diagram_id, "UPDATE", actor,
+            new_values={"version": version, "source": "ai"},
+            notes=instruction[:500], request=request,
+        )
+        emit({"type": "step", "id": "save", "state": "done",
+                         "detail": f"v{version} · {len(html):,} ký tự".replace(",", ".")})
+
+        out = _row_to_dict(row)
+        out["sanitized"] = stripped
+        return out
+
+    return work
+
+
+@router.post("/generate/stream")
+async def generate_diagram_stream(
+    body: GenerateRequest,
+    user: CurrentUser,
+    request: Request,
+) -> StreamingResponse:
+    """[Vẽ bằng AI] có tường thuật — cùng kết quả với POST /diagrams/generate."""
+    return sse_response(GENERATE_STEPS, _make_generate_work(body, user.sub, request))
+
+
+@router.post("/{diagram_id}/regenerate/stream")
+async def regenerate_diagram_stream(
+    diagram_id: str,
+    body: RegenerateRequest,
+    user: CurrentUser,
+    request: Request,
+) -> StreamingResponse:
+    """[Sửa bằng AI] có tường thuật — cùng kết quả với POST /diagrams/{id}/regenerate."""
+    return sse_response(
+        REGENERATE_STEPS,
+        _make_regenerate_work(diagram_id, body.instruction.strip(), user.sub, request),
+    )

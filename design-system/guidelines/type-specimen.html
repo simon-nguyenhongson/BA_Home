@@ -1,0 +1,25 @@
+<!-- @dsCard group="Type" viewport="700x200" name="Inter specimen" subtitle="The only UI typeface; Vietnamese diacritics included" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin: 0; padding: 16px 20px; background: var(--ds-surface-page); }
+  .r { display: flex; flex-direction: row; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+  .c { display: flex; flex-direction: column; gap: 10px; }
+  .lbl { font-family: var(--ds-font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ds-text-placeholder); }
+  .hex { font-family: var(--ds-font-mono); font-size: 10px; line-height: 14px; color: var(--ds-text-secondary); }
+  .use { font-size: 10px; line-height: 14px; color: var(--ds-text-placeholder); }
+  .row { display: grid; grid-template-columns: 108px 132px minmax(0, 1fr); gap: 16px; align-items: baseline; padding: 5px 0; }
+  .nm { font-size: 12px; font-weight: 600; color: var(--ds-text-label); }
+</style>
+</head>
+<body>
+<div class="c" style="gap: 10px;">
+  <span style="font-size: 72px; line-height: 100%; letter-spacing: -0.02em;">Ag</span>
+  <span style="font-size: 20px; line-height: 28px; letter-spacing: -0.01em;">ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz</span>
+  <span style="font-size: 20px; line-height: 28px;">0123456789 · Đường Ơn Ưu Ạ Ế Ộ Ỹ · !@#$%^&amp;*()</span>
+</div>
+</body>
+</html>

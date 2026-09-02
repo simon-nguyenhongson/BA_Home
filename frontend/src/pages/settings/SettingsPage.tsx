@@ -9,8 +9,9 @@ import { Badge, Btn, Card, Confirm, EmptyState, Field, AppInput, AppTextarea, Mo
 import { useStore } from '../../stores/auth'
 import CatalogPage from '../catalog/CatalogPage'
 
-// Danh mục (sản phẩm / nhân sự / vai trò) đã chuyển từ menu riêng vào đây
-// theo yêu cầu PO 2026-09-01 — đều là dữ liệu cấu hình, không phải việc hằng ngày.
+// Danh mục nhân sự / domain / vai trò — dữ liệu cấu hình đặt một lần.
+// Danh mục SẢN PHẨM đã chuyển sang Workspace → tab Product (PO 2026-09-02): sản phẩm là
+// đối tượng làm việc hằng ngày, không phải cấu hình.
 type Tab = 'ai' | 'skills' | 'catalog'
 
 const MODELS = [
@@ -20,9 +21,10 @@ const MODELS = [
 ]
 
 export default function SettingsPage() {
-  // Link cũ /catalog chuyển hướng sang /settings?tab=products → mở luôn tab Danh mục
-  const initialTab: Tab =
-    new URLSearchParams(window.location.search).get('tab') === 'products' ? 'catalog' : 'ai'
+  // ?tab=catalog mở luôn tab Danh mục. Giá trị cũ 'products' vẫn nhận để link đã gửi đi
+  // không chết, dù Danh mục sản phẩm nay nằm ở Workspace → tab Product.
+  const qTab = new URLSearchParams(window.location.search).get('tab')
+  const initialTab: Tab = qTab === 'catalog' || qTab === 'products' ? 'catalog' : 'ai'
   const [tab, setTab] = useState<Tab>(initialTab)
 
   return (
@@ -32,7 +34,7 @@ export default function SettingsPage() {
           Cài đặt
         </h1>
         <p style={{ fontSize: 14, color: 'var(--app-neutral-500)' }}>
-          AI Agent, kho skill chuẩn và danh mục dữ liệu nền của hệ thống
+          AI Agent, kho skill chuẩn và danh mục dữ liệu nền (nhân sự · domain · vai trò)
         </p>
       </div>
 
@@ -409,7 +411,7 @@ function SkillEditor({ skill, onClose, onSaved }: { skill: AiSkill; onClose: () 
               <button key={f} onClick={() => void openFile(f)} disabled={loadingFile === f}
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: 4,
-                  border: '1px solid var(--app-neutral-200)', background: '#fff',
+                  border: '1px solid var(--app-neutral-200)', background: 'var(--app-white)',
                   borderRadius: 8, padding: '3px 9px', cursor: 'pointer',
                   fontFamily: 'var(--font)', fontSize: 12, color: 'var(--app-neutral-700)',
                 }}>

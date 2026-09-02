@@ -1,0 +1,26 @@
+<!-- @dsCard group="Type" viewport="700x150" name="Weights" subtitle="Four weights; 500 for labels, 600 for headings" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin: 0; padding: 16px 20px; background: var(--ds-surface-page); }
+  .r { display: flex; flex-direction: row; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+  .c { display: flex; flex-direction: column; gap: 10px; }
+  .lbl { font-family: var(--ds-font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ds-text-placeholder); }
+  .hex { font-family: var(--ds-font-mono); font-size: 10px; line-height: 14px; color: var(--ds-text-secondary); }
+  .use { font-size: 10px; line-height: 14px; color: var(--ds-text-placeholder); }
+  .row { display: grid; grid-template-columns: 108px 132px minmax(0, 1fr); gap: 16px; align-items: baseline; padding: 5px 0; }
+  .nm { font-size: 12px; font-weight: 600; color: var(--ds-text-label); }
+</style>
+</head>
+<body>
+<div class="r" style="gap: 32px;">
+  <div class="c" style="gap: 4px;"><span class="lbl">Regular 400</span><span style="font-size: 26px; font-weight: 400;">Aa Bb Cc</span></div>
+  <div class="c" style="gap: 4px;"><span class="lbl">Medium 500</span><span style="font-size: 26px; font-weight: 500;">Aa Bb Cc</span></div>
+  <div class="c" style="gap: 4px;"><span class="lbl">Semibold 600</span><span style="font-size: 26px; font-weight: 600;">Aa Bb Cc</span></div>
+  <div class="c" style="gap: 4px;"><span class="lbl">Bold 700</span><span style="font-size: 26px; font-weight: 700;">Aa Bb Cc</span></div>
+</div>
+</body>
+</html>

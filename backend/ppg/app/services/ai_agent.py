@@ -9,7 +9,8 @@ Nguyên tắc (docs/design/AI-DOC-AUTOMATION-FLOW.md):
 from __future__ import annotations
 
 import logging
-from typing import Optional
+import time
+from typing import Awaitable, Callable, Optional
 
 import asyncpg
 from fastapi import HTTPException
@@ -17,6 +18,14 @@ from fastapi import HTTPException
 from app.services import skill_loader
 
 logger = logging.getLogger(__name__)
+
+# Hàm nhận sự kiện tiến độ THẬT trong lúc gọi Claude (xem run_skill/on_event).
+ProgressHook = Callable[[dict], Awaitable[None]]
+
+# Nhịp phát sự kiện tiến độ: không phát mỗi delta (một tài liệu dài sinh hàng nghìn delta,
+# đẩy hết ra SSE là tự tạo nghẽn), cũng không thưa quá kẻo giao diện trông như treo.
+_PROGRESS_MIN_INTERVAL_S = 0.25
+_PROGRESS_MIN_CHARS = 400
 
 DEFAULT_MODEL = "claude-opus-5"
 DEFAULT_MAX_TOKENS = 32000
@@ -151,6 +160,16 @@ async def load_skill_blocks(db: asyncpg.Connection, skill_code: str) -> list[str
     return [db_content]
 
 
+async def _emit(hook: Optional[ProgressHook], event: dict) -> None:
+    """Phát một sự kiện tiến độ; hook lỗi KHÔNG được làm gãy lượt gọi AI."""
+    if hook is None:
+        return
+    try:
+        await hook(event)
+    except Exception:  # noqa: BLE001 — tiến độ là phần trang trí, không phải nghiệp vụ
+        logger.warning("Progress hook lỗi, bỏ qua", exc_info=True)
+
+
 async def run_skill(
     db: asyncpg.Connection,
     skill_code: str,
@@ -158,6 +177,7 @@ async def run_skill(
     extra_system: str = "",
     max_tokens: Optional[int] = None,
     cached_prefix: Optional[list[str]] = None,
+    on_event: Optional[ProgressHook] = None,
 ) -> str:
     """
     Chạy một skill của kho skill với nội dung yêu cầu cụ thể, trả về text kết quả.
@@ -165,6 +185,11 @@ async def run_skill(
     cached_prefix: các khối system lớn và ổn định nạp TRƯỚC nội dung skill — dùng cho
     skill có tài liệu kỹ thuật nằm trên đĩa thay vì trong DB (hiện tại: gen_diagram nạp
     SKILL.md + reference của skill diagram-design). Mỗi khối được đánh dấu cache riêng.
+
+    on_event: nhận sự kiện tiến độ THẬT trong lúc mô hình sinh nội dung — số ký tự đã
+    sinh, số token đã dùng, model thật sự trả lời. Dùng cho màn hình "AI đang vẽ" (SSE).
+    Mọi số liệu lấy từ chính stream của Anthropic; KHÔNG có phần trăm phỏng đoán, vì độ
+    dài tài liệu chưa biết trước — thanh tiến độ ở giao diện vì thế là loại chạy vô định.
 
     Raise HTTPException khi thiếu key / skill không tồn tại / Claude API lỗi.
     """
@@ -212,6 +237,16 @@ async def run_skill(
     if extra_system.strip():
         system_blocks.append({"type": "text", "text": extra_system})
 
+    await _emit(on_event, {
+        "type":          "ai_start",
+        "model":         model,
+        "max_tokens":    max_tokens,
+        "system_blocks": len(system_blocks),
+        "system_chars":  sum(len(b["text"]) for b in system_blocks),
+        "cache_points":  marked,
+        "prompt_chars":  len(user_prompt),
+    })
+
     client = build_client(api_key)
     try:
         async with client.messages.stream(
@@ -220,7 +255,24 @@ async def run_skill(
             system=system_blocks,
             messages=[{"role": "user", "content": user_prompt}],
         ) as stream:
-            message = await stream.get_final_message()
+            if on_event is None:
+                message = await stream.get_final_message()
+            else:
+                # Đọc từng delta chỉ để ĐẾM và báo tiến độ. Nội dung vẫn lấy từ
+                # get_final_message() bên dưới, nên toàn bộ chốt kiểm tra sau đây
+                # (refusal / hạ model / cắt vì max_tokens / rỗng) không đổi.
+                chars = 0
+                last_emit = 0.0
+                last_chars = 0
+                async for chunk in stream.text_stream:
+                    chars += len(chunk)
+                    now = time.monotonic()
+                    if (now - last_emit >= _PROGRESS_MIN_INTERVAL_S
+                            and chars - last_chars >= _PROGRESS_MIN_CHARS):
+                        await _emit(on_event, {"type": "ai_progress", "chars": chars})
+                        last_emit, last_chars = now, chars
+                message = await stream.get_final_message()
+                await _emit(on_event, {"type": "ai_progress", "chars": chars})
     except AuthenticationError:
         raise HTTPException(
             400,
@@ -317,6 +369,19 @@ async def run_skill(
                 "message": "Claude trả về nội dung rỗng. Thử lại hoặc chỉnh lại skill.",
             },
         )
+
+    usage = getattr(message, "usage", None)
+    await _emit(on_event, {
+        "type":           "ai_done",
+        "model":          message.model,
+        "chars":          len(text),
+        "output_tokens":  getattr(usage, "output_tokens", None) if usage else None,
+        "input_tokens":   getattr(usage, "input_tokens", None) if usage else None,
+        # Đọc lại từ cache đắt hơn 0 nhưng rẻ hơn nhiều so với nạp mới — hiện ra để thấy
+        # phần quy tắc dựng hình 78–86KB không bị tính tiền lại mỗi lần vẽ.
+        "cache_read":     getattr(usage, "cache_read_input_tokens", None) if usage else None,
+        "cache_created":  getattr(usage, "cache_creation_input_tokens", None) if usage else None,
+    })
     return text
 
 

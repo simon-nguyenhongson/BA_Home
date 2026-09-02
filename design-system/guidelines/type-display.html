@@ -1,0 +1,30 @@
+<!-- @dsCard group="Type" viewport="700x260" name="Display scale" subtitle="Semibold 600, −0.02em tracking, for page and section titles" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin: 0; padding: 16px 20px; background: var(--ds-surface-page); }
+  .r { display: flex; flex-direction: row; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+  .c { display: flex; flex-direction: column; gap: 10px; }
+  .lbl { font-family: var(--ds-font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ds-text-placeholder); }
+  .hex { font-family: var(--ds-font-mono); font-size: 10px; line-height: 14px; color: var(--ds-text-secondary); }
+  .use { font-size: 10px; line-height: 14px; color: var(--ds-text-placeholder); }
+  .row { display: grid; grid-template-columns: 108px 132px minmax(0, 1fr); gap: 16px; align-items: baseline; padding: 5px 0; }
+  .nm { font-size: 12px; font-weight: 600; color: var(--ds-text-label); }
+</style>
+</head>
+<body>
+<div class="c" style="gap: 0;">
+  <div class="row"><span class="nm">Display xl</span><span class="hex">60 / 72</span>
+    <span style="font-size: 60px; line-height: 72px; font-weight: 600; letter-spacing: -0.02em; color: var(--ds-text-primary);">Design System</span></div>
+  <div class="row"><span class="nm">Display md</span><span class="hex">36 / 44</span>
+    <span style="font-size: 36px; line-height: 44px; font-weight: 600; letter-spacing: -0.02em; color: var(--ds-text-primary);">Section title</span></div>
+  <div class="row"><span class="nm">Display sm</span><span class="hex">30 / 38</span>
+    <span style="font-size: 30px; line-height: 38px; font-weight: 600; letter-spacing: -0.02em; color: var(--ds-text-primary);">Section title</span></div>
+  <div class="row"><span class="nm">Display xs</span><span class="hex">24 / 32</span>
+    <span style="font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: 0; color: var(--ds-text-primary);">Subsection title</span></div>
+</div>
+</body>
+</html>

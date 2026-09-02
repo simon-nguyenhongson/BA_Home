@@ -1,0 +1,74 @@
+<!-- @dsCard group="Components" viewport="700x430" name="Navigation & Overlay — tabs, steps, modal, tooltip" subtitle="33 primitives for wayfinding, overlays and empty states" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Navigation components</title>
+<link rel="stylesheet" href="../../styles.css" />
+<script type="importmap">
+{ "imports": { "react": "https://esm.sh/react@18.3.1", "react-dom/client": "https://esm.sh/react-dom@18.3.1/client" } }
+</script>
+<style>
+  body { padding: 20px; background: var(--ds-surface-page); }
+  .grid { display: flex; flex-direction: column; gap: 18px; }
+  .row { display: flex; flex-direction: row; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .lbl { font-family: var(--ds-font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ds-text-placeholder); }
+  .cell { display: flex; flex-direction: column; gap: 8px; }
+  .sep { height: 1px; background: var(--ds-border-subtle); }
+  .tray { display: flex; flex-direction: row; gap: 4px; padding: 4px; background: var(--ds-surface-muted); border-radius: var(--ds-radius-md); }
+  .stage { display: flex; flex-direction: row; gap: 20px; align-items: flex-start; padding: 16px; background: var(--ds-surface-muted); border-radius: var(--ds-radius-lg); overflow: hidden; }
+</style>
+</head>
+<body>
+<div id="root" class="grid"></div>
+<script type="module">
+import React from "react";
+import { createRoot } from "react-dom/client";
+import * as C from "./_impl.js";
+
+const h = React.createElement;
+const Cell = (label, ...kids) => h("div", { className: "cell" }, h("span", { className: "lbl" }, label), h("div", { className: "row" }, ...kids));
+
+createRoot(document.getElementById("root")).render(
+  h(React.Fragment, null,
+    h("div", { className: "row", style: { gap: 28, alignItems: "flex-end" } },
+      Cell("tab · underline",
+        h(C.TabButtonBase, { type: "underline", current: true, state: "default", text1: "Tổng quan" }),
+        h(C.TabButtonBase, { type: "underline", current: false, state: "default", text1: "Giao dịch" }),
+        h(C.TabButtonBase, { type: "underline", current: false, badge: true, state: "default", text1: "Chờ duyệt" })),
+      Cell("tab · button white",
+        h("div", { className: "tray" },
+          h(C.TabButtonBase, { type: "button white", current: true, state: "default", text1: "Ngày" }),
+          h(C.TabButtonBase, { type: "button white", current: false, state: "default", text1: "Tuần" }),
+          h(C.TabButtonBase, { type: "button white", current: false, state: "default", text1: "Tháng" })))),
+    h("div", { className: "sep" }),
+    Cell("step indicator · 7 statuses",
+      ...["default / current", "incomplete", "success", "loading", "warning", "danger", "disabled"]
+        .map((status, i) => h(C.StepIndicator, { key: i, status, size: "md" }))),
+    h("div", { className: "sep" }),
+    h("div", { className: "row", style: { gap: 24, alignItems: "flex-start" } },
+      Cell("tooltip",
+        h(C.Tooltip, { arrow: "top center", text1: "This is a tooltip" })),
+      Cell("carousel dots",
+        h(C.CarouselSlick, { state: "active" }),
+        h(C.CarouselSlick, { state: "inactive" }),
+        h(C.CarouselSlick, { state: "hover" })),
+      Cell("cursor",
+        h(C.Cursor, { state: "arrow" }),
+        h(C.Cursor, { state: "hand" }),
+        h(C.Cursor, { state: "drag" })),
+      Cell("illustration",
+        h(C.Illustration, { style2: "box", color: "primary", size: "md" }),
+        h(C.Illustration, { style2: "cloud", color: "gray", size: "md" }),
+        h(C.Illustration, { style2: "documents", color: "primary", size: "md" }))),
+    h("div", { className: "sep" }),
+    h("div", { className: "cell" },
+      h("span", { className: "lbl" }, "modal · confirm 480 · default and destructive"),
+      h("div", { className: "stage" },
+        h(C.Modal, { type: "confirm", size: "480" }),
+        h(C.Modal, { type: "confirm", size: "480", destructive: true })))
+  )
+);
+</script>
+</body>
+</html>

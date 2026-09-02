@@ -17,7 +17,11 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      /* Design System vendored ở gốc repo — import '@ds/components/core/Button'
+         thì TS lấy type từ Button.d.ts, Vite lấy runtime từ Button.jsx.
+         Xem design-system/UPSTREAM.md */
+      "@ds/*": ["../design-system/*"]
     }
   },
   "include": ["src"]

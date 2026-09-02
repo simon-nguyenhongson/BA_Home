@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" />
+<link rel="stylesheet" href="./ds/fig-tokens.css" />
+<link rel="stylesheet" href="./ds/nav/fig-assets.css" />
+<style>
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: #FFFFFF; font-family: Inter, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #155EEF; text-decoration: none; }
+  a:hover { color: #004EEB; }
+  ::selection { background: #D1E0FF; }
+</style>
+<script src="./ds/nav/bundle/p1.js"></script>
+<script src="./ds/nav/bundle/p2.js"></script>
+<script src="./ds/nav/bundle/p3.js"></script>
+<script src="./ds/nav/bundle/p4.js"></script>
+<script src="./ds/nav/bundle/p5.js"></script>
+</helmet>
+
+<div style="display: grid; grid-template-columns: 264px minmax(0, 1fr); min-height: 100vh; background: #FFFFFF; color: #101828;">
+
+  <dc-import name="SideNav" page="Navigation.dc.html" hint-size="264px,100%"></dc-import>
+
+  <main style="min-width: 0;">
+    <div style="height: 12px; background: linear-gradient(90deg, #027FFE 15.24%, #02CCCC 72.81%, #02E2BD 89.43%);"></div>
+
+    <section id="tabs" style="padding: 64px 80px 56px 80px; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 16px; max-width: 860px;">
+        <h1 style="margin: 0; font-size: 60px; line-height: 72px; letter-spacing: -0.02em; font-weight: 600; color: #101828;">Navigation &amp; Overlay</h1>
+        <p style="margin: 0; font-size: 18px; line-height: 28px; color: #475467; text-wrap: pretty;">Tab, step, menu, modal và drawer. Tất cả dùng nhịp 20px line-height và icon 16px, giữ thanh điều hướng cao đúng 40px ở mọi biến thể.</p>
+      </div>
+
+      <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0; display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 16px;">
+          <span style="font-size: 14px; font-weight: 600; color: #344054;">Tab · underline</span>
+          <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">240 variant · current × size × type × badge × state</span>
+        </div>
+        <div style="padding: 32px 24px; display: flex; flex-direction: row; gap: 4px; align-items: flex-end; border-bottom: 1px solid #EAECF0;">
+          <x-import component-from-global-scope="TabButtonBase" type="underline" current="{{ yes }}" state="default" text1="Tổng quan" hint-size="96px,36px"></x-import>
+          <x-import component-from-global-scope="TabButtonBase" type="underline" current="{{ no }}" state="default" text1="Giao dịch" hint-size="96px,36px"></x-import>
+          <x-import component-from-global-scope="TabButtonBase" type="underline" current="{{ no }}" state="hover" text1="Hover" hint-size="80px,36px"></x-import>
+          <x-import component-from-global-scope="TabButtonBase" type="underline" current="{{ no }}" state="focus" text1="Focus" hint-size="80px,36px"></x-import>
+          <x-import component-from-global-scope="TabButtonBase" type="underline" current="{{ no }}" badge="{{ yes }}" state="default" text1="Chờ duyệt" hint-size="124px,36px"></x-import>
+        </div>
+        <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Tab · button white</span></div>
+        <div style="padding: 32px 24px; display: flex; flex-direction: row; gap: 16px; align-items: center;">
+          <div style="display: flex; flex-direction: row; gap: 4px; align-items: center; padding: 4px; background: #F9FAFB; border-radius: 8px;">
+            <x-import component-from-global-scope="TabButtonBase" type="button white" current="{{ yes }}" state="default" text1="Ngày" hint-size="72px,32px"></x-import>
+            <x-import component-from-global-scope="TabButtonBase" type="button white" current="{{ no }}" state="default" text1="Tuần" hint-size="72px,32px"></x-import>
+            <x-import component-from-global-scope="TabButtonBase" type="button white" current="{{ no }}" state="default" text1="Tháng" hint-size="76px,32px"></x-import>
+            <x-import component-from-global-scope="TabButtonBase" type="button white" current="{{ no }}" state="default" text1="Năm" hint-size="72px,32px"></x-import>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="steps" style="padding: 32px 80px 56px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Step</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">Bảy trạng thái chỉ báo × ba size. Dùng cho luồng nhiều bước có thể quay lại.</p>
+      </div>
+      <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Step indicator · 7 status</span></div>
+        <div style="padding: 32px 24px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 32px; align-items: flex-start; border-bottom: 1px solid #EAECF0;">
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;"><x-import component-from-global-scope="StepIndicator" status="default / current" size="md" hint-size="32px,32px"></x-import><span style="font-size: 11px; color: #667085;">current</span></div>
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;"><x-import component-from-global-scope="StepIndicator" status="incomplete" size="md" hint-size="32px,32px"></x-import><span style="font-size: 11px; color: #667085;">incomplete</span></div>
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;"><x-import component-from-global-scope="StepIndicator" status="success" size="md" hint-size="32px,32px"></x-import><span style="font-size: 11px; color: #667085;">success</span></div>
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;"><x-import component-from-global-scope="StepIndicator" status="loading" size="md" hint-size="32px,32px"></x-import><span style="font-size: 11px; color: #667085;">loading</span></div>
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;"><x-import component-from-global-scope="StepIndicator" status="warning" size="md" hint-size="32px,32px"></x-import><span style="font-size: 11px; color: #667085;">warning</span></div>
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;"><x-import component-from-global-scope="StepIndicator" status="danger" size="md" hint-size="32px,32px"></x-import><span style="font-size: 11px; color: #667085;">danger</span></div>
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;"><x-import component-from-global-scope="StepIndicator" status="disabled" size="md" hint-size="32px,32px"></x-import><span style="font-size: 11px; color: #667085;">disabled</span></div>
+        </div>
+        <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Steps · 3 / 4 / 5 bước</span></div>
+        <div style="padding: 32px 24px; display: flex; flex-direction: column; gap: 36px; align-items: stretch;">
+          <x-import component-from-global-scope="Steps" size="md" steps="3" hint-size="100%,72px"></x-import>
+          <x-import component-from-global-scope="Steps" size="md" steps="4" hint-size="100%,72px"></x-import>
+          <x-import component-from-global-scope="Steps" size="sm" steps="5" hint-size="100%,60px"></x-import>
+        </div>
+      </div>
+    </section>
+
+    <section id="header" style="padding: 32px 80px 56px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Header navigation &amp; Menu</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">Header hỗ trợ 4–8 mục menu, hoặc không có menu. Dropdown mở ra menu nhiều cấp.</p>
+      </div>
+      <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0; display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 16px;">
+          <span style="font-size: 14px; font-weight: 600; color: #344054;">Header navigation · 5 menu</span>
+          <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">1440 × 48 · thu nhỏ 60% để vừa khung</span>
+        </div>
+        <div style="height: 88px; overflow: hidden; background: #FFFFFF; display: flex; align-items: center;">
+          <div style="width: 1440px; flex-shrink: 0; transform: scale(0.6); transform-origin: left center;">
+            <x-import component-from-global-scope="HeaderNavigation" type="5 menu" breakpoint="desktop" hint-size="1440px,48px"></x-import>
+          </div>
+        </div>
+        <div style="padding: 12px 20px; background: #F9FAFB; border-top: 1px solid #EAECF0; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Dropdown nav header menu</span></div>
+        <div style="padding: 32px 24px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 40px; align-items: flex-start; background: #F9FAFB;">
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">type="simple" · panel 336×458</span>
+            <div style="position: relative; width: 336px; height: 510px; overflow: hidden;">
+              <div style="margin-left: 125px;">
+                <x-import component-from-global-scope="DropdownNavHeaderMenu" open="{{ yes }}" type="simple" breakpoint="desktop" hint-size="140px,24px"></x-import>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">type="simple 2-col" · panel 608</span>
+            <div style="position: relative; width: 608px; height: 510px; overflow: hidden;">
+              <div style="margin-left: 261px;">
+                <x-import component-from-global-scope="DropdownNavHeaderMenu" open="{{ yes }}" type="simple 2-col" breakpoint="desktop" hint-size="140px,24px"></x-import>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="padding: 12px 20px; background: #F9FAFB; border-top: 1px solid #EAECF0; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Nav menu button · opened × state</span></div>
+        <div style="padding: 32px 24px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 32px; align-items: center;">
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;"><x-import component-from-global-scope="NavMenuButton" opened="{{ no }}" state="default" hint-size="40px,40px"></x-import><span style="font-size: 11px; color: #667085;">closed</span></div>
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;"><x-import component-from-global-scope="NavMenuButton" opened="{{ yes }}" state="default" hint-size="40px,40px"></x-import><span style="font-size: 11px; color: #667085;">opened</span></div>
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;"><x-import component-from-global-scope="NavMenuButton" opened="{{ no }}" state="hover" hint-size="40px,40px"></x-import><span style="font-size: 11px; color: #667085;">hover</span></div>
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;"><x-import component-from-global-scope="NavMenuButton" opened="{{ no }}" state="focused" hint-size="40px,40px"></x-import><span style="font-size: 11px; color: #667085;">focused</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tree" style="padding: 32px 80px 56px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Tree, Catetree &amp; Collapse</h2>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px;">
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Catetree</span></div>
+          <div style="padding: 24px; display: flex; flex-direction: column; gap: 24px; align-items: stretch;">
+            <x-import component-from-global-scope="Catetree" single="{{ yes }}" text1="Danh mục sản phẩm" hint-size="100%,160px"></x-import>
+          </div>
+        </div>
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Tree view item</span></div>
+          <div style="padding: 24px; display: flex; flex-direction: column; gap: 4px; align-items: stretch;">
+            <x-import component-from-global-scope="TreeViewItem" hint-size="100%,36px"></x-import>
+            <x-import component-from-global-scope="TreeViewItem" hint-size="100%,36px"></x-import>
+            <x-import component-from-global-scope="TreeViewItem" hint-size="100%,36px"></x-import>
+          </div>
+        </div>
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Collapse</span></div>
+          <div style="padding: 24px; display: flex; flex-direction: column; gap: 16px; align-items: stretch;">
+            <x-import component-from-global-scope="Collapse" icon="{{ yes }}" text1="Thông tin hợp đồng" hint-size="100%,56px"></x-import>
+            <x-import component-from-global-scope="Collapse" icon="{{ yes }}" checkBox="{{ yes }}" button="{{ yes }}" text1="Danh sách phê duyệt" hint-size="100%,56px"></x-import>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="overlay" style="padding: 32px 80px 56px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Modal &amp; Drawer</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">Modal có 5 khổ chiều rộng (480 / 640 / 960 / 1140 / default) và biến thể destructive. Drawer chạy hai chế độ overlay và push.</p>
+      </div>
+      <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0; display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 16px;">
+          <span style="font-size: 14px; font-weight: 600; color: #344054;">Modal · confirm</span>
+          <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">hộp thoại 400px trên scrim rgba(52,64,84,.1)</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));">
+          <div style="border-right: 1px solid #EAECF0;">
+            <x-import component-from-global-scope="Modal" type="confirm" size="default" dc-props="{{ modalBox }}" hint-size="100%,300px"></x-import>
+          </div>
+          <div>
+            <x-import component-from-global-scope="Modal" type="confirm" size="default" destructive="{{ yes }}" dc-props="{{ modalBox }}" hint-size="100%,300px"></x-import>
+          </div>
+        </div>
+        <div style="padding: 12px 20px; background: #F9FAFB; border-top: 1px solid #EAECF0; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Modal · modal content 480 / 640</span></div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));">
+          <div style="border-right: 1px solid #EAECF0;">
+            <x-import component-from-global-scope="Modal" type="modal content" size="480" dc-props="{{ modalBox }}" hint-size="100%,420px"></x-import>
+          </div>
+          <div>
+            <x-import component-from-global-scope="Modal" type="modal content" size="640" dc-props="{{ modalBox }}" hint-size="100%,420px"></x-import>
+          </div>
+        </div>
+        <div style="padding: 12px 20px; background: #F9FAFB; border-top: 1px solid #EAECF0; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Drawer · overlay &amp; push</span></div>
+        <div style="padding: 40px 24px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 40px; justify-content: flex-start; background: #F9FAFB; overflow-x: auto;">
+          <div style="display: flex; flex-direction: column; gap: 10px;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">type="overlay" · actionBtn</span><x-import component-from-global-scope="Drawer" type="overlay" actionBtn="{{ yes }}" text1="Chi tiết giao dịch" hint-size="400px,520px"></x-import></div>
+          <div style="display: flex; flex-direction: column; gap: 10px;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">type="push" · tabs</span><x-import component-from-global-scope="Drawer" type="push" tabs="{{ yes }}" actionBtn="{{ yes }}" text1="Lịch sử phê duyệt" hint-size="400px,520px"></x-import></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="hint" style="padding: 32px 80px 56px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Tooltip &amp; Popover</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">Tooltip nền tối, 8 hướng mũi. Popover nền trắng, có tiêu đề và chân tuỳ chọn.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px;">
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Tooltip · hướng mũi</span></div>
+          <div style="padding: 40px 24px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 32px; align-items: flex-start; justify-content: center;">
+            <x-import component-from-global-scope="Tooltip" arrow="top center" text1="top center" hint-size="120px,40px"></x-import>
+            <x-import component-from-global-scope="Tooltip" arrow="bottom center" text1="bottom center" hint-size="130px,40px"></x-import>
+            <x-import component-from-global-scope="Tooltip" arrow="left" text1="left" hint-size="90px,40px"></x-import>
+            <x-import component-from-global-scope="Tooltip" arrow="right" text1="right" hint-size="90px,40px"></x-import>
+          </div>
+        </div>
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Popover</span></div>
+          <div style="padding: 40px 24px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 40px; align-items: flex-start; justify-content: center; background: #F9FAFB;">
+            <x-import component-from-global-scope="PopOver" arrow="↑ bottom" title="{{ yes }}" text1="Chi tiết khoản phí" hint-size="260px,160px"></x-import>
+            <x-import component-from-global-scope="PopOver" arrow="-> left" title="{{ yes }}" footer="{{ yes }}" text1="Bộ lọc nhanh" hint-size="260px,200px"></x-import>
+          </div>
+        </div>
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Tooltip · Carousel</span></div>
+          <div style="padding: 32px 24px; display: flex; flex-direction: column; gap: 28px; align-items: stretch;">
+            <div style="display: flex; flex-direction: row; gap: 12px; align-items: center;">
+              <x-import component-from-global-scope="CarouselSlick" state="active" hint-size="24px,8px"></x-import>
+              <x-import component-from-global-scope="CarouselSlick" state="inactive" hint-size="8px,8px"></x-import>
+              <x-import component-from-global-scope="CarouselSlick" state="hover" hint-size="8px,8px"></x-import>
+              <span style="font-size: 13px; color: #667085; margin-left: 8px;">Carousel dots · active / inactive / hover</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="empty" style="padding: 32px 80px 96px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Empty state, Illustration, Cursor</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">Ba trạng thái rỗng: không có dữ liệu, không có quyền, và minh hoạ chung.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">No data</span></div>
+          <div style="padding: 32px 20px; display: flex; justify-content: center;">
+            <x-import component-from-global-scope="NoData" type="no data" breakpoint="desktop" text1="Chưa có dữ liệu" text2="Thêm bản ghi đầu tiên để bắt đầu." hint-size="100%,200px"></x-import>
+          </div>
+        </div>
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">No access</span></div>
+          <div style="padding: 32px 20px; display: flex; justify-content: center;">
+            <x-import component-from-global-scope="NoData" type="no access" breakpoint="desktop" text1="Không có quyền truy cập" text2="Liên hệ quản trị viên để được cấp quyền." hint-size="100%,200px"></x-import>
+          </div>
+        </div>
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Illustration &amp; Cursor</span></div>
+          <div style="padding: 32px 20px; display: flex; flex-direction: column; gap: 28px; align-items: center;">
+            <div style="display: flex; flex-direction: row; gap: 24px; align-items: center; flex-wrap: wrap; justify-content: center;">
+              <x-import component-from-global-scope="Illustration" style2="box" color="primary" size="lg" hint-size="96px,96px"></x-import>
+              <x-import component-from-global-scope="Illustration" style2="cloud" color="gray" size="lg" hint-size="96px,96px"></x-import>
+              <x-import component-from-global-scope="Illustration" style2="documents" color="primary" size="lg" hint-size="96px,96px"></x-import>
+            </div>
+            <div style="display: flex; flex-direction: row; gap: 24px; align-items: center;">
+              <x-import component-from-global-scope="Cursor" state="arrow" hint-size="20px,20px"></x-import>
+              <x-import component-from-global-scope="Cursor" state="hand" hint-size="20px,20px"></x-import>
+              <x-import component-from-global-scope="Cursor" state="drag" hint-size="20px,20px"></x-import>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      yes: true,
+      no: false,
+      modalBox: {
+        style: {
+          width: "100%",
+          height: "auto",
+          minHeight: 0,
+          padding: "40px 24px",
+          justifyContent: "flex-start",
+        },
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

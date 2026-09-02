@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<aside style="position: sticky; top: 0; align-self: start; height: 100vh; width: 264px; border-right: 1px solid #EAECF0; background: #FCFCFD; display: flex; flex-direction: column; overflow: hidden;">
+  <div style="height: 4px; background: linear-gradient(90deg, #027FFE 15.24%, #02CCCC 72.81%, #02E2BD 89.43%); flex-shrink: 0;"></div>
+
+  <div style="padding: 24px 20px 16px 20px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0;">
+    <a href="Design System.dc.html" style="display: flex; flex-direction: row; align-items: center; gap: 8px; color: #475467;">
+      <svg width="24" height="25.5" viewBox="0 0 30.084 32" style="display: block; flex-shrink: 0;">
+        <defs>
+          <linearGradient id="snLogoA" x1="0" y1="0" x2="1" y2="1"><stop offset="0.1734" stop-color="#027FFE" /><stop offset="0.8592" stop-color="#0251D2" /></linearGradient>
+          <linearGradient id="snLogoB" x1="0" y1="1" x2="1" y2="0"><stop offset="0.13" stop-color="#027FFE" /><stop offset="0.6499" stop-color="#02CCCC" /><stop offset="0.7999" stop-color="#02E2BD" /></linearGradient>
+        </defs>
+        <path fill="url(#snLogoA)" d="M 18.103 29.114 C 11.457 29.114 6.132 23.704 6.069 17.101 C 6.093 14.229 7.034 12.361 7.979 11.299 C 9.101 10.047 15.135 4.314 15.135 4.314 L 10.81 0 C 10.81 0 5.525 5.156 4.119 6.706 C 2.718 8.262 1.749 9.93 0.896 11.857 C 0.044 13.784 0 17.017 0 17.017 C 0.029 25.299 6.779 32 15.076 32 C 22.933 32 29.301 25.983 29.996 18.319 C 29.374 24.374 24.334 29.114 18.103 29.114 Z" />
+        <path fill="url(#snLogoB)" transform="translate(6.26 0.181)" d="M 3.972 25.988 C 2.062 24.32 0.519 22.114 0 18.925 C 1.019 22.799 4.457 25.881 8.621 25.881 C 13.602 25.881 17.491 22.124 17.731 17.228 C 17.996 11.837 12.99 8.418 12.99 8.418 L 8.645 12.493 C 8.645 12.493 4.501 8.369 4.482 8.345 L 13.127 0 C 15.547 2.69 22.845 8.027 23.663 14.068 C 25.505 27.744 11.545 32.611 3.972 25.988 Z" />
+      </svg>
+      <span style="font-family: 'IBM Plex Sans', Inter, sans-serif; font-weight: 700; font-size: 15px; letter-spacing: -0.02em;">SOOBINZHONGSON</span>
+    </a>
+    <span style="font-size: 12px; line-height: 18px; color: #98A2B3; padding-left: 32px;">Design System</span>
+  </div>
+
+  <nav style="padding: 0 12px 24px 12px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; flex: 1;">
+    <sc-for list="{{ groups }}" as="g" hint-placeholder-count="6">
+      <div style="display: flex; flex-direction: column; gap: 2px; padding-bottom: 2px;">
+        <button type="button" onClick="{{ g.toggle }}" style="width: 100%; border: none; background: {{ g.headBg }}; border-radius: 6px; padding: 8px; display: flex; flex-direction: row; align-items: center; gap: 8px; cursor: pointer; font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; line-height: 20px; text-align: left; color: {{ g.headColor }};" style-hover="background: #F2F4F7;">
+          <span style="display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; flex-shrink: 0; color: #98A2B3; transform: {{ g.caret }}; transition: transform 0.15s ease;">
+            <svg width="10" height="10" viewBox="0 0 10 10" style="display: block;"><path d="M2.5 1 L7 5 L2.5 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </span>
+          <span style="flex: 1; min-width: 0;">{{ g.label }}</span>
+          <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; color: #98A2B3;">{{ g.count }}</span>
+        </button>
+
+        <sc-if value="{{ g.open }}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; gap: 1px; padding: 2px 0 4px 0; margin-left: 15px; border-left: 1px solid #EAECF0;">
+            <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="5">
+              <a href="{{ it.href }}" style="display: block; padding: 7px 8px 7px 13px; margin-left: -1px; border-left: 2px solid {{ it.bar }}; font-size: 13px; line-height: 18px; font-weight: {{ it.weight }}; color: {{ it.color }};" style-hover="background: #F2F4F7; color: #155EEF;">{{ it.label }}</a>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </sc-for>
+  </nav>
+
+  <div style="padding: 12px 20px 16px 20px; border-top: 1px solid #EAECF0; flex-shrink: 0; display: flex; flex-direction: column; gap: 2px;">
+    <span style="font-size: 11px; line-height: 16px; color: #98A2B3;">Dữ liệu mẫu đã được che</span>
+    <span style="font-size: 11px; line-height: 16px; color: #98A2B3;">Trích xuất từ Figma · 296 component set</span>
+  </div>
+</aside>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;page&quot;: {
+    &quot;editor&quot;: &quot;enum&quot;,
+    &quot;options&quot;: [&quot;Design System.dc.html&quot;, &quot;Buttons.dc.html&quot;, &quot;Badges.dc.html&quot;, &quot;Forms.dc.html&quot;, &quot;Navigation.dc.html&quot;, &quot;Table.dc.html&quot;],
+    &quot;default&quot;: &quot;Design System.dc.html&quot;,
+    &quot;tsType&quot;: &quot;string&quot;
+  },
+  &quot;section&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot; }
+}">
+const NAV = [
+  {
+    page: "Design System.dc.html",
+    label: "Foundations",
+    items: [
+      ["overview", "Tổng quan"],
+      ["colors", "Màu sắc"],
+      ["type", "Typography"],
+      ["shadow", "Shadow"],
+      ["icons", "Icon"],
+    ],
+  },
+  {
+    page: "Buttons.dc.html",
+    label: "Button",
+    items: [
+      ["hierarchy", "Cấp bậc"],
+      ["danger", "Hành động nguy hiểm"],
+      ["donts", "Các trường hợp không nên"],
+      ["size", "Size · spacing"],
+      ["type", "Type & Action"],
+      ["states", "Ma trận trạng thái"],
+      ["icon-button", "Icon · Filter · Loading"],
+      ["group", "Button group & bar"],
+    ],
+  },
+  {
+    page: "Badges.dc.html",
+    label: "Badge, Avatar, Checkbox",
+    items: [
+      ["badge", "Badge"],
+      ["badge-special", "Dot · Status · Ranking"],
+      ["avatar", "Avatar"],
+      ["selection", "Checkbox & Radio"],
+      ["misc", "Breadcrumb · Callout"],
+    ],
+  },
+  {
+    page: "Forms.dc.html",
+    label: "Form & Input",
+    items: [
+      ["anatomy", "Cấu tạo field"],
+      ["select", "Select · trạng thái"],
+      ["number", "Currency & Input"],
+      ["date", "Date picker"],
+      ["toggle", "Toggle & Radio"],
+      ["misc", "Color picker · Progress"],
+    ],
+  },
+  {
+    page: "Navigation.dc.html",
+    label: "Navigation & Overlay",
+    items: [
+      ["tabs", "Tab"],
+      ["steps", "Step"],
+      ["header", "Header & Menu"],
+      ["tree", "Tree & Collapse"],
+      ["overlay", "Modal & Drawer"],
+      ["hint", "Tooltip · Popover · Alert"],
+      ["empty", "Empty state · Cursor"],
+    ],
+  },
+  {
+    page: "Table.dc.html",
+    label: "Table & Data",
+    items: [
+      ["assembled", "Bảng lắp từ cell"],
+      ["header-cells", "Cell Title · header"],
+      ["body-cells", "Cell Body · kiểu ô"],
+      ["pagination", "Pagination"],
+      ["description", "Description list"],
+    ],
+  },
+];
+
+class Component extends DCLogic {
+  state = { open: null };
+
+  componentDidMount() {
+    const hash = (window.location.hash || "").replace("#", "");
+    if (hash) this.setState({ current: hash });
+  }
+
+  isOpen(page) {
+    const o = this.state.open;
+    if (o && Object.prototype.hasOwnProperty.call(o, page)) return o[page];
+    return page === (this.props.page ?? "Design System.dc.html");
+  }
+
+  renderVals() {
+    const page = this.props.page ?? "Design System.dc.html";
+    const current = this.state.current ?? this.props.section ?? "";
+    return {
+      groups: NAV.map((g) => {
+        const open = this.isOpen(g.page);
+        const here = g.page === page;
+        return {
+          label: g.label,
+          count: g.items.length,
+          open,
+          caret: open ? "rotate(90deg)" : "rotate(0deg)",
+          headBg: here ? "#EFF4FF" : "transparent",
+          headColor: here ? "#155EEF" : "#344054",
+          toggle: () =>
+            this.setState((s) => ({
+              open: { ...(s.open || {}), [g.page]: !this.isOpen(g.page) },
+            })),
+          items: g.items.map(([id, label]) => {
+            const active = here && id === current;
+            return {
+              label,
+              href: here ? "#" + id : g.page + "#" + id,
+              bar: active ? "#155EEF" : "transparent",
+              color: active ? "#155EEF" : "#475467",
+              weight: active ? 600 : 400,
+            };
+          }),
+        };
+      }),
+    };
+  }
+}
+</script>
+</body>
+</html>

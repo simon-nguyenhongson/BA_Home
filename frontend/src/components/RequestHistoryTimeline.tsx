@@ -22,12 +22,12 @@ const ACTION_LABEL: Record<string, string> = {
 }
 
 function dotColor(e: RequestHistoryEntry): string {
-  if (e.action === 'status_changed_off_flow') return '#f79009'
-  if (e.action === 'created') return '#22c55e'
+  if (e.action === 'status_changed_off_flow') return 'var(--app-warning)'
+  if (e.action === 'created') return 'var(--app-success)'
   const terminal = ['rejected', 'cancelled', 'closed']
-  if (e.to_status && terminal.includes(e.to_status)) return '#ef4444'
-  if (e.to_status === 'implemented' || e.to_status === 'resolved') return '#22c55e'
-  return 'var(--app-primary, #1d4ed8)'
+  if (e.to_status && terminal.includes(e.to_status)) return 'var(--ds-danger)'
+  if (e.to_status === 'implemented' || e.to_status === 'resolved') return 'var(--app-success)'
+  return 'var(--app-primary)'
 }
 
 export function RequestHistoryTimeline({
@@ -64,7 +64,7 @@ export function RequestHistoryTimeline({
               <div style={{
                 width: 8, height: 8, borderRadius: '50%', marginTop: 5, flexShrink: 0,
                 background: dotColor(e),
-                boxShadow: `0 0 0 2px #fff, 0 0 0 3px ${dotColor(e)}33`,
+                boxShadow: `0 0 0 2px var(--app-white), 0 0 0 3px ${dotColor(e)}33`,
               }} />
               {i < entries.length - 1 && (
                 <div style={{ width: 1, flex: 1, background: 'var(--app-neutral-200)', minHeight: 14 }} />
@@ -76,7 +76,7 @@ export function RequestHistoryTimeline({
               <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
                 <span style={{
                   fontSize: 12, fontWeight: e.action === 'status_changed_off_flow' ? 700 : 600,
-                  color: e.action === 'status_changed_off_flow' ? '#B54708' : 'var(--app-neutral-800)',
+                  color: e.action === 'status_changed_off_flow' ? 'var(--app-warning)' : 'var(--app-neutral-800)',
                 }}>
                   {ACTION_LABEL[e.action] ?? e.action}
                 </span>
@@ -92,7 +92,7 @@ export function RequestHistoryTimeline({
                   </>
                 )}
                 {e.action === 'created' && e.to_status && !e.from_status && (
-                  <span style={{ fontSize: 11, fontWeight: 600, color: '#22c55e' }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--app-success)' }}>
                     {statusLabels[e.to_status] ?? e.to_status}
                   </span>
                 )}
@@ -103,7 +103,7 @@ export function RequestHistoryTimeline({
               {e.comment && (
                 <div style={{
                   marginTop: 5, padding: '5px 10px',
-                  background: '#fafafa', borderRadius: 6,
+                  background: 'var(--app-neutral-50)', borderRadius: 6,
                   border: '1px solid var(--app-neutral-200)',
                   fontSize: 12, color: 'var(--app-neutral-700)',
                   lineHeight: 1.5, fontStyle: 'italic',

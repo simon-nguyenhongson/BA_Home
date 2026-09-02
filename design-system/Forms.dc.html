@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" />
+<link rel="stylesheet" href="./ds/fig-tokens.css" />
+<link rel="stylesheet" href="./ds/forms/fig-assets.css" />
+<style>
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: #FFFFFF; font-family: Inter, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #155EEF; text-decoration: none; }
+  a:hover { color: #004EEB; }
+  ::selection { background: #D1E0FF; }
+</style>
+<script src="./ds/forms/bundle/p1.js"></script>
+<script src="./ds/forms/bundle/p2.js"></script>
+<script src="./ds/forms/bundle/p3.js"></script>
+<script src="./ds/forms/bundle/p4.js"></script>
+<script src="./ds/forms/bundle/p5.js"></script>
+</helmet>
+
+<div style="display: grid; grid-template-columns: 264px minmax(0, 1fr); min-height: 100vh; background: #FFFFFF; color: #101828;">
+
+  <dc-import name="SideNav" page="Forms.dc.html" hint-size="264px,100%"></dc-import>
+
+  <main style="min-width: 0;">
+    <div style="height: 12px; background: linear-gradient(90deg, #027FFE 15.24%, #02CCCC 72.81%, #02E2BD 89.43%);"></div>
+
+    <section id="anatomy" style="padding: 64px 80px 56px 80px; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 16px; max-width: 860px;">
+        <h1 style="margin: 0; font-size: 60px; line-height: 72px; letter-spacing: -0.02em; font-weight: 600; color: #101828;">Form &amp; Input</h1>
+        <p style="margin: 0; font-size: 18px; line-height: 28px; color: #475467; text-wrap: pretty;">Mọi field dùng chung một khung: bo góc 8px, viền <code style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 15px;">#D0D5DD</code>, shadow xs, ring focus 4px <code style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 15px;">#EFF4FF</code>. Cờ <code style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 15px;">destructive</code> chuyển toàn bộ khung sang tông error.</p>
+      </div>
+      <div style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 12px;">
+        <span style="padding: 4px 10px; border-radius: 6px; background: #F9FAFB; border: 1px solid #EAECF0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: nowrap; color: #475467;">radius 8px</span>
+        <span style="padding: 4px 10px; border-radius: 6px; background: #F9FAFB; border: 1px solid #EAECF0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: nowrap; color: #475467;">border #D0D5DD</span>
+        <span style="padding: 4px 10px; border-radius: 6px; background: #F9FAFB; border: 1px solid #EAECF0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: nowrap; color: #475467;">focus ring 4px #EFF4FF</span>
+        <span style="padding: 4px 10px; border-radius: 6px; background: #F9FAFB; border: 1px solid #EAECF0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: nowrap; color: #475467;">label 14 / 20 Medium</span>
+        <span style="padding: 4px 10px; border-radius: 6px; background: #F9FAFB; border: 1px solid #EAECF0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: nowrap; color: #475467;">hint 14 / 20 Regular</span>
+      </div>
+
+      <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Bốn kiểu bố cục nhãn</span></div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+          <div style="padding: 28px 24px; border-right: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 16px;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">type="default"</span><x-import component-from-global-scope="ComboboxSingleSelect" type="default" state="default" text1="Chi nhánh" hint-size="100%,70px"></x-import></div>
+          <div style="padding: 28px 24px; border-right: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 16px;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">type="no label"</span><x-import component-from-global-scope="ComboboxSingleSelect" type="no label" state="default" hint-size="100%,44px"></x-import></div>
+          <div style="padding: 28px 24px; border-right: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 16px;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">type="label tooltip"</span><x-import component-from-global-scope="ComboboxSingleSelect" type="label tooltip" state="default" text1="Chi nhánh" hint-size="100%,70px"></x-import></div>
+          <div style="padding: 28px 24px; display: flex; flex-direction: column; gap: 16px;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">type="icon no label"</span><x-import component-from-global-scope="ComboboxSingleSelect" type="icon no label" state="default" hint-size="100%,44px"></x-import></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="select" style="padding: 32px 80px 56px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Select — ma trận trạng thái</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">Bảy trạng thái, mỗi trạng thái có bản thường và bản destructive. <em>filled no x</em> và <em>focused no x</em> là bản không cho xoá nhanh.</p>
+      </div>
+      <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+        <div style="display: grid; grid-template-columns: 120px minmax(0, 1fr) minmax(0, 1fr);">
+          <div style="padding: 10px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"></div>
+          <div style="padding: 10px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"><span style="font-size: 12px; font-weight: 500; color: #475467;">Bình thường</span></div>
+          <div style="padding: 10px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"><span style="font-size: 12px; font-weight: 500; color: #B42318;">destructive</span></div>
+
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">default</span></div>
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="ComboboxSingleSelect" type="no label" state="default" hint-size="100%,44px"></x-import></div>
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="ComboboxSingleSelect" type="no label" state="default" destructive="{{ yes }}" hint-size="100%,44px"></x-import></div>
+
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center; background: #FCFCFD;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">hover</span></div>
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="ComboboxSingleSelect" type="no label" state="hover" hint-size="100%,44px"></x-import></div>
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="ComboboxSingleSelect" type="no label" state="hover" destructive="{{ yes }}" hint-size="100%,44px"></x-import></div>
+
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">focused</span></div>
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="ComboboxSingleSelect" type="no label" state="focused" hint-size="100%,44px"></x-import></div>
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="ComboboxSingleSelect" type="no label" state="focused" destructive="{{ yes }}" hint-size="100%,44px"></x-import></div>
+
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center; background: #FCFCFD;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">filled</span></div>
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="ComboboxSingleSelect" type="no label" state="filled" hint-size="100%,44px"></x-import></div>
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="ComboboxSingleSelect" type="no label" state="filled" destructive="{{ yes }}" hint-size="100%,44px"></x-import></div>
+
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">filled no x</span></div>
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="ComboboxSingleSelect" type="no label" state="filled no x" hint-size="100%,44px"></x-import></div>
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="ComboboxSingleSelect" type="no label" state="focused no x" hint-size="100%,44px"></x-import></div>
+
+          <div style="padding: 20px 16px; display: flex; align-items: center; background: #FCFCFD;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">disabled</span></div>
+          <div style="padding: 20px 16px; background: #FCFCFD;"><x-import component-from-global-scope="ComboboxSingleSelect" type="no label" state="disabled" hint-size="100%,44px"></x-import></div>
+          <div style="padding: 20px 16px; background: #FCFCFD;"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="number" style="padding: 32px 80px 56px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Currency &amp; Input</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">Currency căn phải, có addon đơn vị bên phải và nút tăng/giảm. Input thường dùng cho text tự do.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px;">
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Currency · addon="right"</span></div>
+          <div style="padding: 28px 24px; display: flex; flex-direction: column; gap: 24px; align-items: stretch;">
+            <x-import component-from-global-scope="Currency" state="default" addon="right" text1="Số tiền" hint-size="100%,70px"></x-import>
+            <x-import component-from-global-scope="Currency" state="filled" addon="right" text1="Số tiền" hint-size="100%,70px"></x-import>
+            <x-import component-from-global-scope="Currency" state="focused" addon="right" text1="Số tiền" hint-size="100%,70px"></x-import>
+            <x-import component-from-global-scope="Currency" state="default" addon="right" destructive="{{ yes }}" text1="Số tiền" hint-size="100%,70px"></x-import>
+            <x-import component-from-global-scope="Currency" state="disabled" addon="no" text1="Số tiền" hint-size="100%,70px"></x-import>
+          </div>
+        </div>
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Input · state</span></div>
+          <div style="padding: 28px 24px; display: flex; flex-direction: column; gap: 24px; align-items: stretch;">
+            <x-import component-from-global-scope="Input" state="default" hint-size="100%,40px"></x-import>
+            <x-import component-from-global-scope="Input" state="hover" hint-size="100%,40px"></x-import>
+            <x-import component-from-global-scope="Input" state="pressed" hint-size="100%,40px"></x-import>
+            <x-import component-from-global-scope="Input" state="editable" hint-size="100%,40px"></x-import>
+            <x-import component-from-global-scope="Input" state="non editable" hint-size="100%,40px"></x-import>
+            <x-import component-from-global-scope="Input" state="disabled" hint-size="100%,40px"></x-import>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="date" style="padding: 32px 80px 56px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Date picker</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">Trigger có bản một ngày và bản khoảng ngày. Panel lịch có 7 kiểu: date, datetime, date range, month, quarter, year, month range.</p>
+      </div>
+
+      <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Trigger</span></div>
+        <div style="display: grid; grid-template-columns: 120px minmax(0, 1fr) minmax(0, 1fr);">
+          <div style="padding: 10px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"></div>
+          <div style="padding: 10px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"><span style="font-size: 12px; font-weight: 500; color: #475467;">Một ngày</span></div>
+          <div style="padding: 10px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"><span style="font-size: 12px; font-weight: 500; color: #475467;">Khoảng ngày · ranged</span></div>
+
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">placeholder</span></div>
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="DateDatePicker" label="{{ yes }}" state="placeholder" text1="Ngày hiệu lực" hint-size="100%,70px"></x-import></div>
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="DateDatePicker" label="{{ yes }}" ranged="{{ yes }}" state="placeholder" text1="Kỳ báo cáo" hint-size="100%,70px"></x-import></div>
+
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center; background: #FCFCFD;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">filled</span></div>
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="DateDatePicker" label="{{ yes }}" state="filled" text1="Ngày hiệu lực" hint-size="100%,70px"></x-import></div>
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="DateDatePicker" label="{{ yes }}" ranged="{{ yes }}" state="filled" text1="Kỳ báo cáo" hint-size="100%,70px"></x-import></div>
+
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">focused</span></div>
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="DateDatePicker" label="{{ yes }}" state="focused" text1="Ngày hiệu lực" hint-size="100%,70px"></x-import></div>
+          <div style="padding: 20px 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="DateDatePicker" label="{{ yes }}" ranged="{{ yes }}" state="focused" text1="Kỳ báo cáo" hint-size="100%,70px"></x-import></div>
+
+          <div style="padding: 20px 16px; display: flex; align-items: center; background: #FCFCFD;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">destructive</span></div>
+          <div style="padding: 20px 16px; background: #FCFCFD;"><x-import component-from-global-scope="DateDatePicker" label="{{ yes }}" state="placeholder" destructive="{{ yes }}" text1="Ngày hiệu lực" hint-size="100%,70px"></x-import></div>
+          <div style="padding: 20px 16px; background: #FCFCFD;"><x-import component-from-global-scope="DateDatePicker" label="{{ yes }}" state="disable" text1="Ngày hiệu lực" hint-size="100%,70px"></x-import></div>
+        </div>
+      </div>
+
+      <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Calendar dropdown · 7 kiểu</span></div>
+        <div style="padding: 40px 24px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 32px; justify-content: flex-start; align-items: flex-start; background: #F9FAFB;">
+          <div style="display: flex; flex-direction: column; gap: 10px;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">date</span><x-import component-from-global-scope="DateCalendarDropdown" type="date" dc-props="{{ calPanel }}" hint-size="288px,320px"></x-import></div>
+          <div style="display: flex; flex-direction: column; gap: 10px;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">datetime</span><x-import component-from-global-scope="DateCalendarDropdown" type="datetime" dc-props="{{ calPanel }}" hint-size="360px,320px"></x-import></div>
+          <div style="display: flex; flex-direction: column; gap: 10px;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">month</span><x-import component-from-global-scope="DateCalendarDropdown" type="month" dc-props="{{ calPanel }}" hint-size="288px,240px"></x-import></div>
+          <div style="display: flex; flex-direction: column; gap: 10px;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">quarter</span><x-import component-from-global-scope="DateCalendarDropdown" type="quarter" dc-props="{{ calPanel }}" hint-size="288px,200px"></x-import></div>
+          <div style="display: flex; flex-direction: column; gap: 10px;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #667085;">year</span><x-import component-from-global-scope="DateCalendarDropdown" type="year" dc-props="{{ calPanel }}" hint-size="288px,240px"></x-import></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="toggle" style="padding: 32px 80px 56px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Toggle &amp; Radio</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475467; text-wrap: pretty;">Toggle dùng cho thiết lập có hiệu lực ngay. Radio dùng khi cần chọn một trong nhiều và có nút xác nhận.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px;">
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Toggle · size × state</span></div>
+          <div style="display: grid; grid-template-columns: 120px 1fr 1fr;">
+            <div style="padding: 10px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"></div>
+            <div style="padding: 10px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"><span style="font-size: 12px; font-weight: 500; color: #475467;">off</span></div>
+            <div style="padding: 10px 16px; border-bottom: 1px solid #EAECF0; background: #FCFCFD;"><span style="font-size: 12px; font-weight: 500; color: #475467;">on</span></div>
+
+            <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">md default</span></div>
+            <div style="padding: 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Toggle" size="md" pressed="{{ no }}" state="default" hint-size="44px,24px"></x-import></div>
+            <div style="padding: 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Toggle" size="md" pressed="{{ yes }}" state="default" hint-size="44px,24px"></x-import></div>
+
+            <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center; background: #FCFCFD;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">md hover</span></div>
+            <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="Toggle" size="md" pressed="{{ no }}" state="hover" hint-size="44px,24px"></x-import></div>
+            <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;"><x-import component-from-global-scope="Toggle" size="md" pressed="{{ yes }}" state="hover" hint-size="44px,24px"></x-import></div>
+
+            <div style="padding: 16px; border-bottom: 1px solid #F2F4F7; display: flex; align-items: center;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">md disabled</span></div>
+            <div style="padding: 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Toggle" size="md" pressed="{{ no }}" state="disabled" hint-size="44px,24px"></x-import></div>
+            <div style="padding: 16px; border-bottom: 1px solid #F2F4F7;"><x-import component-from-global-scope="Toggle" size="md" pressed="{{ yes }}" state="disabled" hint-size="44px,24px"></x-import></div>
+
+            <div style="padding: 16px; display: flex; align-items: center; background: #FCFCFD;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #101828;">sm</span></div>
+            <div style="padding: 16px; background: #FCFCFD;"><x-import component-from-global-scope="Toggle" size="sm" pressed="{{ no }}" state="default" hint-size="36px,20px"></x-import></div>
+            <div style="padding: 16px; background: #FCFCFD;"><x-import component-from-global-scope="Toggle" size="sm" pressed="{{ yes }}" state="default" hint-size="36px,20px"></x-import></div>
+          </div>
+          <div style="padding: 12px 20px; background: #F9FAFB; border-top: 1px solid #EAECF0; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Toggle có nhãn &amp; mô tả</span></div>
+          <div style="padding: 24px; display: flex; flex-direction: column; gap: 20px; align-items: flex-start;">
+            <x-import component-from-global-scope="Toggle" size="md" pressed="{{ yes }}" text="{{ yes }}" text1="Bật thông báo" hint-size="180px,24px"></x-import>
+            <x-import component-from-global-scope="Toggle" size="md" pressed="{{ no }}" text="{{ yes }}" subText="{{ yes }}" text1="Chế độ nháp" text2="Không gửi cho người duyệt" hint-size="240px,44px"></x-import>
+          </div>
+        </div>
+
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Radio button · 3 size</span></div>
+          <div style="padding: 28px 24px; display: flex; flex-direction: column; gap: 22px; align-items: flex-start;">
+            <x-import component-from-global-scope="ComponentsRadioButtonSolid" size="sm" checked="{{ yes }}" text1="Size sm — đã chọn" hint-size="200px,20px"></x-import>
+            <x-import component-from-global-scope="ComponentsRadioButtonSolid" size="md" checked="{{ yes }}" text1="Size md — đã chọn" hint-size="200px,24px"></x-import>
+            <x-import component-from-global-scope="ComponentsRadioButtonSolid" size="lg" checked="{{ yes }}" text1="Size lg — đã chọn" hint-size="200px,28px"></x-import>
+            <x-import component-from-global-scope="ComponentsRadioButtonSolid" size="md" checked="{{ no }}" text1="Chưa chọn" hint-size="160px,24px"></x-import>
+            <x-import component-from-global-scope="ComponentsRadioButtonSolid" size="md" checked="{{ no }}" disabled="{{ yes }}" text1="Disabled" hint-size="160px,24px"></x-import>
+            <x-import component-from-global-scope="ComponentsRadioButtonSolid" size="md" checked="{{ yes }}" disabled="{{ yes }}" text1="Disabled — đã chọn" hint-size="200px,24px"></x-import>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="misc" style="padding: 32px 80px 96px 80px; border-top: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 800px;">
+        <h2 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Color picker &amp; Progress bar</h2>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px;">
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Color picker · 5 trạng thái</span></div>
+          <div style="padding: 28px 24px; display: flex; flex-direction: column; gap: 22px; align-items: stretch;">
+            <x-import component-from-global-scope="ColorPicker" state="default" text1="Màu nhãn" hint-size="100%,44px"></x-import>
+            <x-import component-from-global-scope="ColorPicker" state="hover" text1="Màu nhãn" hint-size="100%,44px"></x-import>
+            <x-import component-from-global-scope="ColorPicker" state="filled" text1="Màu nhãn" hint-size="100%,44px"></x-import>
+            <x-import component-from-global-scope="ColorPicker" state="focused" text1="Màu nhãn" hint-size="100%,44px"></x-import>
+            <x-import component-from-global-scope="ColorPicker" state="disabled" text1="Màu nhãn" hint-size="100%,44px"></x-import>
+          </div>
+        </div>
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; background: #F9FAFB; border-bottom: 1px solid #EAECF0;"><span style="font-size: 14px; font-weight: 600; color: #344054;">Progress bar · vị trí nhãn</span></div>
+          <div style="padding: 28px 24px; display: flex; flex-direction: column; gap: 32px; align-items: stretch;">
+            <x-import component-from-global-scope="ProgressBar" progress="20%" label="false" hint-size="100%,8px"></x-import>
+            <x-import component-from-global-scope="ProgressBar" progress="40%" label="right" hint-size="100%,20px"></x-import>
+            <x-import component-from-global-scope="ProgressBar" progress="60%" label="bottom" hint-size="100%,40px"></x-import>
+            <x-import component-from-global-scope="ProgressBar" progress="80%" label="top floating" hint-size="100%,48px"></x-import>
+            <x-import component-from-global-scope="ProgressBar" progress="100%" label="bottom floating" hint-size="100%,48px"></x-import>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      yes: true,
+      no: false,
+      calPanel: {
+        style: {
+          boxShadow: "0px 12px 16px -4px rgba(16,24,40,0.08), 0px 4px 6px -2px rgba(16,24,40,0.03)",
+          borderRadius: 8,
+          backgroundColor: "#FFFFFF",
+        },
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

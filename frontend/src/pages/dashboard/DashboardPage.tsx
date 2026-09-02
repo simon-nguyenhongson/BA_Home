@@ -11,7 +11,7 @@ import {
   RefreshCw, Building2, Flag, Package, FileText, GitPullRequest, FlaskConical,
   ChevronUp, ChevronDown, CalendarRange,
 } from 'lucide-react'
-import { Badge, StatusBadge } from '../../components/ui'
+import { StatusBadge } from '../../components/ui'
 import {
   getDashboardSummary, getDashboardProjects, getDashboardProducts,
   getDashboardResources,
@@ -19,6 +19,7 @@ import {
   type ResourceData,
 } from '../../api/dashboard'
 import { PeriodReportTab } from './PeriodReportTab'
+import { CHART_PALETTE } from '../../styles/categorical'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -35,35 +36,19 @@ function fmtDate(d: string | null): string {
 }
 
 // DS categorical palette — map 1-1 theo thứ tự chuỗi cũ
-const PALETTE = ['#155EEF', '#7F56D9', '#039855', '#DC6803', '#0086C9', '#D92D20', '#667085', '#02CCCC']
+const PALETTE = CHART_PALETTE
 
 const STATUS_COLORS: Record<string, string> = {
-  active:      '#155EEF',
-  completed:   '#7F56D9',
-  on_hold:     '#039855',
-  archived:    '#DC6803',
-  cancelled:   '#D92D20',
-  planning:    '#1570EF',
+  active:      'var(--app-primary)',
+  completed:   'var(--app-accent)',
+  on_hold:     'var(--app-success)',
+  archived:    'var(--app-warning)',
+  cancelled:   'var(--app-danger)',
+  planning:    'var(--app-info)',
 }
 
 function statusColor(s: string): string {
-  return STATUS_COLORS[s] ?? '#667085'
-}
-
-function riskColor(score: number | null): string {
-  if (!score) return '#98A2B3'
-  if (score >= 15) return '#D92D20'
-  if (score >= 9)  return '#DC6803'
-  if (score >= 4)  return '#FAAD14'
-  return '#039855'
-}
-
-function riskLabel(score: number | null): string {
-  if (!score) return '—'
-  if (score >= 15) return 'Critical'
-  if (score >= 9)  return 'High'
-  if (score >= 4)  return 'Medium'
-  return 'Low'
+  return STATUS_COLORS[s] ?? 'var(--app-neutral-500)'
 }
 
 // ── SVG Pie Chart ──────────────────────────────────────────────────────────
@@ -90,7 +75,7 @@ function PieChart({ slices, size = 180, unitLabel = 'mục' }: { slices: PieSlic
     const y2 = cy + r * Math.sin(cumAngle + angle)
     const largeArc = angle > Math.PI ? 1 : 0
     const d = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`
-    paths.push(<path key={i} d={d} fill={sl.color} stroke="#fff" strokeWidth={2} />)
+    paths.push(<path key={i} d={d} fill={sl.color} stroke="var(--app-white)" strokeWidth={2} />)
     cumAngle += angle
   })
 
@@ -99,9 +84,9 @@ function PieChart({ slices, size = 180, unitLabel = 'mục' }: { slices: PieSlic
       <svg width={size} height={size} style={{ flexShrink: 0 }}>
         {paths}
         {/* center hole */}
-        <circle cx={cx} cy={cy} r={r * 0.42} fill="#fff" />
-        <text x={cx} y={cy - 6} textAnchor="middle" fontSize={13} fontWeight={600} fill="#344054">{total}</text>
-        <text x={cx} y={cy + 10} textAnchor="middle" fontSize={10} fill="#667085">{unitLabel}</text>
+        <circle cx={cx} cy={cy} r={r * 0.42} fill="var(--app-white)" />
+        <text x={cx} y={cy - 6} textAnchor="middle" fontSize={13} fontWeight={600} fill="var(--app-neutral-700)">{total}</text>
+        <text x={cx} y={cy + 10} textAnchor="middle" fontSize={10} fill="var(--app-neutral-500)">{unitLabel}</text>
       </svg>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {slices.filter(sl => sl.value > 0).map((sl, i) => (
@@ -142,8 +127,8 @@ function BarChart({ groups, height = 180, single = false, seriesLabels = ['Plann
           const y = 10 + chartH * (1 - frac)
           return (
             <g key={frac}>
-              <line x1={padLeft} y1={y} x2={svgW - 10} y2={y} stroke="#EAECF0" strokeDasharray="3,3" />
-              <text x={padLeft - 6} y={y + 4} fontSize={9} fill="#98A2B3" textAnchor="end">
+              <line x1={padLeft} y1={y} x2={svgW - 10} y2={y} stroke="var(--app-neutral-200)" strokeDasharray="3,3" />
+              <text x={padLeft - 6} y={y + 4} fontSize={9} fill="var(--app-neutral-400)" textAnchor="end">
                 {fmtVND(maxVal * frac)}
               </text>
             </g>
@@ -158,26 +143,26 @@ function BarChart({ groups, height = 180, single = false, seriesLabels = ['Plann
           return (
             <g key={i}>
               {/* Planned */}
-              <rect x={x} y={y0 - pH} width={barW} height={pH} fill="#155EEF" rx={2}>
+              <rect x={x} y={y0 - pH} width={barW} height={pH} fill="var(--app-primary)" rx={2}>
                 <title>{seriesLabels[0]}: {single ? g.planned : fmtVND(g.planned)}</title>
               </rect>
               {/* Actual — ẩn khi biểu đồ chỉ có 1 chuỗi số liệu */}
               {!single && (
-                <rect x={x + barW + gap} y={y0 - aH} width={barW} height={aH} fill="#7F56D9" rx={2}>
+                <rect x={x + barW + gap} y={y0 - aH} width={barW} height={aH} fill="var(--app-accent)" rx={2}>
                   <title>{seriesLabels[1]}: {fmtVND(g.actual)}</title>
                 </rect>
               )}
               {/* Label */}
-              <text x={x + barW} y={y0 + 14} fontSize={10} fill="#667085" textAnchor="middle">{g.label}</text>
+              <text x={x + barW} y={y0 + 14} fontSize={10} fill="var(--app-neutral-500)" textAnchor="middle">{g.label}</text>
             </g>
           )
         })}
         {/* Legend */}
         <g>
-          <rect x={padLeft} y={height - 14} width={10} height={10} fill="#155EEF" rx={2} />
-          <text x={padLeft + 13} y={height - 5} fontSize={10} fill="#344054">{seriesLabels[0]}</text>
-          <rect x={padLeft + 70} y={height - 14} width={10} height={10} fill="#7F56D9" rx={2} />
-          {!single && <text x={padLeft + 83} y={height - 5} fontSize={10} fill="#344054">{seriesLabels[1]}</text>}
+          <rect x={padLeft} y={height - 14} width={10} height={10} fill="var(--app-primary)" rx={2} />
+          <text x={padLeft + 13} y={height - 5} fontSize={10} fill="var(--app-neutral-700)">{seriesLabels[0]}</text>
+          <rect x={padLeft + 70} y={height - 14} width={10} height={10} fill="var(--app-accent)" rx={2} />
+          {!single && <text x={padLeft + 83} y={height - 5} fontSize={10} fill="var(--app-neutral-700)">{seriesLabels[1]}</text>}
         </g>
       </svg>
     </div>
@@ -246,22 +231,22 @@ function Sheet1({ data }: { data: DashboardSummary }) {
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
         <KpiCard label="Dự án"            value={kpi.total_projects}
           sub={`Đang chạy: ${kpi.active_projects}`}
-          icon={<Building2 size={16} strokeWidth={1.5} />}     color="#155EEF" />
+          icon={<Building2 size={16} strokeWidth={1.5} />}     color="var(--app-primary)" />
         <KpiCard label="Dự án hoàn thành" value={kpi.completed_projects}
-          icon={<Flag size={16} strokeWidth={1.5} />}          color="#444CE7" />
+          icon={<Flag size={16} strokeWidth={1.5} />}          color="var(--app-primary)" />
         <KpiCard label="Sản phẩm"         value={kpi.total_products}
-          icon={<Package size={16} strokeWidth={1.5} />}       color="#7F56D9" />
+          icon={<Package size={16} strokeWidth={1.5} />}       color="var(--app-accent)" />
         <KpiCard label="Có Master Doc"    value={`${docCoverage}%`}
           sub={`${kpi.products_with_master_doc}/${kpi.total_products} sản phẩm`}
           icon={<FileText size={16} strokeWidth={1.5} />}
-          color={docCoverage >= 80 ? '#039855' : docCoverage >= 40 ? '#DC6803' : '#D92D20'} />
+          color={docCoverage >= 80 ? 'var(--app-success)' : docCoverage >= 40 ? 'var(--app-warning)' : 'var(--app-danger)'} />
         <KpiCard label="Yêu cầu thay đổi" value={kpi.total_crs}
           sub={`Đang mở: ${kpi.open_crs}`
             + (kpi.internal_crs ? ` · ${kpi.internal_crs} CR nội bộ` : '')}
-          icon={<GitPullRequest size={16} strokeWidth={1.5} />} color="#0086C9" />
+          icon={<GitPullRequest size={16} strokeWidth={1.5} />} color="var(--app-info)" />
         <KpiCard label="Việc test đang mở" value={kpi.open_test_tasks}
           icon={<FlaskConical size={16} strokeWidth={1.5} />}
-          color={kpi.open_test_tasks > 0 ? '#DC6803' : '#039855'} />
+          color={kpi.open_test_tasks > 0 ? 'var(--app-warning)' : 'var(--app-success)'} />
       </div>
 
       {/* Biểu đồ */}
@@ -390,8 +375,8 @@ function Sheet2({ projects }: { projects: DashboardProject[] }) {
                 <td style={{ textAlign: 'center' }}>
                   <span style={{
                     display: 'inline-block', minWidth: 24, padding: '2px 8px',
-                    background: p.member_count > 0 ? '#EFF8FF' : '#F2F4F7',
-                    color: p.member_count > 0 ? '#1570EF' : '#98A2B3',
+                    background: p.member_count > 0 ? 'var(--app-info-bg)' : 'var(--ds-border-subtle)',
+                    color: p.member_count > 0 ? 'var(--app-info)' : 'var(--app-neutral-400)',
                     borderRadius: 16, fontWeight: 600, fontSize: 12,
                   }}>{p.member_count}</span>
                 </td>
@@ -510,7 +495,7 @@ function Sheet5({ data }: { data: ResourceData }) {
             </div>
           ) : project_headcount.map(p => (
             <div key={p.project_id} style={{
-              background: '#fff', border: '1px solid var(--app-neutral-200)', borderRadius: 8,
+              background: 'var(--app-white)', border: '1px solid var(--app-neutral-200)', borderRadius: 8,
               overflow: 'hidden',
             }}>
               <div
@@ -558,12 +543,12 @@ function Sheet5({ data }: { data: ResourceData }) {
               {/* Expanded members */}
               {expandedId === p.project_id && p.members.length > 0 && (
                 <div style={{
-                  borderTop: '1px solid #F2F4F7', padding: '10px 16px 14px',
+                  borderTop: '1px solid var(--ds-border-subtle)', padding: '10px 16px 14px',
                   background: 'var(--app-neutral-50)', display: 'flex', flexWrap: 'wrap', gap: 8,
                 }}>
                   {p.members.map((m, i) => (
                     <div key={i} style={{
-                      background: '#fff', border: '1px solid var(--app-neutral-200)', borderRadius: 6,
+                      background: 'var(--app-white)', border: '1px solid var(--app-neutral-200)', borderRadius: 6,
                       padding: '6px 12px', fontSize: 12,
                     }}>
                       <span style={{ fontWeight: 600, color: 'var(--app-neutral-800)' }}>{m.name}</span>
@@ -578,7 +563,7 @@ function Sheet5({ data }: { data: ResourceData }) {
                 </div>
               )}
               {expandedId === p.project_id && p.members.length === 0 && (
-                <div style={{ borderTop: '1px solid #F2F4F7', padding: '12px 16px', color: 'var(--app-neutral-400)', fontSize: 12 }}>
+                <div style={{ borderTop: '1px solid var(--ds-border-subtle)', padding: '12px 16px', color: 'var(--app-neutral-400)', fontSize: 12 }}>
                   Chưa có thành viên
                 </div>
               )}

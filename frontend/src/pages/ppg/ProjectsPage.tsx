@@ -236,7 +236,7 @@ export default function ProjectsPage() {
             selects={[
               {
                 key: 'status', value: fStatus, onChange: setFStatus,
-                placeholder: 'Tất cả trạng thái',
+                placeholder: 'Tất cả trạng thái', label: 'Trạng thái',
                 options: PROJECT_STATUS_OPTIONS,
               },
             ]}
@@ -307,7 +307,7 @@ export default function ProjectsPage() {
             selects={[
               {
                 key: 'status', value: fStatus, onChange: setFStatus,
-                placeholder: 'Tất cả trạng thái',
+                placeholder: 'Tất cả trạng thái', label: 'Trạng thái',
                 options: PROJECT_STATUS_OPTIONS,
               },
             ]}
@@ -330,8 +330,11 @@ export default function ProjectsPage() {
               amber: 'border-l-4 border-l-yellow-400',
               red: 'border-l-4 border-l-red-400',
             }
-            const borderClass = ((p as any).latest_health_rag as string | undefined)
-              ? ragBorder[(p as any).latest_health_rag as string] ?? 'border-l-4 border-l-gray-200'
+            // latest_health_rag do API trả thêm ngoài type Project — thu hẹp kiểu
+            // tường minh thay vì `any` (convention: TS strict, không dùng any)
+            const rag = (p as Project & { latest_health_rag?: string }).latest_health_rag
+            const borderClass = rag
+              ? ragBorder[rag] ?? 'border-l-4 border-l-gray-200'
               : 'border-l-4 border-l-gray-200'
             return (
               <div key={p.id} className={`bg-white rounded-xl border border-gray-200 p-4 ${borderClass}`}>

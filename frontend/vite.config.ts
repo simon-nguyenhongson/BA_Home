@@ -1,10 +1,24 @@
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+// Design System được vendor ở gốc repo (design-system/), ngoài frontend/.
+// Xem design-system/UPSTREAM.md — commit 6a241ae.
+const repoRoot = fileURLToPath(new URL('..', import.meta.url));
+const dsRoot = fileURLToPath(new URL('../design-system', import.meta.url));
+
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      '@ds': dsRoot,
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
   server: {
     port: 5173,
+    // design-system/ nằm ngoài root của Vite nên dev server phải được cho phép đọc gốc repo.
+    fs: { allow: [repoRoot] },
     proxy: {
       '/api/ppg': {
         target: 'http://127.0.0.1:8001',

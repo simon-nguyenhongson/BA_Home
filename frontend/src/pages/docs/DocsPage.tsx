@@ -12,21 +12,16 @@ import { ProductDocsView } from './ProductDocsView'
 import { TestDocumentList } from '../../components/test-workflow/TestDocumentList'
 import { getTestDocuments } from '../../lib/api/workflow-docs'
 import type { TestDocument } from '../../lib/types/workflow-doc'
+import {
+  TRACK_COLOR as CATEGORICAL_TRACK_COLOR,
+  TRACK_BG as CATEGORICAL_TRACK_BG,
+  DOMAIN_COLORS as CATEGORICAL_DOMAIN_COLORS,
+} from '../../styles/categorical'
 
 // ─── colour helpers ───────────────────────────────────────────────
-const TRACK_COLOR: Record<string, string> = {
-  project: 'var(--app-primary)',
-  ba:      '#7c3aed',
-  test:    '#0891b2',
-}
-const TRACK_BG: Record<string, string> = {
-  project: '#eff6ff',
-  ba:      '#f5f3ff',
-  test:    '#ecfeff',
-}
-const DOMAIN_COLORS = [
-  '#2563eb','#7c3aed','#0891b2','#059669','#d97706','#dc2626','#db2777','#4f46e5',
-]
+const TRACK_COLOR: Record<string, string> = CATEGORICAL_TRACK_COLOR
+const TRACK_BG: Record<string, string> = CATEGORICAL_TRACK_BG
+const DOMAIN_COLORS = CATEGORICAL_DOMAIN_COLORS
 
 function fmtSize(bytes: number | null): string {
   if (!bytes) return ''
@@ -88,7 +83,7 @@ function VersionHistoryModal({
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: '#fff', borderRadius: 14, width: 680, maxWidth: '95vw',
+          background: 'var(--app-white)', borderRadius: 14, width: 680, maxWidth: '95vw',
           maxHeight: '80vh', display: 'flex', flexDirection: 'column',
           boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
         }}
@@ -99,7 +94,7 @@ function VersionHistoryModal({
           display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0,
         }}>
           <span style={{
-            background: trackColor, color: '#fff',
+            background: trackColor, color: 'var(--app-white)',
             padding: '3px 10px', borderRadius: 8, fontSize: 12, fontWeight: 700,
           }}>
             {folderLabel}
@@ -137,7 +132,7 @@ function VersionHistoryModal({
                   {file.name}
                 </span>
                 <span style={{
-                  background: trackColor, color: '#fff',
+                  background: trackColor, color: 'var(--app-white)',
                   fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 6,
                 }}>
                   {file.current_version}
@@ -175,12 +170,12 @@ function VersionHistoryModal({
                       gap: 0,
                       padding: '8px 12px',
                       borderBottom: idx < file.versions.length - 1 ? '1px solid var(--app-neutral-100)' : 'none',
-                      background: isLatest ? TRACK_BG[track] : '#fff',
+                      background: isLatest ? TRACK_BG[track] : 'var(--app-white)',
                     }}>
                       <span style={{ fontWeight: 700, fontSize: 12, color: isLatest ? trackColor : 'var(--app-neutral-600)' }}>
                         {ver.version}
                         {isLatest && (
-                          <span style={{ marginLeft: 4, fontSize: 9, background: trackColor, color: '#fff', padding: '1px 4px', borderRadius: 4 }}>
+                          <span style={{ marginLeft: 4, fontSize: 9, background: trackColor, color: 'var(--app-white)', padding: '1px 4px', borderRadius: 4 }}>
                             MỚI
                           </span>
                         )}
@@ -205,7 +200,7 @@ function VersionHistoryModal({
                         style={{
                           padding: '4px 10px', borderRadius: 6, border: 'none',
                           background: downloading === key ? 'var(--app-neutral-200)' : trackColor,
-                          color: downloading === key ? 'var(--app-neutral-400)' : '#fff',
+                          color: downloading === key ? 'var(--app-neutral-400)' : 'var(--app-white)',
                           fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
                         }}
                       >
@@ -317,7 +312,7 @@ function FolderRow({
           {/* Upload count badge */}
           {folder.file_count > 0 && (
             <span style={{
-              fontSize: 11, background: '#dcfce7', color: '#16a34a',
+              fontSize: 11, background: 'var(--app-success-bg)', color: 'var(--app-success)',
               padding: '1px 7px', borderRadius: 8, fontWeight: 700, cursor: 'pointer',
             }}
               onClick={e => { e.stopPropagation(); setHistoryOpen(true) }}
@@ -347,7 +342,7 @@ function FolderRow({
             style={{
               padding: '3px 10px', borderRadius: 6, border: 'none',
               background: uploading ? 'var(--app-neutral-200)' : trackColor,
-              color: uploading ? 'var(--app-neutral-500)' : '#fff',
+              color: uploading ? 'var(--app-neutral-500)' : 'var(--app-white)',
               fontSize: 11, fontWeight: 600, cursor: uploading ? 'default' : 'pointer',
               whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4,
             }}
@@ -377,7 +372,7 @@ function FolderRow({
           <div style={{
             display: 'flex', alignItems: 'center', gap: 8,
             padding: '5px 12px 5px 34px',
-            background: '#f8fffe', borderTop: '1px solid var(--app-neutral-100)',
+            background: 'var(--app-success-bg)', borderTop: '1px solid var(--app-neutral-100)',
           }}>
             <span style={{ fontSize: 12 }}><FileText size={14} strokeWidth={1.5} /></span>
             <span style={{
@@ -410,7 +405,7 @@ function FolderRow({
               ).catch(() => addToast('Không tải được file', 'error'))}
               style={{
                 padding: '2px 8px', borderRadius: 5, border: 'none',
-                background: trackColor, color: '#fff',
+                background: trackColor, color: 'var(--app-white)',
                 fontSize: 11, fontWeight: 600, cursor: 'pointer', flexShrink: 0,
               }}
             >
@@ -434,7 +429,7 @@ function FolderRow({
                     display: 'flex', alignItems: 'center', gap: 4,
                     padding: '3px 10px', borderRadius: 6, border: 'none',
                     background: downloading === tpl.rel_path ? 'var(--app-neutral-200)' : TRACK_COLOR[track],
-                    color: downloading === tpl.rel_path ? 'var(--app-neutral-500)' : '#fff',
+                    color: downloading === tpl.rel_path ? 'var(--app-neutral-500)' : 'var(--app-white)',
                     fontSize: 11, fontWeight: 600, cursor: 'pointer',
                   }}
                 >
@@ -505,7 +500,7 @@ function ProjectFolderView({ project }: { project: Project }) {
           <span style={{ margin: '0 6px', color: 'var(--app-neutral-300)' }}>·</span>
           {totalTemplates} tài liệu mẫu
           {totalUploaded > 0 && (
-            <span style={{ marginLeft: 6, color: '#16a34a', fontWeight: 600 }}>{totalUploaded} đã upload</span>
+            <span style={{ marginLeft: 6, color: 'var(--app-success)', fontWeight: 600 }}>{totalUploaded} đã upload</span>
           )}
         </p>
       </div>
@@ -525,7 +520,7 @@ function ProjectFolderView({ project }: { project: Project }) {
             }}>
               {t.icon} {t.label}
               {tUploaded > 0 && (
-                <span style={{ marginLeft: 5, fontSize: 10, background: '#dcfce7', color: '#16a34a', padding: '1px 5px', borderRadius: 8, fontWeight: 700 }}>
+                <span style={{ marginLeft: 5, fontSize: 10, background: 'var(--app-success-bg)', color: 'var(--app-success)', padding: '1px 5px', borderRadius: 8, fontWeight: 700 }}>
                   {tUploaded}
                 </span>
               )}
@@ -539,7 +534,7 @@ function ProjectFolderView({ project }: { project: Project }) {
         <div style={{ border: '1px solid var(--app-neutral-200)', borderRadius: 10, overflow: 'hidden' }}>
           <div style={{ background: TRACK_COLOR[currentTrack.track], padding: '9px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 15 }}>{currentTrack.icon}</span>
-            <span style={{ color: '#fff', fontWeight: 700, fontSize: 13 }}>{currentTrack.label}</span>
+            <span style={{ color: 'var(--app-white)', fontWeight: 700, fontSize: 13 }}>{currentTrack.label}</span>
             <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11, marginLeft: 'auto' }}>
               {currentTrack.folders.reduce((s, f) => s + f.template_count, 0)} tài liệu mẫu
             </span>
@@ -672,14 +667,14 @@ function FoldersTab() {
               style={{
                 display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px',
                 cursor: 'pointer',
-                background: selectedDomain?.code === d.code ? '#eff6ff' : 'transparent',
+                background: selectedDomain?.code === d.code ? 'var(--ds-brand-subtle)' : 'transparent',
                 borderLeft: selectedDomain?.code === d.code ? `3px solid ${domainColor(i)}` : '3px solid transparent',
                 transition: 'all 0.1s',
               }}
             >
               <span style={{
                 width: 28, height: 28, borderRadius: 6,
-                background: domainColor(i), color: '#fff',
+                background: domainColor(i), color: 'var(--app-white)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 11, fontWeight: 800, flexShrink: 0,
               }}>
@@ -701,7 +696,7 @@ function FoldersTab() {
         width: 240, flexShrink: 0,
         borderRight: '1px solid var(--app-neutral-200)',
         display: 'flex', flexDirection: 'column',
-        background: '#fff',
+        background: 'var(--app-white)',
       }}>
         <div style={{ padding: '10px 10px 8px', borderBottom: '1px solid var(--app-neutral-200)' }}>
           <div style={{ display: 'flex', gap: 4 }}>
@@ -710,8 +705,8 @@ function FoldersTab() {
                 flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5,
                 height: 28, borderRadius: 8, border: 'none', cursor: 'pointer',
                 fontFamily: 'var(--font)', fontSize: 12, fontWeight: kind === 'project' ? 600 : 500,
-                background: kind === 'project' ? 'var(--app-primary)' : '#F2F4F7',
-                color: kind === 'project' ? '#fff' : 'var(--app-neutral-700)',
+                background: kind === 'project' ? 'var(--app-primary)' : 'var(--ds-border-subtle)',
+                color: kind === 'project' ? 'var(--app-white)' : 'var(--app-neutral-700)',
               }}>
               <Building2 size={13} strokeWidth={1.5} /> Dự án
               <span style={{ opacity: 0.8 }}>{selectedDomain ? projects.length : ''}</span>
@@ -721,8 +716,8 @@ function FoldersTab() {
                 flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5,
                 height: 28, borderRadius: 8, border: 'none', cursor: 'pointer',
                 fontFamily: 'var(--font)', fontSize: 12, fontWeight: kind === 'product' ? 600 : 500,
-                background: kind === 'product' ? 'var(--app-primary)' : '#F2F4F7',
-                color: kind === 'product' ? '#fff' : 'var(--app-neutral-700)',
+                background: kind === 'product' ? 'var(--app-primary)' : 'var(--ds-border-subtle)',
+                color: kind === 'product' ? 'var(--app-white)' : 'var(--app-neutral-700)',
               }}>
               <Package size={13} strokeWidth={1.5} /> Sản phẩm
               <span style={{ opacity: 0.8 }}>{selectedDomain ? products.length : ''}</span>
@@ -755,7 +750,7 @@ function FoldersTab() {
               style={{
                 padding: '9px 12px', cursor: 'pointer',
                 borderBottom: '1px solid var(--app-neutral-100)',
-                background: selectedProduct?.id === pr.id ? '#EFF4FF' : 'transparent',
+                background: selectedProduct?.id === pr.id ? 'var(--ds-brand-subtle)' : 'transparent',
                 borderLeft: selectedProduct?.id === pr.id ? '3px solid var(--app-primary)' : '3px solid transparent',
               }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--app-neutral-700)', lineHeight: 1.3 }}>
@@ -771,7 +766,7 @@ function FoldersTab() {
           ))}
 
           {kind === 'project' && projects.map(p => {
-            const statusColor = p.status === 'active' ? '#16a34a' : p.status === 'completed' ? '#2563eb' : '#9ca3af'
+            const statusColor = p.status === 'active' ? 'var(--app-success)' : p.status === 'completed' ? 'var(--app-primary)' : 'var(--app-neutral-400)'
             return (
               <div
                 key={p.id}
@@ -779,7 +774,7 @@ function FoldersTab() {
                 style={{
                   padding: '9px 12px', cursor: 'pointer',
                   borderBottom: '1px solid var(--app-neutral-100)',
-                  background: selectedProject?.id === p.id ? '#eff6ff' : 'transparent',
+                  background: selectedProject?.id === p.id ? 'var(--ds-brand-subtle)' : 'transparent',
                   borderLeft: selectedProject?.id === p.id ? '3px solid var(--app-primary)' : '3px solid transparent',
                   transition: 'all 0.1s',
                 }}
@@ -801,7 +796,7 @@ function FoldersTab() {
       </div>
 
       {/* ── Cột 3: nội dung tài liệu ── */}
-      <div style={{ flex: 1, overflowY: 'auto', background: '#fff' }}>
+      <div style={{ flex: 1, overflowY: 'auto', background: 'var(--app-white)' }}>
         {selectedProduct ? (
           <ProductDocsView product={selectedProduct} />
         ) : !selectedProject ? (

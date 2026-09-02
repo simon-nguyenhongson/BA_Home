@@ -156,7 +156,7 @@ export function CrEditModal({
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: '#fff', borderRadius: 12, width: 720, maxWidth: '95vw',
+          background: 'var(--app-white)', borderRadius: 12, width: 720, maxWidth: '95vw',
           maxHeight: '90vh', display: 'flex', flexDirection: 'column',
           boxShadow: '0 20px 60px rgba(16,24,40,0.25)',
         }}
@@ -182,7 +182,7 @@ export function CrEditModal({
           {/* Tiêu đề */}
           <div>
             <label className="form-label" style={{ display: 'block', marginBottom: 4 }}>
-              Tiêu đề <span style={{ color: 'var(--app-danger)' }}>*</span>
+              Tiêu đề <span className="req" aria-hidden="true">*</span><span className="sr-only"> (bắt buộc)</span>
             </label>
             <input
               className="input"
@@ -196,7 +196,7 @@ export function CrEditModal({
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div>
               <label className="form-label" style={{ display: 'block', marginBottom: 4 }}>
-                Sản phẩm bị tác động <span style={{ color: 'var(--app-danger)' }}>*</span>
+                Sản phẩm bị tác động <span className="req" aria-hidden="true">*</span><span className="sr-only"> (bắt buộc)</span>
               </label>
               <ComboSelect
                 options={productOptions}
@@ -273,7 +273,7 @@ export function CrEditModal({
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div>
               <label className="form-label" style={{ display: 'block', marginBottom: 4 }}>
-                Người yêu cầu <span style={{ color: 'var(--app-danger)' }}>*</span>
+                Người yêu cầu <span className="req" aria-hidden="true">*</span><span className="sr-only"> (bắt buộc)</span>
               </label>
               <UserSelect
                 value={form.requested_by}

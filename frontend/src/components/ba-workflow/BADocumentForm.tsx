@@ -191,7 +191,7 @@ export function BADocumentForm({
                     background: selected
                       ? 'var(--app-primary)'
                       : 'transparent',
-                    color: selected ? '#fff' : 'var(--app-neutral-600)',
+                    color: selected ? 'var(--app-white)' : 'var(--app-neutral-600)',
                     transition: 'all 0.1s',
                   }}
                 >

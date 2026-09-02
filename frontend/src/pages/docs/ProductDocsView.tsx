@@ -15,6 +15,7 @@ import {
   Upload, Plus, ExternalLink, Clock, type LucideIcon,
 } from 'lucide-react'
 import { Btn, Badge, EmptyState, Field, AppInput, AppTextarea, Modal, Drawer } from '../../components/ui'
+import { MarkdownDocView } from '../../components/MarkdownDocView'
 import {
   getMasterDocs, createMasterDoc, getMasterDocVersions,
   listBrs, type MasterDoc, type MasterDocVersion,
@@ -260,11 +261,17 @@ function MasterDocSection({ product }: { product: CatalogProduct }) {
         </table>
       </div>
 
-      <Drawer title={doc.title} open={viewOpen} onClose={() => setViewOpen(false)} width="min(980px, 92vw)">
-        <pre style={{
-          whiteSpace: 'pre-wrap', fontSize: 13, lineHeight: 1.6,
-          fontFamily: 'var(--font)', color: 'var(--app-neutral-800)', margin: 0,
-        }}>{doc.content}</pre>
+      {/* Master Doc là Markdown (heading, mục lục, bảng, code block). Trước đây render
+          bằng một thẻ <pre>: bảng thành ASCII pipe, mục lục không bấm được, tài liệu
+          1.000+ dòng không có cách nào tìm tới đúng mục. */}
+      <Drawer title={doc.title} open={viewOpen} onClose={() => setViewOpen(false)} width="min(1180px, 95vw)">
+        <MarkdownDocView
+          content={doc.content ?? ''}
+          filename={`${(product.product_code || 'master-doc').toLowerCase()}-master-doc-${doc.current_version}.md`}
+          meta={<>Bản <strong>{doc.current_version}</strong> · trạng thái {doc.status}
+            {' · '}cập nhật {doc.updated_at?.slice(0, 10) ?? '—'}
+            {doc.pending_count ? ` · ${doc.pending_count} bản đề xuất chờ duyệt` : ''}</>}
+        />
       </Drawer>
     </div>
   )

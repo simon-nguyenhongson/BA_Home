@@ -1,14 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react'
 import {
-  Plus, RefreshCw, Calendar, Trash2, Edit,
-  Zap, FileText, MessageSquare, ChevronRight, Download,
-  Upload, ExternalLink, Clock, Copy, CheckCircle, ChevronDown,
-  ChevronLeft, Rocket, ClipboardList, PenTool, Code, Microscope,
-  Shield, Archive, Search, BarChart3, Ruler, Wrench, Handshake,
-  PenLine, Settings, FlaskConical, MapPin, Home, Users, FolderOpen,
-  ListChecks, Repeat, Radio, Folder, Link2, AlertTriangle, Lightbulb,
-  User, Check, Building2, Cloud, Lock, Scale, LayoutGrid, List,
-  type LucideIcon,
+  Plus, RefreshCw, Calendar, Trash2, Edit, Zap, FileText, MessageSquare, ChevronRight, Download, Upload, ExternalLink, Clock, Copy, CheckCircle, ChevronDown, Rocket, ClipboardList, PenTool, Code, Microscope, Shield, Archive, Search, BarChart3, Ruler, Wrench, Handshake, PenLine, Settings, FlaskConical, Radio, User, type LucideIcon, SlidersHorizontal,
 } from 'lucide-react'
 import {
   getProjects, createProject, updateProject, archiveProject,
@@ -19,8 +11,7 @@ import {
   getPublishStatus, triggerPublish, unpublish,
   exportProject, importProject,
   getProjectDomains,
-  getActivityTasks, patchActivityTask, createActivityTask,
-  type Project, type Milestone, type Member, type ProjectFile,
+  getActivityTasks, patchActivityTask, type Project, type Milestone, type Member, type ProjectFile,
   type FileVersion, type Meeting, type PublishJob, type ProjectDomain,
   type ActivityTask, type ActivityDomain, type ActivityStatus,
 } from '../../api/ppg'
@@ -30,8 +21,14 @@ import {
   AppTextarea, EmptyState, Confirm,
 } from '../../components/ui'
 import ProjectCRTab from './ProjectCRTab'
+import { ProjectProductsTab } from '../../features/products/ProjectProductsTab'
+import { ViewToggle } from '../../components/ViewToggle'
+import { SegmentGroup } from '../../components/SegmentGroup'
+import { DomainBadge } from '../../components/DomainBadge'
+import { FilterBar, applyDateFilter, applyTextFilter } from '../../components/FilterBar'
+import { ROLE_COLORS as CATEGORICAL_ROLE_COLORS, GOVERNANCE_DOMAIN_COLORS } from '../../styles/categorical'
 
-type Tab = 'projects' | 'overview' | 'milestones' | 'members' | 'files' | 'meetings' | 'publish' | 'checklist' | 'cr'
+type Tab = 'projects' | 'overview' | 'milestones' | 'members' | 'files' | 'meetings' | 'publish' | 'checklist' | 'cr' | 'products'
 
 const MILESTONE_STATUS_COLOR: Record<string, string> = {
   planned:     'var(--app-neutral-400)',
@@ -44,13 +41,6 @@ const MILESTONE_TYPE_ICON: Record<string, LucideIcon> = {
   sit: Microscope, uat: CheckCircle, golive: Rocket, hypercare: Shield, closure: Archive,
   ba_kickoff: Rocket, ba_elicitation: Search, ba_analysis: BarChart3, ba_brd: FileText, ba_frs: Ruler, ba_dev_support: Wrench, ba_uat_support: Handshake, ba_closure: Archive,
   test_planning: Calendar, test_design: PenLine, test_env_setup: Settings, test_sit_exec: FlaskConical, test_uat_exec: CheckCircle, test_golive: Rocket, test_closure: Archive,
-}
-// Badge màu theo DS cho status milestone (bg subtle + text đậm)
-const MILESTONE_STATUS_BADGE: Record<string, { bg: string; color: string }> = {
-  planned:     { bg: '#F2F4F7', color: '#344054' },
-  in_progress: { bg: '#EFF8FF', color: '#1570EF' },
-  completed:   { bg: '#ECFDF3', color: '#039855' },
-  delayed:     { bg: '#FEF3F2', color: '#D92D20' },
 }
 // Render icon milestone theo loại (MILESTONE_TYPE_ICON trả về component lucide)
 function MsIcon({ type, size = 16, fallback = null }: { type?: string | null; size?: number; fallback?: React.ReactNode }) {
@@ -71,6 +61,7 @@ function ProjectModal({ open, onClose, onSaved, editing, domains }: {
     owner: '', start_date: '', end_date: '', domain_code: '',
   })
   const [saving, setSaving] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
     if (editing) {
@@ -90,12 +81,21 @@ function ProjectModal({ open, onClose, onSaved, editing, domains }: {
     setForm(f => ({ ...f, [k]: e.target.value }))
 
   const submit = async () => {
-    if (!form.code || !form.name) return addToast('Cần nhập Code và Tên project', 'warn')
+    // Toast một mình không nói ô nào thiếu — DS đòi viền đỏ + dòng lỗi ngay tại field
+    const errs: Record<string, string> = {}
+    if (!form.code.trim()) errs.code = 'Nhập mã project'
+    if (!form.name.trim()) errs.name = 'Nhập tên project'
+    if (Object.keys(errs).length) { setErrors(errs); return }
+    setErrors({})
     setSaving(true)
     try {
       const payload = {
         ...form,
         domain_code: form.domain_code || undefined,
+        // <input type="date"> để trống gửi '' — backend đã coi là None (models/coercion.py),
+        // nhưng không gửi rác thì payload sạch và lỗi kiểu không bao giờ tới đây.
+        start_date:  form.start_date  || undefined,
+        end_date:    form.end_date    || undefined,
       }
       if (editing) {
         await updateProject(editing.id, payload)
@@ -112,7 +112,7 @@ function ProjectModal({ open, onClose, onSaved, editing, domains }: {
   return (
     <Modal title={editing ? 'Chỉnh sửa Project' : 'Tạo Project Mới'} open={open} onClose={onClose} width="660px">
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <Field label="Mã Project" required>
+        <Field label="Mã Project" required error={errors.code}>
           <AppInput value={form.code} onChange={s('code')} placeholder="PRJ-001" readOnly={!!editing} />
         </Field>
         <Field label="Trạng thái">
@@ -134,7 +134,7 @@ function ProjectModal({ open, onClose, onSaved, editing, domains }: {
           </AppSelect>
         </Field>
       </div>
-      <Field label="Tên Project" required>
+      <Field label="Tên Project" required error={errors.name}>
         <AppInput value={form.name} onChange={s('name')} placeholder="Tên đầy đủ" />
       </Field>
       <Field label="Owner">
@@ -251,11 +251,7 @@ function OverviewTab({ project, onNavigate }: {
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6, flexWrap: 'wrap' }}>
               <span className="txt_mono" style={{ fontSize: 13, color: 'var(--app-neutral-500)', fontWeight: 600 }}>{project.code}</span>
               <StatusBadge status={project.status} />
-              {project.domain_code && (
-                <span style={{ fontSize: 11, background: 'var(--app-warning)20', color: 'var(--app-warning)', padding: '2px 8px', borderRadius: 10, fontWeight: 700, border: '1px solid var(--app-warning)40' }}>
-                   {project.domain_code}
-                </span>
-              )}
+              {project.domain_code && <DomainBadge code={project.domain_code} size="md" />}
             </div>
             <h2 style={{ marginBottom: 4, fontSize: 16, fontWeight: 700, margin: '0 0 4px' }}>{project.name}</h2>
             {project.description && <p className="txt_r_xxs text-muted">{project.description}</p>}
@@ -337,7 +333,7 @@ function OverviewTab({ project, onNavigate }: {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 8 }}>
           {DOC_TEMPLATES.map(t => (
-            <div key={t.cat} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: '#fff', borderRadius: 6, border: '1px solid var(--app-neutral-200)' }}>
+            <div key={t.cat} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: 'var(--app-white)', borderRadius: 6, border: '1px solid var(--app-neutral-200)' }}>
               <span style={{ fontSize: 16 }}>{t.icon}</span>
               <div>
                 <div style={{ fontSize: 11, fontWeight: 600 }}>{t.name}</div>
@@ -388,12 +384,6 @@ function MilestonesTab({ project }: { project: Project }) {
     ? Math.max(1, (new Date(project.end_date).getTime() - new Date(project.start_date).getTime()) / 86400000)
     : 0
 
-  const pct = (d?: string) => {
-    if (!d || !project.start_date || !totalDays) return 0
-    return Math.min(100, Math.max(0,
-      (new Date(d).getTime() - new Date(project.start_date).getTime()) / 86400000 / totalDays * 100
-    ))
-  }
 
   const [collapsedTracks, setCollapsedTracks] = useState<Record<string, boolean>>({ ba: true, test: true })
 
@@ -416,7 +406,7 @@ function MilestonesTab({ project }: { project: Project }) {
 
       {loading ? <div className="empty-state">Đang tải...</div> :
         milestones.length === 0 ? (
-          <EmptyState icon=""title="Chưa có milestones"
+          <EmptyState title="Chưa có milestones"
             desc="Nhấn Regenerate để tự động tạo theo timeline dự án"
             action={<Btn onClick={regenerate} loading={generating}><Zap size={13} /> Tạo milestones</Btn>} />
         ) : (
@@ -519,8 +509,8 @@ function MilestonesTab({ project }: { project: Project }) {
                                 overflow: 'hidden',
                               }}>
                                 {(ms.status === 'in_progress' || ms.status === 'delayed' || ms.status === 'completed') && (
-                                  <div style={{ fontSize: 14, color: '#fff', display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.1)', padding: 2, borderRadius: '50%' }}>
-                                    {ms.status === 'completed' ? <CheckCircle size={14} color="#fff" /> : <MsIcon type={ms.milestone_type} size={14} />}
+                                  <div style={{ fontSize: 14, color: 'var(--app-white)', display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.1)', padding: 2, borderRadius: '50%' }}>
+                                    {ms.status === 'completed' ? <CheckCircle size={14} color="var(--app-white)" /> : <MsIcon type={ms.milestone_type} size={14} />}
                                   </div>
                                 )}
                               </div>
@@ -628,10 +618,7 @@ function MembersTab({ project }: { project: Project }) {
   }
 
   const ROLES = ['PM', 'BA', 'Dev Lead', 'Developer', 'QA Lead', 'QA', 'PO', 'Stakeholder', 'DevOps']
-  const ROLE_COLORS: Record<string, string> = {
-    PM: 'var(--app-primary)', BA: 'var(--app-success)', 'Dev Lead': '#6B21A8', Developer: '#6B21A8',
-    'QA Lead': 'var(--app-warning)', QA: 'var(--app-warning)', PO: 'var(--app-primary)', Stakeholder: '#64748b',
-  }
+  const ROLE_COLORS = CATEGORICAL_ROLE_COLORS
 
   return (
     <div>
@@ -646,7 +633,7 @@ function MembersTab({ project }: { project: Project }) {
       </div>
 
       {members.length === 0 ? (
-        <EmptyState icon=""title="Chưa có thành viên"desc="Thêm thành viên để dùng alias trong biên bản họp" />
+        <EmptyState title="Chưa có thành viên"desc="Thêm thành viên để dùng alias trong biên bản họp" />
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
           {members.map(m => (
@@ -822,7 +809,7 @@ function FilesTab({ project }: { project: Project }) {
       </div>
 
       {files.length === 0 ? (
-        <EmptyState icon=""title="Chưa có tài liệu"desc="Attach URL (ADO/SharePoint) hoặc upload file mới" />
+        <EmptyState title="Chưa có tài liệu"desc="Attach URL (ADO/SharePoint) hoặc upload file mới" />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {files.map(f => (
@@ -912,7 +899,7 @@ function FilesTab({ project }: { project: Project }) {
 
       <Modal title={`Versions — ${showVersions?.name}`} open={!!showVersions} onClose={() => setShowVersions(null)}>
         {versions.length === 0 ? (
-          <EmptyState icon=""title="Chưa có version nào" />
+          <EmptyState title="Chưa có version nào" />
         ) : versions.map(v => (
           <div key={v.id} className="card card-pad-sm" style={{ marginBottom: 8 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -994,7 +981,7 @@ function MeetingsTab({ project }: { project: Project }) {
       </div>
 
       {meetings.length === 0 ? (
-        <EmptyState icon=""title="Chưa có biên bản"desc="Nhập note cuộc họp và AI sẽ tạo biên bản chuẩn" />
+        <EmptyState title="Chưa có biên bản"desc="Nhập note cuộc họp và AI sẽ tạo biên bản chuẩn" />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {meetings.map(m => (
@@ -1192,7 +1179,7 @@ function PublishTab({ project }: { project: Project }) {
             </div>
           )}
           {job?.status === 'failed' && job.error_msg && (
-            <div style={{ marginTop: 8, fontSize: 11, color: 'var(--app-danger)', background: '#fef2f2', padding: '6px 10px', borderRadius: 6 }}>
+            <div style={{ marginTop: 8, fontSize: 11, color: 'var(--app-danger)', background: 'var(--app-danger-bg)', padding: '6px 10px', borderRadius: 6 }}>
               {job.error_msg}
             </div>
           )}
@@ -1254,7 +1241,7 @@ function PublishTab({ project }: { project: Project }) {
           {Object.entries(PUBLISH_CATS).map(([cat, label]) => {
             const count = files.filter(f => f.doc_category === cat && f.status === 'final').length
             return (
-              <div key={cat} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 10px', background: '#fff', borderRadius: 6, border: '1px solid var(--app-neutral-200)', fontSize: 12 }}>
+              <div key={cat} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 10px', background: 'var(--app-white)', borderRadius: 6, border: '1px solid var(--app-neutral-200)', fontSize: 12 }}>
                 <span>{label}</span>
                 <span style={{ fontWeight: 700, color: count > 0 ? 'var(--app-success)' : 'var(--app-neutral-300)' }}>{count}</span>
               </div>
@@ -1270,22 +1257,22 @@ function PublishTab({ project }: { project: Project }) {
 // CHECKLIST TAB — 5-domain governance activity tasks
 // ══════════════════════════════════════════════════════════════════
 const DOMAIN_META: Record<ActivityDomain, { label: string; icon: string; color: string }> = {
-  business_requirements: { label: 'Business Requirements & Product', icon: '', color: '#1d4ed8' },
-  architecture_code:     { label: 'Architecture & Code',             icon: '', color: '#7c3aed' },
-  infrastructure:        { label: 'Infrastructure (AWS)',            icon: '', color: '#0369a1' },
-  security_iam:          { label: 'Security & IAM',                  icon: '', color: '#b91c1c' },
-  compliance_governance: { label: 'Compliance & Governance',         icon: '', color: '#92400e' },
+  business_requirements: { label: 'Business Requirements & Product', icon: '', color: 'var(--app-primary)' },
+  architecture_code:     { label: 'Architecture & Code',             icon: '', color: GOVERNANCE_DOMAIN_COLORS.architecture_code },
+  infrastructure:        { label: 'Infrastructure (AWS)',            icon: '', color: 'var(--app-info)' },
+  security_iam:          { label: 'Security & IAM',                  icon: '', color: 'var(--ds-text-danger)' },
+  compliance_governance: { label: 'Compliance & Governance',         icon: '', color: 'var(--app-warning)' },
 }
 const DOMAIN_ORDER: ActivityDomain[] = [
   'business_requirements', 'architecture_code',
   'infrastructure', 'security_iam', 'compliance_governance',
 ]
 const STATUS_META: Record<ActivityStatus, { label: string; color: string; bg: string }> = {
-  pending:     { label: 'Pending',      color: '#6b7280', bg: '#f3f4f6' },
-  in_progress: { label: 'In Progress',  color: '#1d4ed8', bg: '#dbeafe' },
-  done:        { label: 'Done',         color: '#15803d', bg: '#dcfce7' },
-  skipped:     { label: 'Skipped',      color: '#92400e', bg: '#fef3c7' },
-  na:          { label: 'N/A',          color: '#6b7280', bg: '#e5e7eb' },
+  pending:     { label: 'Pending',      color: 'var(--app-neutral-500)', bg: 'var(--ds-border-subtle)' },
+  in_progress: { label: 'In Progress',  color: 'var(--app-primary)', bg: 'var(--ds-brand-subtle)' },
+  done:        { label: 'Done',         color: 'var(--app-success)', bg: 'var(--app-success-bg)' },
+  skipped:     { label: 'Skipped',      color: 'var(--app-warning)', bg: 'var(--app-warning-bg)' },
+  na:          { label: 'N/A',          color: 'var(--app-neutral-500)', bg: 'var(--app-neutral-200)' },
 }
 
 function ChecklistTab({ project }: { project: Project }) {
@@ -1382,7 +1369,7 @@ function ChecklistTab({ project }: { project: Project }) {
                   <div key={task.id} style={{
                     display: 'flex', alignItems: 'flex-start', gap: 10,
                     padding: '8px 16px', borderBottom: '1px solid var(--app-neutral-50)',
-                    background: task.status === 'done' ? '#f0fdf4' : task.status === 'na' ? '#f9fafb' : 'white',
+                    background: task.status === 'done' ? 'var(--app-success-bg)' : task.status === 'na' ? 'var(--app-neutral-100)' : 'white',
                     opacity: task.status === 'na' ? 0.6 : 1,
                   }}>
                     {/* Status cycle button */}
@@ -1452,9 +1439,10 @@ function ChecklistTab({ project }: { project: Project }) {
                     {!isEditing && (
                       <button
                         onClick={() => { setEditingId(task.id); setEditNotes(task.notes || ''); setEditAssignee(task.assignee || '') }}
-                        style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-neutral-400)', fontSize: 12, padding: '2px 4px' }}
+                        style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-neutral-400)', padding: '2px 4px', display: 'flex', alignItems: 'center' }}
                         title="Sửa notes / assignee"
-                      ></button>
+                        aria-label="Sửa ghi chú và người thực hiện"
+                      ><Edit size={13} /></button>
                     )}
 
                     {/* Quick status select */}
@@ -1492,6 +1480,11 @@ export default function PPGPage() {
   const [activeTab, setActiveTab] = useState<Tab>('projects')
   const [domains, setDomains] = useState<ProjectDomain[]>([])
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
+  // Cùng bộ lọc như tab Product: tìm kiếm + LOV + khoảng ngày, gom trong FilterBar
+  const [fText, setFText] = useState('')
+  const [fDomain, setFDomain] = useState('')
+  const [fFrom, setFFrom] = useState('')
+  const [fTo, setFTo] = useState('')
 
   const loadProjects = useCallback(async () => {
     setLoading(true)
@@ -1511,7 +1504,17 @@ export default function PPGPage() {
     setConfirm(null)
   }
 
-  const displayProjects = statusFilter ? projects.filter(p => p.status === statusFilter) : projects
+  // Tên domain thay vì mã: tab Product hiện domain_name, tab Project trước đây hiện mã
+  // thô ('OPERATIONS') nên cùng một domain đọc ra hai kiểu ở hai tab cạnh nhau.
+  const domainName = (code?: string) => domains.find(d => d.code === code)?.name
+
+  const displayProjects = (() => {
+    let rows = statusFilter ? projects.filter(p => p.status === statusFilter) : projects
+    if (fDomain) rows = rows.filter(p => p.domain_code === fDomain)
+    rows = applyTextFilter(rows, fText, ['code', 'name'])
+    return applyDateFilter(rows, 'start_date', fFrom, fTo)
+  })()
+
   const counts: Record<string, number> = {
     '': projects.length,
     active: projects.filter(p => p.status === 'active').length,
@@ -1519,6 +1522,14 @@ export default function PPGPage() {
     completed: projects.filter(p => p.status === 'completed').length,
     archived: projects.filter(p => p.status === 'archived').length,
   }
+
+  const STATUS_SEGMENTS = [
+    { key: '',          label: 'Tất cả',    count: counts[''] },
+    { key: 'active',    label: 'Active',    count: counts.active },
+    { key: 'on_hold',   label: 'On Hold',   count: counts.on_hold },
+    { key: 'completed', label: 'Completed', count: counts.completed },
+    { key: 'archived',  label: 'Archived',  count: counts.archived },
+  ]
 
   const statusColors: Record<string, string> = {
     active: 'var(--app-success)', on_hold: 'var(--app-warning)',
@@ -1533,6 +1544,7 @@ export default function PPGPage() {
     { key: 'files',      icon: '', label: 'Tài liệu',     needsProject: true },
     { key: 'checklist',  icon: '', label: 'Checklist',    needsProject: true },
     { key: 'meetings',   icon: '', label: 'Biên bản họp', needsProject: true },
+    { key: 'products',  icon: '', label: 'Sản phẩm bàn giao', needsProject: true },
     { key: 'cr',        icon: '', label: 'CR',          needsProject: true },
     { key: 'publish',    icon: '', label: 'Publish',      needsProject: true },
   ]
@@ -1560,13 +1572,28 @@ export default function PPGPage() {
             <span className="txt_mono" style={{ fontSize: 13, color: 'var(--app-neutral-500)', fontWeight: 700 }}>{selectedProject.code}</span>
             <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--app-neutral-900)' }}>{selectedProject.name}</span>
             <StatusBadge status={selectedProject.status} />
+            <div style={{ flex: 1 }} />
+            {/* Trang quản trị mở rộng: brief, stage gate, health score, stakeholder, WSJF,
+                licence, hợp đồng, handover, integration link. Mở ở trang riêng vì nó có
+                thanh tab riêng — lồng vào đây sẽ thành hai lớp tab chồng nhau. */}
+            <a href={`/projects/${selectedProject.id}`} className="btn btn-secondary btn-sm"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, textDecoration: 'none', flexShrink: 0 }}
+              title="Brief, stage gate, health score, stakeholder, licence, hợp đồng, handover">
+              <SlidersHorizontal size={13} /> Quản trị mở rộng
+            </a>
           </div>
 
-          {/* Line 2: Project tabs */}
-          <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid var(--app-neutral-200)', paddingBottom: 0 }}>
+          {/* Line 2: Project tabs — dùng .ds-tabs như Workspace và các trang khác, thay cho
+              tabStyle() tự dựng (13px/700, viền 2px) vốn lệch mọi thanh tab còn lại */}
+          <div className="ds-tabs" style={{ marginBottom: 20 }}>
             {TABS.filter(t => t.needsProject).map(t => (
-              <button key={t.key} onClick={() => setActiveTab(t.key)} style={tabStyle(t.key)}>
-                {t.icon} {t.label}
+              <button
+                key={t.key}
+                type="button"
+                className={`ds-tab${activeTab === t.key ? ' active' : ''}`}
+                onClick={() => setActiveTab(t.key)}
+              >
+                {t.label}
               </button>
             ))}
           </div>
@@ -1575,64 +1602,54 @@ export default function PPGPage() {
 
       {activeTab === 'projects' && (
         <>
-          <div style={{ display: 'flex', gap: 6, marginBottom: 14, alignItems: 'center', flexWrap: 'wrap' }}>
-            {([
-              { key: '',          label: 'Tất cả'    },
-              { key: 'active',    label: 'Active'    },
-              { key: 'on_hold',   label: 'On Hold'   },
-              { key: 'completed', label: 'Completed' },
-              { key: 'archived',  label: 'Archived'  },
-            ] as { key: string; label: string }[]).map(({ key, label }) => {
-              const isActive = statusFilter === key
-              return (
-                <button key={key} onClick={() => setStatusFilter(key)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 6,
-                    padding: '5px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                    background: isActive ? 'var(--app-primary)' : 'var(--app-neutral-100)',
-                    color: isActive ? '#fff' : 'var(--app-neutral-600)',
-                    fontSize: 13, fontFamily: 'var(--font)', fontWeight: isActive ? 600 : 400,
-                    transition: 'all 0.15s',
-                  }}>
-                  {label}
-                  <span style={{
-                    fontSize: 11, fontWeight: 700, padding: '1px 5px', borderRadius: 10,
-                    background: isActive ? 'rgba(255,255,255,0.25)' : 'var(--app-neutral-200)',
-                    color: isActive ? '#fff' : 'var(--app-neutral-500)',
-                  }}>{counts[key]}</span>
-                </button>
-              )
-            })}
-            <Btn variant="ghost" size="sm" onClick={loadProjects}><RefreshCw size={13} /></Btn>
+          {/* Dải hành động — cùng thứ tự với tab Product: trục lát danh sách bên trái,
+              cách hiển thị và nút tạo bên phải */}
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <SegmentGroup
+              value={statusFilter}
+              onChange={setStatusFilter}
+              items={STATUS_SEGMENTS}
+              ariaLabel="Lọc theo trạng thái dự án"
+            />
             <div style={{ flex: 1 }} />
-            <Btn size="sm" onClick={() => { setEditing(undefined); setShowCreate(true) }}>
-              <Plus size={14} /> Tạo Project
+            <Btn variant="ghost" size="sm" onClick={loadProjects} title="Tải lại danh sách">
+              <RefreshCw size={16} strokeWidth={1.5} />
             </Btn>
-            {/* View toggle */}
-            <div style={{ display: 'flex', gap: 2, background: 'var(--app-neutral-100)', padding: '3px 4px', borderRadius: 8 }}>
-              {(['grid', 'list'] as const).map((mode) => (
-                <button key={mode} onClick={() => setViewMode(mode)}
-                  title={mode === 'grid' ? 'Dạng thẻ' : 'Dạng bảng'}
-                  style={{
-                    padding: '4px 10px', border: 'none', cursor: 'pointer', borderRadius: 6,
-                    fontSize: 15, fontFamily: 'var(--font)',
-                    background: viewMode === mode ? '#fff' : 'transparent',
-                    color: viewMode === mode ? 'var(--app-primary)' : 'var(--app-neutral-500)',
-                    boxShadow: viewMode === mode ? '0 1px 3px rgba(0,0,0,0.12)' : 'none',
-                    transition: 'all 0.15s',
-                  }}>
-                  {mode === 'grid'?'':''}
-                </button>
-              ))}
-            </div>
+            <ViewToggle value={viewMode} onChange={setViewMode} />
+            <Btn size="sm" onClick={() => { setEditing(undefined); setShowCreate(true) }}>
+              <Plus size={16} strokeWidth={1.5} /> Tạo Project
+            </Btn>
           </div>
+
+          <FilterBar
+            text={{ value: fText, onChange: setFText, placeholder: 'Tìm tên, mã dự án' }}
+            selects={[
+              {
+                key: 'domain', value: fDomain, onChange: setFDomain,
+                placeholder: 'Tất cả domain', label: 'Domain',
+                options: domains.map(d => ({ value: d.code, label: d.name })),
+              },
+            ]}
+            dateFrom={{ value: fFrom, onChange: setFFrom, label: 'Bắt đầu từ' }}
+            dateTo={{ value: fTo, onChange: setFTo }}
+            onClear={() => { setFText(''); setFDomain(''); setFFrom(''); setFTo('') }}
+            right={
+              <span className="txt_r_xxxs" style={{ color: 'var(--app-neutral-500)' }}>
+                {displayProjects.length}/{projects.length} dự án
+              </span>
+            }
+          />
+
           {loading ? (
             <div className="empty-state">Đang tải...</div>
           ) : displayProjects.length === 0 ? (
-            <EmptyState icon=""title="Chưa có project" action={<Btn onClick={() => setShowCreate(true)}><Plus size={14} /> Tạo Project</Btn>} />
+            projects.length === 0
+              ? <EmptyState title="Chưa có dự án nào" desc="Tạo dự án đầu tiên để bắt đầu theo dõi tiến độ và tài liệu"
+                  action={<Btn onClick={() => setShowCreate(true)}><Plus size={16} strokeWidth={1.5} /> Tạo Project</Btn>} />
+              : <EmptyState title="Không có dự án nào khớp bộ lọc" desc="Nới bộ lọc hoặc xoá từ khoá tìm kiếm" />
           ) : viewMode === 'grid' ? (
             /* ── Grid view ── */
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12, marginTop: 12 }}>
               {displayProjects.map(p => (
                 <div key={p.id} className={`card card-pad${selectedProject?.id === p.id ? ' ring-primary' : ''}`}
                   style={{ borderLeft: `4px solid ${statusColors[p.status] || 'var(--app-neutral-300)'}`, cursor: 'pointer' }}
@@ -1642,11 +1659,7 @@ export default function PPGPage() {
                       <div style={{ display: 'flex', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
                         <span className="txt_mono" style={{ fontSize: 12, color: 'var(--app-neutral-500)' }}>{p.code}</span>
                         <StatusBadge status={p.status} />
-                        {p.domain_code && (
-                          <span style={{ fontSize: 10, background: 'var(--app-warning)20', color: 'var(--app-warning)', padding: '1px 6px', borderRadius: 8, fontWeight: 700 }}>
-                            {p.domain_code}
-                          </span>
-                        )}
+                        {p.domain_code && <DomainBadge code={p.domain_code} name={domainName(p.domain_code)} />}
                       </div>
                       <h3 className="txt_s_xxs">{p.name}</h3>
                     </div>
@@ -1675,30 +1688,29 @@ export default function PPGPage() {
             </div>
           ) : (
             /* ── List view ── */
-            <div className="card" style={{ overflow: 'hidden' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <div style={{ overflow: 'hidden' }}>
+              {/* Cột "Kế hoạch năm" đã bị gỡ: module Kế hoạch năm bị bỏ (V050) nên tiêu đề
+                  đó không còn ô dữ liệu nào bên dưới — bảng có 7 <th> mà chỉ 6 <td>, làm
+                  cột hành động nằm lệch dưới sai tiêu đề. */}
+              <table className="ds-table">
                 <thead>
-                  <tr style={{ background: 'var(--app-neutral-50)', borderBottom: '2px solid var(--app-neutral-200)' }}>
-                    {['Code', 'Tên dự án', 'Domain', 'Trạng thái', 'Timeline', 'Kế hoạch năm', ''].map(h => (
-                      <th key={h} style={{ padding: '9px 12px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: 'var(--app-neutral-500)', whiteSpace: 'nowrap' }}>{h}</th>
+                  <tr>
+                    {['Code', 'Tên dự án', 'Domain', 'Trạng thái', 'Timeline', ''].map(h => (
+                      <th key={h}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {displayProjects.map(p => (
                     <tr key={p.id}
-                      style={{ borderBottom: '1px solid var(--app-neutral-100)', cursor: 'pointer', borderLeft: `3px solid ${statusColors[p.status] || 'var(--app-neutral-300)'}`, transition: 'background 0.1s' }}
-                      onMouseEnter={e => (e.currentTarget.style.background = 'var(--app-neutral-50)')}
-                      onMouseLeave={e => (e.currentTarget.style.background = '')}
+                      style={{ cursor: 'pointer' }}
                       onClick={() => { setSelectedProject(p); setActiveTab('overview') }}>
                       <td style={{ padding: '9px 12px' }}>
                         <span className="txt_mono" style={{ fontSize: 11, color: 'var(--app-neutral-500)' }}>{p.code}</span>
                       </td>
                       <td style={{ padding: '9px 12px', fontWeight: 600 }}>{p.name}</td>
                       <td style={{ padding: '9px 12px' }}>
-                        {p.domain_code
-                          ? <span style={{ fontSize: 11, background: 'var(--app-warning)20', color: 'var(--app-warning)', padding: '2px 7px', borderRadius: 8, fontWeight: 700 }}>{p.domain_code}</span>
-                          : <span style={{ color: 'var(--app-neutral-300)' }}>—</span>}
+                        <DomainBadge code={p.domain_code} name={domainName(p.domain_code)} />
                       </td>
                       <td style={{ padding: '9px 12px' }}><StatusBadge status={p.status} /></td>
                       <td style={{ padding: '9px 12px', fontSize: 12, color: 'var(--app-neutral-500)', whiteSpace: 'nowrap' }}>
@@ -1730,6 +1742,14 @@ export default function PPGPage() {
       {activeTab === 'checklist' && selectedProject && <ChecklistTab project={selectedProject} />}
       {activeTab === 'meetings'  && selectedProject && <MeetingsTab  project={selectedProject} />}
       {activeTab === 'publish'   && selectedProject && <PublishTab   project={selectedProject} />}
+      {activeTab === 'products' && selectedProject && (
+        <ProjectProductsTab
+          projectId={selectedProject.id}
+          projectCode={selectedProject.code}
+          projectName={selectedProject.name}
+          domainCode={selectedProject.domain_code}
+        />
+      )}
       {activeTab === 'cr'       && selectedProject && (
         <ProjectCRTab
           projectId={selectedProject.id}

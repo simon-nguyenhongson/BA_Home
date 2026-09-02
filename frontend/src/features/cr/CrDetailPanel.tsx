@@ -91,20 +91,20 @@ function CrStatusRail({
 
   const STYLE: Record<StepState, React.CSSProperties> = {
     done: {
-      background: '#EFF4FF', color: 'var(--app-primary)',
-      border: '1px solid #B2CCFF',
+      background: 'var(--ds-brand-subtle)', color: 'var(--app-primary)',
+      border: '1px solid var(--ds-brand-loading)',
     },
     current: {
-      background: 'var(--app-primary)', color: '#fff',
+      background: 'var(--app-primary)', color: 'var(--app-white)',
       border: '1px solid var(--app-primary)',
       boxShadow: '0 0 0 3px rgba(21,94,239,0.12)',
     },
     skipped: {
-      background: '#FFFAEB', color: '#B54708',
-      border: '1px dashed #F79009',
+      background: 'var(--app-warning-bg)', color: 'var(--app-warning)',
+      border: '1px dashed var(--app-warning)',
     },
     pending: {
-      background: '#fff', color: 'var(--app-neutral-400)',
+      background: 'var(--app-white)', color: 'var(--app-neutral-400)',
       border: '1px solid var(--app-neutral-200)',
     },
   }
@@ -147,8 +147,8 @@ function CrStatusRail({
             <span style={{ color: 'var(--app-neutral-300)', fontSize: 11, padding: '0 3px' }}>|</span>
             <span style={{
               padding: '2px 9px', borderRadius: 14, fontSize: 11, fontWeight: 600,
-              background: 'var(--app-danger-bg, #FEE4E2)', color: 'var(--app-danger, #B42318)',
-              border: '1px solid #FDA29B',
+              background: 'var(--app-danger-bg)', color: 'var(--app-danger)',
+              border: '1px solid var(--color-error-300)',
             }}>
               {CR_STATUS_LABELS[status]}
             </span>
@@ -158,7 +158,7 @@ function CrStatusRail({
 
       {skipped.length > 0 && (
         <div style={{
-          marginTop: 6, fontSize: 11, color: '#B54708',
+          marginTop: 6, fontSize: 11, color: 'var(--app-warning)',
           display: 'flex', alignItems: 'flex-start', gap: 5,
         }}>
           <AlertTriangle size={12} style={{ flexShrink: 0, marginTop: 1 }} />
@@ -342,7 +342,7 @@ export function CrDetailPanel({
                 title="Xoá CR"
                 aria-label="Xoá CR"
                 onClick={() => setCfmDel(true)}
-                style={{ color: 'var(--app-danger, #B42318)' }}
+                style={{ color: 'var(--app-danger)' }}
               >
                 <Trash2 size={15} />
               </button>
@@ -366,8 +366,8 @@ export function CrDetailPanel({
         {!cr.product_id && (
           <div style={{
             marginTop: 10, padding: '8px 11px', borderRadius: 8,
-            background: '#FFFAEB', border: '1px solid #FEDF89',
-            fontSize: 12, color: '#B54708', display: 'flex', gap: 7, alignItems: 'flex-start',
+            background: 'var(--app-warning-bg)', border: '1px solid var(--app-warning-bg)',
+            fontSize: 12, color: 'var(--app-warning)', display: 'flex', gap: 7, alignItems: 'flex-start',
           }}>
             <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 1 }} />
             <span style={{ flex: 1 }}>
@@ -419,7 +419,7 @@ export function CrDetailPanel({
                       </span>
                     )}
                   </>
-                : <span style={{ color: '#B54708' }}>chưa gắn</span>}
+                : <span style={{ color: 'var(--app-warning)' }}>chưa gắn</span>}
             </Field>
             <Field label="Dự án tài trợ">
               {cr.project_name
@@ -504,7 +504,7 @@ export function CrDetailPanel({
       {/* ── Footer: chuyển trạng thái ──────────────────────────────────────── */}
       <div style={{
         flexShrink: 0, borderTop: '1px solid var(--app-neutral-200)',
-        padding: '12px 20px', background: '#FCFCFD',
+        padding: '12px 20px', background: 'var(--app-neutral-50)',
       }}>
         {allowed.length > 0 ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -522,7 +522,7 @@ export function CrDetailPanel({
                   onClick={() => requestStatus(next, false)}
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: 5,
-                    ...(danger ? { color: 'var(--app-danger, #B42318)', borderColor: '#FDA29B' } : {}),
+                    ...(danger ? { color: 'var(--app-danger)', borderColor: 'var(--color-error-300)' } : {}),
                   }}
                 >
                   {!danger && <ArrowRight size={13} />}
@@ -558,9 +558,9 @@ export function CrDetailPanel({
         {offFlowOpen && (
           <div style={{
             marginTop: 10, padding: '10px 12px', borderRadius: 8,
-            background: '#FFFAEB', border: '1px solid #FEDF89',
+            background: 'var(--app-warning-bg)', border: '1px solid var(--app-warning-bg)',
           }}>
-            <div style={{ fontSize: 12, color: '#B54708', marginBottom: 8, lineHeight: 1.5 }}>
+            <div style={{ fontSize: 12, color: 'var(--app-warning)', marginBottom: 8, lineHeight: 1.5 }}>
               Chuyển sang trạng thái không nằm trong luồng chuẩn. Bắt buộc nhập lý do —
               lý do được ghi vào lịch sử CR để giải trình về sau.
             </div>

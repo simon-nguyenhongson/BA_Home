@@ -128,7 +128,7 @@ export function StatusTransitionButton({
                       : i === currentIdx
                         ? 'var(--app-primary)'
                         : 'var(--app-neutral-200)',
-                  color: i <= currentIdx ? '#fff' : 'var(--app-neutral-500)',
+                  color: i <= currentIdx ? 'var(--app-white)' : 'var(--app-neutral-500)',
                 }}
               >
                 {i < currentIdx ? '✓ ' : ''}

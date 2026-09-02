@@ -1,0 +1,27 @@
+<!-- @dsCard group="Spacing" viewport="700x200" name="Elevation" subtitle="One tone only — #101828 at 3–10%. Never pure black" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin: 0; padding: 16px 20px; background: var(--ds-surface-page); }
+  .r { display: flex; flex-direction: row; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+  .c { display: flex; flex-direction: column; gap: 10px; }
+  .lbl { font-family: var(--ds-font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ds-text-placeholder); }
+  .hex { font-family: var(--ds-font-mono); font-size: 10px; line-height: 14px; color: var(--ds-text-secondary); }
+  .use { font-size: 10px; line-height: 14px; color: var(--ds-text-placeholder); }
+  .row { display: grid; grid-template-columns: 108px 132px minmax(0, 1fr); gap: 16px; align-items: baseline; padding: 5px 0; }
+  .nm { font-size: 12px; font-weight: 600; color: var(--ds-text-label); }
+</style>
+</head>
+<body>
+<div class="r" style="gap: 20px;">
+  <div class="c" style="gap: 8px;"><div style="width: 108px; height: 72px; border-radius: 12px; background: var(--ds-surface-card); box-shadow: var(--ds-shadow-xs);"></div><span class="hex">shadow xs</span><span class="use">field, button</span></div>
+  <div class="c" style="gap: 8px;"><div style="width: 108px; height: 72px; border-radius: 12px; background: var(--ds-surface-card); box-shadow: var(--ds-shadow-sm);"></div><span class="hex">shadow sm</span><span class="use">card</span></div>
+  <div class="c" style="gap: 8px;"><div style="width: 108px; height: 72px; border-radius: 12px; background: var(--ds-surface-card); box-shadow: var(--ds-shadow-md);"></div><span class="hex">shadow md</span><span class="use">menu</span></div>
+  <div class="c" style="gap: 8px;"><div style="width: 108px; height: 72px; border-radius: 12px; background: var(--ds-surface-card); box-shadow: var(--ds-shadow-lg);"></div><span class="hex">shadow lg</span><span class="use">popover, calendar</span></div>
+  <div class="c" style="gap: 8px;"><div style="width: 108px; height: 72px; border-radius: 12px; background: var(--ds-surface-card); box-shadow: var(--ds-shadow-xl);"></div><span class="hex">shadow xl</span><span class="use">modal, drawer</span></div>
+</div>
+</body>
+</html>

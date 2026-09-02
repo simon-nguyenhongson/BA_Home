@@ -2,9 +2,8 @@
  * ProjectCRTab — CR management scoped to one project.
  * CRs created in the global Requests module (same project_id) appear here automatically.
  */
-import React, { useCallback, useEffect, useRef, useState } from 'react'
-import {
-  X } from 'lucide-react'
+import React, { useCallback, useEffect, useState } from 'react'
+import { X } from 'lucide-react'
 import {
   crApi,
   type ChangeRequest,
@@ -12,7 +11,6 @@ import {
   type CRChangeType,
   type CRStatus,
   type Priority,
-  type RequestHistoryEntry,
 } from '../../api/requests'
 import { useStore } from '../../stores/auth'
 import { FilterBar, applyTextFilter, applyDateFilter } from '../../components/FilterBar'
@@ -21,12 +19,12 @@ import { FileQueueSection } from '../../components/FileQueueSection'
 import { createTodo, type TodoType } from '../../api/todos'
 import { UserSelect } from '../../components/UserSelect'
 import { getProducts, type CatalogProduct } from '../../api/catalog'
+import { PRIORITY_COLORS } from '../../styles/categorical'
 import {
   CR_CHANGE_TYPE_LABELS as CHANGE_TYPE_LABELS,
   CR_STATUS_LABELS as STATUS_LABELS,
   CR_STATUS_TABS as STATUS_TABS,
   CR_PRIORITY_LABELS as PRIORITY_LABELS,
-  CR_FLOW as FLOW,
   TODO_TYPE_LABELS,
 } from '../../features/cr/constants'
 
@@ -58,7 +56,7 @@ const PRIORITY_CSS: Record<Priority, string> = {
   low:      'bg-gray-100 text-gray-500',
 }
 const PRIORITY_BORDER: Record<Priority, string> = {
-  critical: '#ef4444', high: '#f97316', medium: '#eab308', low: '#9ca3af',
+  ...PRIORITY_COLORS,
 }
 
 // ── Error banner ──────────────────────────────────────────────────
@@ -66,11 +64,12 @@ function ErrorBanner({ message, onClose }: { message: string; onClose: () => voi
   return (
     <div style={{
       padding: '8px 14px', borderRadius: 8,
-      background: '#fee2e2', border: '1px solid #fca5a5',
-      display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#b91c1c',
+      background: 'var(--app-danger-bg)', border: '1px solid var(--color-error-300)',
+      display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: 'var(--ds-text-danger)',
     }}>
       <span style={{ flex: 1 }}>{message}</span>
-      <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b91c1c', fontSize: 16 }}></button>
+      <button onClick={onClose} title="Đóng" aria-label="Đóng thông báo lỗi"
+        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ds-text-danger)', display: 'flex', alignItems: 'center' }}><X size={15} /></button>
     </div>
   )
 }
@@ -152,8 +151,17 @@ function CRFormModal({
         result = await crApi.get(initial.id)
       } else {
         result = await crApi.create(form)
+        // KHÔNG nuốt lỗi upload: CR đã tạo nhưng file hỏng thì phải báo tên file
+        // để người dùng đính kèm lại — im lặng là hồ sơ thiếu mà không ai biết.
+        const failed: string[] = []
         for (const file of queuedFiles) {
-          try { await crApi.uploadAttachment(result.id, file) } catch (_) {}
+          try { await crApi.uploadAttachment(result.id, file) } catch (_) { failed.push(file.name) }
+        }
+        if (failed.length) {
+          useStore.getState().addToast(
+            `CR đã tạo nhưng ${failed.length} file đính kèm thất bại: ${failed.join(', ')}. Mở CR để đính kèm lại.`,
+            'warn',
+          )
         }
       }
       onSaved(result)
@@ -175,7 +183,7 @@ function CRFormModal({
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: '#fff', borderRadius: 14,
+          background: 'var(--app-white)', borderRadius: 14,
           width: 640, maxWidth: '96vw', maxHeight: '90vh',
           display: 'flex', flexDirection: 'column',
           boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
@@ -187,7 +195,7 @@ function CRFormModal({
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
         }}>
           <span style={{ fontSize: 15, fontWeight: 700 }}>
-            {mode === 'edit' ? 'Chỉnh sửa CR' : 'Tạo Project Change Request'}
+            {mode === 'edit' ? 'Chỉnh sửa CR' : 'Tạo Change Request'}
           </span>
           <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
             <X size={18} />
@@ -199,7 +207,7 @@ function CRFormModal({
           {/* Sản phẩm — quyền sở hữu CR, bắt buộc */}
           <div>
             <label className="block text-xs text-gray-500 mb-1">
-              Sản phẩm bị tác động <span style={{ color: '#ef4444' }}>*</span>
+              Sản phẩm bị tác động <span className="req" aria-hidden="true">*</span><span className="sr-only"> (bắt buộc)</span>
             </label>
             <select
               className="w-full border rounded px-3 py-2 text-sm"
@@ -228,7 +236,7 @@ function CRFormModal({
           {/* Title */}
           <div>
             <label className="block text-xs text-gray-500 mb-1">
-              Tiêu đề <span style={{ color: '#ef4444' }}>*</span>
+              Tiêu đề <span className="req" aria-hidden="true">*</span><span className="sr-only"> (bắt buộc)</span>
             </label>
             <input
               className="w-full border rounded px-3 py-2 text-sm"
@@ -282,7 +290,7 @@ function CRFormModal({
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div>
               <label className="block text-xs text-gray-500 mb-1">
-                Người yêu cầu <span style={{ color: '#ef4444' }}>*</span>
+                Người yêu cầu <span className="req" aria-hidden="true">*</span><span className="sr-only"> (bắt buộc)</span>
               </label>
               <UserSelect
                 value={form.requested_by}
@@ -354,7 +362,7 @@ function CRFormModal({
           )}
 
           {error && (
-            <div style={{ padding: '8px 12px', background: '#fee2e2', borderRadius: 8, fontSize: 13, color: '#b91c1c' }}>
+            <div style={{ padding: '8px 12px', background: 'var(--app-danger-bg)', borderRadius: 8, fontSize: 13, color: 'var(--ds-text-danger)' }}>
               {error}
             </div>
           )}
@@ -426,7 +434,7 @@ function CreateTaskModal({
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, width: 500, maxWidth: '96vw', boxShadow: '0 20px 60px rgba(0,0,0,0.25)', display: 'flex', flexDirection: 'column' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--app-white)', borderRadius: 14, width: 500, maxWidth: '96vw', boxShadow: '0 20px 60px rgba(0,0,0,0.25)', display: 'flex', flexDirection: 'column' }}>
 
         {/* Header */}
         <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--app-neutral-200)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -441,17 +449,17 @@ function CreateTaskModal({
         </div>
 
         {/* Ref badge */}
-        <div style={{ margin: '12px 20px 0', padding: '6px 10px', borderRadius: 6, background: '#eff6ff', border: '1px solid #bfdbfe', fontSize: 12, color: '#1d4ed8', display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ margin: '12px 20px 0', padding: '6px 10px', borderRadius: 6, background: 'var(--ds-brand-subtle)', border: '1px solid var(--ds-border-brand)', fontSize: 12, color: 'var(--app-primary)', display: 'flex', gap: 8, alignItems: 'center' }}>
           <span style={{ fontFamily: 'monospace', fontWeight: 700 }}>{cr.request_code}</span>
-          <span style={{ color: '#60a5fa' }}>·</span>
+          <span style={{ color: 'var(--app-primary-light)' }}>·</span>
           <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cr.title}</span>
-          <span style={{ fontSize: 11, fontWeight: 600, padding: '1px 6px', borderRadius: 8, background: '#bfdbfe', color: '#1e40af' }}>CR</span>
+          <span style={{ fontSize: 11, fontWeight: 600, padding: '1px 6px', borderRadius: 8, background: 'var(--ds-border-brand)', color: 'var(--app-primary)' }}>CR</span>
         </div>
 
         {/* Form */}
         <form onSubmit={submit} style={{ padding: '14px 20px', display: 'flex', flexDirection: 'column', gap: 11 }}>
           <div>
-            <label className="block text-xs text-gray-500 mb-1">Tiêu đề <span style={{ color: '#ef4444' }}>*</span></label>
+            <label className="block text-xs text-gray-500 mb-1">Tiêu đề <span className="req" aria-hidden="true">*</span><span className="sr-only"> (bắt buộc)</span></label>
             <input className="w-full border rounded px-3 py-2 text-sm" value={title} onChange={e => setTitle(e.target.value)} />
           </div>
           <div>
@@ -486,7 +494,7 @@ function CreateTaskModal({
             </div>
           </div>
 
-          {error && <div style={{ padding: '7px 10px', background: '#fee2e2', borderRadius: 6, fontSize: 13, color: '#b91c1c' }}>{error}</div>}
+          {error && <div style={{ padding: '7px 10px', background: 'var(--app-danger-bg)', borderRadius: 6, fontSize: 13, color: 'var(--ds-text-danger)' }}>{error}</div>}
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 4 }}>
             <button type="button" onClick={onClose} className="px-4 py-1.5 text-sm border border-gray-300 rounded text-gray-600 hover:bg-gray-50">Hủy</button>
@@ -571,8 +579,8 @@ export default function ProjectCRTab({
       {/* Info banner — "input từ Module Request" */}
       <div style={{
         padding: '8px 14px', borderRadius: 8,
-        background: '#eff6ff', border: '1px solid #bfdbfe',
-        display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: '#1d4ed8',
+        background: 'var(--ds-brand-subtle)', border: '1px solid var(--ds-border-brand)',
+        display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: 'var(--app-primary)',
       }}>
         <span style={{ fontSize: 15 }}>ℹ</span>
         <span style={{ flex: 1 }}>
@@ -583,7 +591,7 @@ export default function ProjectCRTab({
           href="/requests"
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: '#1d4ed8', fontWeight: 600, whiteSpace: 'nowrap', textDecoration: 'none' }}
+          style={{ color: 'var(--app-primary)', fontWeight: 600, whiteSpace: 'nowrap', textDecoration: 'none' }}
         >
           Module Requests →
         </a>
@@ -622,7 +630,7 @@ export default function ProjectCRTab({
                 <span style={{
                   fontSize: 11, fontWeight: 700, padding: '1px 6px', borderRadius: 10,
                   background: active ? 'var(--app-primary)' : 'var(--app-neutral-200)',
-                  color: active ? '#fff' : 'var(--app-neutral-600)',
+                  color: active ? 'var(--app-white)' : 'var(--app-neutral-600)',
                 }}>
                   {count}
                 </span>
@@ -636,9 +644,9 @@ export default function ProjectCRTab({
       <FilterBar
         text={{ value: filterText, onChange: setFText, placeholder: 'Tìm code / tiêu đề / người yêu cầu...' }}
         selects={[
-          { key: 'priority', value: filterPriority, onChange: setFP, placeholder: 'Tất cả ưu tiên',
+          { key: 'priority', value: filterPriority, onChange: setFP, placeholder: 'Tất cả ưu tiên', label: 'Ưu tiên',
             options: (Object.entries(PRIORITY_LABELS) as [Priority, string][]).map(([v, l]) => ({ value: v, label: l })) },
-          { key: 'type', value: filterType, onChange: setFT, placeholder: 'Tất cả loại',
+          { key: 'type', value: filterType, onChange: setFT, placeholder: 'Tất cả loại', label: 'Loại thay đổi',
             options: (Object.entries(CHANGE_TYPE_LABELS) as [CRChangeType, string][]).map(([v, l]) => ({ value: v, label: l })) },
         ]}
         dateFrom={{ value: filterFrom, onChange: setFFrom, label: 'Từ ngày' }}
@@ -667,7 +675,7 @@ export default function ProjectCRTab({
             <div style={{
               padding: 32, textAlign: 'center',
               color: 'var(--app-neutral-400)', fontSize: 13,
-              background: '#fff', borderRadius: 12, border: '1px solid var(--app-neutral-200)',
+              background: 'var(--app-white)', borderRadius: 12, border: '1px solid var(--app-neutral-200)',
             }}>
               {items.length === 0 ? 'Chưa có Change Request nào cho dự án này' : 'Không tìm thấy kết quả'}
             </div>
@@ -677,7 +685,7 @@ export default function ProjectCRTab({
               key={cr.id}
               onClick={() => setSelected(cr)}
               style={{
-                background: '#fff', borderRadius: 10,
+                background: 'var(--app-white)', borderRadius: 10,
                 // Longhand cả 4 cạnh: trộn shorthand `border` với `borderLeft` làm React
                 // cảnh báo "Updating a style property during rerender" mỗi lần chọn dòng
                 borderTopStyle: 'solid', borderRightStyle: 'solid',

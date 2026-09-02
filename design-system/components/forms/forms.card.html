@@ -1,0 +1,68 @@
+<!-- @dsCard group="Components" viewport="700x460" name="Forms — fields, select, date, toggle" subtitle="18 primitives sharing one 8px field frame" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Form components</title>
+<link rel="stylesheet" href="../../styles.css" />
+<script type="importmap">
+{ "imports": { "react": "https://esm.sh/react@18.3.1", "react-dom/client": "https://esm.sh/react-dom@18.3.1/client" } }
+</script>
+<style>
+  body { padding: 20px; background: var(--ds-surface-page); }
+  .grid { display: flex; flex-direction: column; gap: 18px; }
+  .cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 20px; }
+  .lbl { font-family: var(--ds-font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ds-text-placeholder); }
+  .cell { display: flex; flex-direction: column; gap: 6px; }
+  .row { display: flex; flex-direction: row; flex-wrap: wrap; gap: 14px; align-items: center; }
+  .sep { height: 1px; background: var(--ds-border-subtle); }
+</style>
+</head>
+<body>
+<div id="root" class="grid"></div>
+<script type="module">
+import React from "react";
+import { createRoot } from "react-dom/client";
+import * as C from "./_impl.js";
+
+const h = React.createElement;
+const Cell = (label, node) => h("div", { className: "cell" }, h("span", { className: "lbl" }, label), node);
+
+createRoot(document.getElementById("root")).render(
+  h(React.Fragment, null,
+    h("div", { className: "cols" },
+      Cell("select · default", h(C.ComboboxSingleSelect, { type: "no label", state: "default" })),
+      Cell("select · filled", h(C.ComboboxSingleSelect, { type: "no label", state: "filled" })),
+      Cell("select · focused", h(C.ComboboxSingleSelect, { type: "no label", state: "focused" })),
+      Cell("select · destructive", h(C.ComboboxSingleSelect, { type: "no label", state: "default", destructive: true })),
+      Cell("select · disabled", h(C.ComboboxSingleSelect, { type: "no label", state: "disabled" })),
+      Cell("select · labelled", h(C.ComboboxSingleSelect, { type: "default", state: "default", text1: "Chi nhánh" }))),
+    h("div", { className: "sep" }),
+    h("div", { className: "cols" },
+      Cell("input · default", h(C.Input, { state: "default" })),
+      Cell("input · editable", h(C.Input, { state: "editable" })),
+      Cell("input · disabled", h(C.Input, { state: "disabled" })),
+      Cell("currency · addon right", h(C.Currency, { state: "filled", addon: "right", text1: "Số tiền" })),
+      Cell("colour picker", h(C.ColorPicker, { state: "filled", text1: "Màu nhãn" })),
+      Cell("date · filled", h(C.DateDatePicker, { label: true, state: "filled", text1: "Ngày hiệu lực" }))),
+    h("div", { className: "sep" }),
+    h("div", { className: "row" },
+      h("span", { className: "lbl" }, "toggle"),
+      h(C.Toggle, { size: "md", pressed: false, state: "default" }),
+      h(C.Toggle, { size: "md", pressed: true, state: "default" }),
+      h(C.Toggle, { size: "sm", pressed: true, state: "default" }),
+      h(C.Toggle, { size: "md", pressed: true, state: "disabled" }),
+      h("span", { style: { width: 12 } }),
+      h("span", { className: "lbl" }, "radio"),
+      h(C.ComponentsRadioButtonSolid, { size: "md", checked: true, text1: "Chọn" }),
+      h(C.ComponentsRadioButtonSolid, { size: "md", checked: false, text1: "Không" }),
+      h(C.ComponentsRadioButtonSolid, { size: "md", checked: false, disabled: true, text1: "Tắt" })),
+    h("div", { className: "cols" },
+      Cell("progress · right", h(C.ProgressBar, { progress: "40%", label: "right" })),
+      Cell("progress · bottom", h(C.ProgressBar, { progress: "70%", label: "bottom" })),
+      Cell("progress · bare track", h(C.ProgressBar, { progress: "20%", label: "false" })))
+  )
+);
+</script>
+</body>
+</html>

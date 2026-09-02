@@ -3,12 +3,15 @@ import {
   CheckCircle2, GitMerge, History, Pencil, RefreshCw, Rocket, Send, Sparkles, X, Shapes,
 } from 'lucide-react'
 import {
-  generateBrs, getBrsOfCr, reviseBrs, updateBrs, changeBrsStatus, getBrsHistory,
-  getBrsHistoryContent, mergeBrsIntoMasterDoc, approveMasterDocVersion, rejectMasterDocVersion,
+  getBrsOfCr, updateBrs, changeBrsStatus, getBrsHistory,
+  getBrsHistoryContent, approveMasterDocVersion, rejectMasterDocVersion,
   getCrMasterDocImpact,
   type BrsDocument, type BrsHistoryItem, type DiffResult, type MasterDocImpact,
 } from '../../api/ai'
 import { Badge, Btn, Field, AppTextarea, Modal, EmptyState } from '../../components/ui'
+import { MarkdownDocView } from '../../components/MarkdownDocView'
+import { AiRunStage } from '../ai/AiRunStage'
+import { useAiRun } from '../ai/useAiRun'
 import { useStore } from '../../stores/auth'
 import { DiffView } from './DiffView'
 import { DiagramsPanel } from '../diagrams/DiagramsPanel'
@@ -39,6 +42,10 @@ export function BrsPanel({ crId, crStatus, crCode }: { crId: string; crStatus: s
   const [brs, setBrs] = useState<BrsDocument | null>(null)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState('')
+  // Ba lượt gọi AI của luồng BA, mỗi lượt có sân khấu tường thuật riêng
+  const genRun    = useAiRun()   // sinh BRS
+  const reviseRun = useAiRun()   // AI chỉnh BRS
+  const mergeRun  = useAiRun()   // hợp nhất vào Master Doc
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
   const [reviseOpen, setReviseOpen] = useState(false)
@@ -77,25 +84,35 @@ export function BrsPanel({ crId, crStatus, crCode }: { crId: string; crStatus: s
     }
   }
 
-  const doGenerate = () => run('gen', async () => {
-    const res = await generateBrs(crId)
+  const doGenerate = async () => {
+    const res = await genRun.run<{ data: BrsDocument }>(
+      `/requests/change-requests/${crId}/brs/generate/stream`, {},
+    )
+    // Lỗi đã hiện trên sân khấu kèm mã lỗi và bước dừng — không đóng, để sửa rồi thử lại
+    if (!res) return
     setBrs(res.data)
     setDraft(res.data.content)
-    addToast('AI đã sinh tài liệu BRS', 'success')
-  })
+    genRun.reset()
+    addToast(`AI đã sinh BRS — v${res.data.version}`, 'success')
+  }
 
-  const doRevise = () => run('revise', async () => {
+  const doRevise = async () => {
     if (!brs || !instruction.trim()) return
-    const res = await reviseBrs(brs.id, instruction.trim())
+    const res = await reviseRun.run<{
+      data: BrsDocument
+      meta?: { review_reset?: boolean; message?: string }
+    }>(`/brs/${brs.id}/revise/stream`, { instruction: instruction.trim() })
+    if (!res) return
     setBrs(res.data)
     setDraft(res.data.content)
     setReviseOpen(false)
     setInstruction('')
+    reviseRun.reset()
     addToast(`AI đã cập nhật BRS — v${res.data.version}`, 'success')
     // Nội dung đổi khi đang review thì BRS bị trả về nháp — phải nói rõ, nếu không
     // BA tưởng vẫn đang chờ duyệt và không bấm gửi duyệt lại.
-    if (res.meta?.review_reset) addToast(res.meta.message, 'warn')
-  })
+    if (res.meta?.review_reset && res.meta.message) addToast(res.meta.message, 'warn')
+  }
 
   const doSaveEdit = () => run('save', async () => {
     if (!brs) return
@@ -118,11 +135,16 @@ export function BrsPanel({ crId, crStatus, crCode }: { crId: string; crStatus: s
     }
   })
 
-  const doMerge = () => run('merge', async () => {
+  const doMerge = async () => {
     if (!brs) return
-    const res = await mergeBrsIntoMasterDoc(brs.id)
+    const res = await mergeRun.run<{
+      data: { version_id: string; change_summary: string }
+      diff: DiffResult
+    }>(`/brs/${brs.id}/merge-master-doc/stream`, {})
+    if (!res) return
+    mergeRun.reset()
     setMergeDiff({ versionId: res.data.version_id, summary: res.data.change_summary, diff: res.diff })
-  })
+  }
 
   const doApproveMerge = () => run('approveMerge', async () => {
     if (!mergeDiff) return
@@ -154,6 +176,26 @@ export function BrsPanel({ crId, crStatus, crCode }: { crId: string; crStatus: s
     return <div style={{ padding: 20, color: 'var(--app-neutral-500)' }}>Đang tải tài liệu BRS...</div>
   }
 
+  // Đang sinh BRS lần đầu: thay chỗ trống bằng sân khấu tường thuật, không để nút mờ
+  // rồi đứng yên hàng phút.
+  if (!brs && (genRun.active || genRun.error)) {
+    return (
+      <div style={{ padding: 8 }}>
+        <AiRunStage
+          title={`Claude đang viết BRS cho ${crCode}`}
+          steps={genRun.steps}
+          stats={genRun.stats}
+          error={genRun.error}
+          elapsedFrom={genRun.startedAt}
+          verb="sinh"
+          onCancel={() => { genRun.cancel(); genRun.reset() }}
+          onRetry={() => genRun.reset()}
+          onClose={() => genRun.reset()}
+        />
+      </div>
+    )
+  }
+
   if (!brs) {
     return (
       <div style={{ padding: 8 }}>
@@ -163,7 +205,7 @@ export function BrsPanel({ crId, crStatus, crCode }: { crId: string; crStatus: s
             ? 'Sinh BRS từ nội dung CR và Master Doc hiện hành để bắt đầu.'
             : 'CR phải được duyệt trước khi sinh BRS.'}
           action={
-            <Btn onClick={doGenerate} loading={busy === 'gen'} disabled={!canGenerate}>
+            <Btn onClick={doGenerate} disabled={!canGenerate}>
               <Sparkles size={14} strokeWidth={1.5} /> Gen BRS
             </Btn>
           }
@@ -173,6 +215,32 @@ export function BrsPanel({ crId, crStatus, crCode }: { crId: string; crStatus: s
   }
 
   const flowIdx = BRS_FLOW.indexOf(brs.status)
+
+  // Ba luồng AI trên BRS đã có: sinh lại, AI chỉnh, hợp nhất Master Doc. Lượt nào đang
+  // chạy thì chiếm chỗ nội dung — người dùng thấy tiến độ thật chứ không phải nút mờ.
+  const liveRun =
+    genRun.active    || genRun.error    ? { r: genRun,    verb: 'sinh',      title: `Claude đang sinh lại BRS cho ${crCode}` }
+    : reviseRun.active || reviseRun.error ? { r: reviseRun, verb: 'chỉnh',     title: `Claude đang chỉnh BRS v${brs.version}` }
+    : mergeRun.active  || mergeRun.error  ? { r: mergeRun,  verb: 'hợp nhất', title: `Claude đang hợp nhất BRS v${brs.version} vào Master Doc` }
+    : null
+
+  if (liveRun) {
+    return (
+      <div style={{ padding: 8 }}>
+        <AiRunStage
+          title={liveRun.title}
+          steps={liveRun.r.steps}
+          stats={liveRun.r.stats}
+          error={liveRun.r.error}
+          elapsedFrom={liveRun.r.startedAt}
+          verb={liveRun.verb}
+          onCancel={() => { liveRun.r.cancel(); liveRun.r.reset() }}
+          onRetry={() => liveRun.r.reset()}
+          onClose={() => liveRun.r.reset()}
+        />
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -226,7 +294,7 @@ export function BrsPanel({ crId, crStatus, crCode }: { crId: string; crStatus: s
 
           {brs.status === 'draft' && (
             <>
-              <Btn variant="secondary" size="sm" onClick={doGenerate} loading={busy === 'gen'}>
+              <Btn variant="secondary" size="sm" onClick={doGenerate}>
                 <RefreshCw size={14} strokeWidth={1.5} /> Sinh lại
               </Btn>
               <Btn size="sm" onClick={() => doStatus('submit_review')} loading={busy === 'submit_review'}>
@@ -248,7 +316,7 @@ export function BrsPanel({ crId, crStatus, crCode }: { crId: string; crStatus: s
             </Btn>
           )}
           {brs.status === 'golive' && (
-            <Btn size="sm" onClick={doMerge} loading={busy === 'merge'}>
+            <Btn size="sm" onClick={doMerge}>
               <GitMerge size={14} strokeWidth={1.5} /> Merge Master Doc
             </Btn>
           )}
@@ -264,13 +332,17 @@ export function BrsPanel({ crId, crStatus, crCode }: { crId: string; crStatus: s
           style={{ fontFamily: 'var(--font-mono)', fontSize: 13, lineHeight: '20px' }}
         />
       ) : (
-        <pre style={{
-          whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-          fontFamily: 'var(--font-mono)', fontSize: 13, lineHeight: '20px',
-          color: 'var(--app-neutral-700)', background: 'var(--app-neutral-50)',
-          border: '1px solid var(--app-neutral-200)', borderRadius: 8,
-          padding: 16, maxHeight: 560, overflow: 'auto', margin: 0,
-        }}>{brs.content}</pre>
+        // BRS cũng là Markdown 12 mục — cùng lỗi <pre> như Master Doc
+        <div style={{
+          background: 'var(--app-neutral-50)', border: '1px solid var(--app-neutral-200)',
+          borderRadius: 8, padding: 16, height: 620, overflow: 'hidden',
+        }}>
+          <MarkdownDocView
+            content={brs.content}
+            filename={`${crCode.toLowerCase()}-brs-v${brs.version}.md`}
+            meta={<>BRS <strong>v{brs.version}</strong> của {crCode}</>}
+          />
+        </div>
       )}
 
       {/* Modal: AI chỉnh sửa */}
@@ -285,7 +357,7 @@ export function BrsPanel({ crId, crStatus, crCode }: { crId: string; crStatus: s
         </Field>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <Btn variant="secondary" onClick={() => setReviseOpen(false)}>Cancel</Btn>
-          <Btn onClick={doRevise} loading={busy === 'revise'} disabled={!instruction.trim()}>
+          <Btn onClick={doRevise} disabled={!instruction.trim()}>
             <Sparkles size={14} strokeWidth={1.5} /> Chỉnh sửa
           </Btn>
         </div>
@@ -336,7 +408,7 @@ export function BrsPanel({ crId, crStatus, crCode }: { crId: string; crStatus: s
         {mergeDiff && (
           <>
             <div style={{
-              background: '#E6F1FA', borderRadius: 8, padding: 12, marginBottom: 12,
+              background: 'var(--app-info-bg)', borderRadius: 8, padding: 12, marginBottom: 12,
               fontSize: 14, color: 'var(--app-neutral-700)', whiteSpace: 'pre-wrap',
             }}>
               <strong style={{ display: 'block', marginBottom: 4 }}>AI tóm tắt thay đổi</strong>

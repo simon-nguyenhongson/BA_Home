@@ -104,13 +104,13 @@ export function CoverageSummary({
             alignItems: 'center',
             gap: 8,
             padding: '8px 12px',
-            background: '#FEF3C7',
+            background: 'var(--app-warning-bg)',
             borderRadius: 6,
-            border: '1px solid #F59E0B',
+            border: '1px solid var(--app-warning)',
           }}
         >
-          <AlertTriangle size={16} style={{ color: '#D97706', flexShrink: 0 }} />
-          <span style={{ fontSize: 12, color: '#92400E' }}>
+          <AlertTriangle size={16} style={{ color: 'var(--app-warning)', flexShrink: 0 }} />
+          <span style={{ fontSize: 12, color: 'var(--app-warning)' }}>
             Coverage {coverage_pct.toFixed(1)}% thấp hơn ngưỡng {threshold}%
           </span>
         </div>
@@ -123,13 +123,13 @@ export function CoverageSummary({
             alignItems: 'center',
             gap: 8,
             padding: '6px 12px',
-            background: '#D1FAE5',
+            background: 'var(--app-success-bg)',
             borderRadius: 6,
-            border: '1px solid #10B981',
+            border: '1px solid var(--app-success)',
           }}
         >
-          <CheckCircle size={14} style={{ color: '#059669', flexShrink: 0 }} />
-          <span style={{ fontSize: 12, color: '#065F46' }}>
+          <CheckCircle size={14} style={{ color: 'var(--app-success)', flexShrink: 0 }} />
+          <span style={{ fontSize: 12, color: 'var(--app-success)' }}>
             Coverage đạt ngưỡng {threshold}%
           </span>
         </div>
@@ -193,12 +193,12 @@ function MilestoneCoverageCard({ milestone }: MilestoneCoverageCardProps) {
             gap: 6,
             marginTop: 6,
             padding: '4px 8px',
-            background: '#FEF3C7',
+            background: 'var(--app-warning-bg)',
             borderRadius: 4,
           }}
         >
-          <AlertTriangle size={12} style={{ color: '#D97706', flexShrink: 0 }} />
-          <span style={{ fontSize: 11, color: '#92400E' }}>{milestone.alert}</span>
+          <AlertTriangle size={12} style={{ color: 'var(--app-warning)', flexShrink: 0 }} />
+          <span style={{ fontSize: 11, color: 'var(--app-warning)' }}>{milestone.alert}</span>
         </div>
       )}
     </div>
@@ -232,11 +232,11 @@ export function CoverageIndicator({ coverage }: CoverageIndicatorProps) {
               alignItems: 'center',
               gap: 4,
               padding: '3px 10px',
-              background: '#FEF3C7',
+              background: 'var(--app-warning-bg)',
               borderRadius: 12,
               fontSize: 11,
               fontWeight: 600,
-              color: '#D97706',
+              color: 'var(--app-warning)',
             }}
           >
             <AlertTriangle size={12} />

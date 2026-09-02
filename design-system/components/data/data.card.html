@@ -1,0 +1,84 @@
+<!-- @dsCard group="Components" viewport="700x400" name="Table & Data — cells, pagination, description" subtitle="12 primitives; tables are assembled from cells, not rows" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Table components</title>
+<link rel="stylesheet" href="../../styles.css" />
+<script type="importmap">
+{ "imports": { "react": "https://esm.sh/react@18.3.1", "react-dom/client": "https://esm.sh/react-dom@18.3.1/client" } }
+</script>
+<style>
+  body { padding: 20px; background: var(--ds-surface-page); }
+  .grid { display: flex; flex-direction: column; gap: 18px; }
+  .lbl { font-family: var(--ds-font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ds-text-placeholder); }
+  .cell { display: flex; flex-direction: column; gap: 8px; }
+  .table { display: flex; flex-direction: column; align-items: flex-start; width: max-content;
+           border-radius: var(--ds-radius-md); overflow: hidden; box-shadow: var(--ds-shadow-sm); background: var(--ds-surface-card); }
+  .tr { display: flex; flex-direction: row; align-items: stretch; }
+  .tr + .tr { margin-top: -1px; }
+  .catalog { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  .clip { display: flex; min-width: 0; overflow: hidden; }
+  .sep { height: 1px; background: var(--ds-border-subtle); }
+</style>
+</head>
+<body>
+<div id="root" class="grid"></div>
+<script type="module">
+import React from "react";
+import { createRoot } from "react-dom/client";
+import * as C from "./_impl.js";
+
+const h = React.createElement;
+const col = (w, extra) => ({ style: { width: w, minWidth: w, flexShrink: 0, marginLeft: -1, ...extra } });
+const W = [46, 200, 168, 132, 150];
+
+const Row = (cells) => h("div", { className: "tr" }, ...cells);
+
+createRoot(document.getElementById("root")).render(
+  h(React.Fragment, null,
+    h("div", { className: "cell" },
+      h("span", { className: "lbl" }, "table assembled from cells · borders collapse at −1px"),
+      h("div", { className: "table" },
+        Row([
+          h(C.CellTitle, { key: 0, type: "checkbox", checkbox: true, ...col(W[0], { marginLeft: 0 }) }),
+          h(C.CellTitle, { key: 1, type: "text", ...col(W[1], { justifyContent: "flex-start" }) }),
+          h(C.CellTitle, { key: 2, type: "text", filter: true, ...col(W[2]) }),
+          h(C.CellTitle, { key: 3, type: "number", ...col(W[3]) }),
+          h(C.CellTitle, { key: 4, type: "text w tooltip", ...col(W[4]) })]),
+        Row([
+          h(C.CellBodyNormal, { key: 0, type: "Checkbox", state: "checked", ...col(W[0], { marginLeft: 0 }) }),
+          h(C.CellBodyNormal, { key: 1, type: "Text", state: "checked", text1: "PR•••••6098", ...col(W[1], { justifyContent: "flex-start" }) }),
+          h(C.CellBodyNormal, { key: 2, type: "Status", state: "checked", ...col(W[2]) }),
+          h(C.CellBodyNormal, { key: 3, type: "Money", state: "checked", ...col(W[3]) }),
+          h(C.CellBodyNormal, { key: 4, type: "Date picker", state: "checked", ...col(W[4]) })]),
+        Row([
+          h(C.CellBodyNormal, { key: 0, type: "Checkbox", state: "default", ...col(W[0], { marginLeft: 0 }) }),
+          h(C.CellBodyNormal, { key: 1, type: "Link", state: "default", text1: "PR•••••6099", ...col(W[1], { justifyContent: "flex-start" }) }),
+          h(C.CellBodyNormal, { key: 2, type: "Toggle", state: "default", ...col(W[2]) }),
+          h(C.CellBodyNormal, { key: 3, type: "Number", state: "default", ...col(W[3]) }),
+          h(C.CellBodyNormal, { key: 4, type: "Combo select", state: "default", ...col(W[4]) })]),
+        Row([
+          h(C.CellBodyNormal, { key: 0, type: "Checkbox", state: "hover", ...col(W[0], { marginLeft: 0 }) }),
+          h(C.CellBodyNormal, { key: 1, type: "Tree", state: "hover", text1: "Nhóm vật tư", ...col(W[1], { justifyContent: "flex-start" }) }),
+          h(C.CellBodyNormal, { key: 2, type: "Blank", state: "hover", ...col(W[2]) }),
+          h(C.CellBodyNormal, { key: 3, type: "Decimal", state: "hover", ...col(W[3]) }),
+          h(C.CellBodyNormal, { key: 4, type: "Action button", state: "hover", ...col(W[4]) })]))),
+    h("div", { className: "sep" }),
+    h("div", { className: "cell" },
+      h("span", { className: "lbl" }, "cell body · 8 of 50 content types"),
+      h("div", { className: "catalog" },
+        ...["Text", "Money", "Status", "Link", "Combo select", "Date picker", "Number input", "Tooltip"].map((type, i) =>
+          h("div", { key: i, className: "cell", style: { gap: 4 } },
+            h("span", { className: "lbl" }, type),
+            h("div", { className: "clip" },
+              h(C.CellBodyNormal, { type, state: "default", style: { width: "100%", minWidth: 0 } })))))),
+    h("div", { className: "sep" }),
+    h("div", { className: "cell" },
+      h("span", { className: "lbl" }, "description list · 2 columns"),
+      h(C.Description, { collum: "2", line: "2", style: { width: "100%" } }))
+  )
+);
+</script>
+</body>
+</html>

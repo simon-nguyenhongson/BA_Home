@@ -1,4 +1,5 @@
 # Thiết kế: Luồng tài liệu chuẩn hóa (CR → BRS → Master Doc) + Automation Test
+
 > Phiên bản 1.0 — 2026-08-31. Hợp đồng triển khai cho backend + frontend.
 > Yêu cầu gốc từ PO (Senior ITBA) — xem Lessons learned CLAUDE.md 2026-08-31.
 
@@ -30,17 +31,21 @@ Master Doc (per hệ thống - catalog_products, bảng V047 master_documents)
 ## 1. Hạ tầng chung
 
 ### 1.1 Settings (menu Cài đặt)
+
 - Bảng `app_settings(key TEXT PK, value TEXT, updated_by, updated_at)`.
 - Keys: `anthropic_api_key` (secret — API trả về dạng mask `sk-ant-***abc`), `anthropic_model` (default `claude-opus-5`), `anthropic_max_tokens` (default `32000`).
 - API (router `ai_admin.py`, prefix `/settings/ai`): `GET /settings/ai` (key masked), `PUT /settings/ai` (chỉ update field gửi lên; gửi key mới thì ghi đè), `POST /settings/ai/test` (gọi thử 1 request nhỏ xác nhận key hợp lệ).
 
 ### 1.2 Kho skill (quản lý bộ skill chuẩn Claude)
+
 - Bảng `ai_skills(id UUID PK, code TEXT UNIQUE, name, description, content TEXT, is_system BOOL, updated_by, created_at, updated_at)`.
 - `content` = system instructions của skill (markdown). 4 skill hệ thống seed sẵn (is_system=true, không xóa được, sửa được): `gen_brs`, `update_master_doc`, `gen_test_case`, `gen_test_report`.
 - API (router `ai_admin.py`, prefix `/ai-skills`): GET list, GET /{id}, POST, PUT /{id}, DELETE /{id} (chặn nếu is_system).
 
 ### 1.3 AI Agent service — `backend/ppg/app/services/ai_agent.py`
+
 Hợp đồng (các router khác code theo đúng chữ ký này):
+
 ```python
 async def run_skill(
     db: asyncpg.Connection,
@@ -49,6 +54,7 @@ async def run_skill(
     extra_system: str = "",   # bổ sung sau skill content nếu cần
 ) -> str:                     # trả text kết quả; raise HTTPException nếu lỗi
 ```
+
 - Đọc `anthropic_api_key`/`anthropic_model`/`anthropic_max_tokens` từ `app_settings`. Không có key → HTTPException 400 `{"code":"AI_KEY_MISSING","message":"Chưa cấu hình Claude API key trong Cài đặt"}`.
 - Dùng SDK chính thức: `from anthropic import AsyncAnthropic`; gọi `client.messages.stream(...)` + `get_final_message()` (streaming tránh timeout tài liệu dài); model từ settings (default `claude-opus-5`); KHÔNG truyền tham số `thinking` (mặc định adaptive); `system=[{"type":"text","text": skill_content(+extra), "cache_control": {"type":"ephemeral"}}]`.
 - Bắt lỗi theo chuỗi: `AuthenticationError`→400 AI_KEY_INVALID, `RateLimitError`→429, `APIStatusError`→502 kèm message, `APIConnectionError`→502 "Không kết nối được Claude API". KHÔNG nuốt lỗi, KHÔNG trả mock.
@@ -58,6 +64,7 @@ async def run_skill(
 ## 2. Luồng tài liệu
 
 ### 2.1 BRS per CR — bảng `cr_brs_documents`
+
 - Cột: id, cr_id FK change_requests, title, content (markdown), version INT default 1, status CHECK (`draft`,`in_review`,`approved`,`golive`), skill_code, created_by/updated_by/approved_by/approved_at/golive_by/golive_at, timestamps. Một CR có thể có nhiều BRS nhưng chỉ 1 bản `active` (mới nhất chưa bị thay thế) — đơn giản: UNIQUE(cr_id) bản hiện hành, regen = ghi đè content + history.
 - Bảng `cr_brs_history(id, brs_id FK, version, content, change_note, source CHECK('generate','revise','manual_edit'), created_by, created_at)` — snapshot MỌI thay đổi content.
 - Router `cr_brs.py` (prefix `/requests/change-requests/{cr_id}/brs` + `/brs`):
@@ -68,7 +75,9 @@ async def run_skill(
   - `GET .../brs` + `GET /brs/{id}` + `GET /brs/{id}/history`.
 
 ### 2.2 Master Doc + merge có phê duyệt — router `master_docs.py`
+
 Dùng bảng V047 sẵn có; V048 ALTER thêm vào `master_doc_versions`: `status TEXT NOT NULL DEFAULT 'approved' CHECK (status IN ('pending','approved','rejected'))`, `base_version_no INTEGER`, `approved_by TEXT`, `approved_at TIMESTAMPTZ`, `brs_id UUID` (FK cr_brs_documents, SET NULL). Version pending có `version_no = NULL` (UNIQUE cho phép nhiều NULL), khi approve mới gán version_no = current+1.
+
 - `GET /master-docs?product_id=` — list (kèm current version).
 - `POST /master-docs {product_id, title, content}` — tạo Master Doc đầu tiên cho hệ thống + version 1 (source='initial').
 - `PUT /master-docs/{id}` — sửa tay: tạo version mới approved luôn (source='manual') + cập nhật HEAD.
@@ -82,12 +91,15 @@ Dùng bảng V047 sẵn có; V048 ALTER thêm vào `master_doc_versions`: `statu
   - `GET /master-docs/versions/{vid}/diff-base` — diff proposal pending với bản base của nó (màn duyệt merge).
 
 ## 3. Automation Test — router `automation.py` (prefix `/automation`)
+
 Bảng V048:
+
 - `automation_test_tasks(id, cr_id UNIQUE FK, brs_id FK, status CHECK('need_test','cases_generated','in_progress','closed'), closed_by, closed_at, created_at, updated_at)`.
 - `automation_test_cases(id, task_id FK CASCADE, code TEXT, title, precondition, steps, expected, priority CHECK('critical','high','medium','low') DEFAULT 'medium', studio_tc_id TEXT, status CHECK('draft','ready','mapped','passed','failed') DEFAULT 'draft', sort_order INT, created_by, timestamps)`.
 - `automation_test_runs(id, task_id FK CASCADE, run_ref TEXT, summary JSONB DEFAULT '{}', report_content TEXT DEFAULT '', created_by, created_at)`.
 
 API:
+
 - `GET /automation/tasks?status=` — list kèm cr_code/cr_title/brs status (JOIN); `GET /automation/tasks/{id}` kèm cases + runs.
 - `POST /automation/tasks/{id}/generate-cases {skill_code?='gen_test_case'}` — gọi AI với BRS content approved; AI trả JSON array [{code,title,precondition,steps,expected,priority}] (skill yêu cầu trả JSON; parse chặt chẽ, lỗi parse → 502 kèm raw đầu ra); insert cases, task → cases_generated.
 - CRUD cases: `POST /automation/tasks/{id}/cases`, `PUT /automation/cases/{id}` (kể cả gán `studio_tc_id` → status mapped), `DELETE /automation/cases/{id}`.
@@ -97,13 +109,16 @@ API:
 - `GET /automation/tasks/{id}/export` — XLSX (openpyxl, StreamingResponse như project_export.py): sheet TestCases, sheet Runs, sheet Report (report_content), header có CR code/title + BRS version.
 
 ## 4. Capture Studio
+
 - Thêm CORS cho origin frontend (env `STUDIO_ALLOW_ORIGIN`, default `http://localhost:5173`) vào automation-test/capture-studio/server.js để FE đọc `/api/testcases`, `/api/runs` khi map case và import kết quả run.
 
 ## 5. Frontend (làm SAU khi reskin xong — theo DS spec)
+
 - Trang **Cài đặt** `/settings`: API key (masked, nút Lưu + Kiểm tra kết nối), model, kho skill (bảng + editor markdown, badge Hệ thống).
 - CR detail (RequestsPage + ProjectCRTab): khi CR approved → nút **[Gen BRS]**; tab/khối BRS: xem markdown, sửa, [AI chỉnh sửa] (nhập instruction), luồng nút theo status (Gửi duyệt/Approve/Reject/Golive), sau golive → **[Merge Master Doc]**; link "Xem tác động Master Doc" (impact diff).
 - Màn **Master Doc** (trong Catalog product detail hoặc trang riêng): nội dung HEAD, lịch sử version + CR per version, màn duyệt proposal pending (side-by-side diff, Approve/Reject), so sánh 2 version bất kỳ.
 - Trang **Automation** mở rộng: tab "Task theo CR" (list task, Gen testcase, bảng cases, map studio tc — dropdown đọc từ studio API, import run, Gen report, Close, Export) + tab nhúng studio (đã có).
 
 ## 6. Nguyên tắc
+
 - Mọi lỗi AI hiện rõ cho user — KHÔNG mock, KHÔNG nuốt. Mọi thao tác AI ghi history/audit. State machine enforce đúng chiều, 409 khi sai. Migrations chỉ additive. Python type hints đầy đủ; TS không dùng `any`.

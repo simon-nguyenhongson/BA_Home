@@ -7,7 +7,8 @@ import {
 import { useStore } from './stores/auth'
 import { ToastContainer } from './components/ui'
 import LoginPage from './pages/LoginPage'
-import PPGPage from './pages/ppg/PPGPage'
+import WorkspacePage from './pages/workspace/WorkspacePage'
+import ProjectDetailPage from './pages/ppg/ProjectDetailPage'
 import BAWorkflowPage from './pages/ba-workflow/BAWorkflowPage'
 import DocsPage from './pages/docs/DocsPage'
 import DashboardPage from './pages/dashboard/DashboardPage'
@@ -17,14 +18,20 @@ import TestHubPage from './pages/test-hub/TestHubPage'
 import SettingsPage from './pages/settings/SettingsPage'
 import './styles.css'
 
-const APPS = [
+/**
+ * Thứ tự các mục trên sidebar. EXPORT để test khẳng định trên nguồn thật.
+ *
+ * Trước đây App.test.tsx giữ một BẢN COPY của mảng này, nên khi đổi menu (PPG → Workspace)
+ * test vẫn xanh trong khi khẳng định đã sai — đúng loại "test lạc hậu tạo an toàn giả".
+ */
+export const APPS = [
   { key: 'dashboard'     as const, icon: LayoutDashboard,   label: 'Dashboard',  sub: 'Tổng quan vòng đời',            path: '/dashboard' },
-  { key: 'ppg'           as const, icon: Building2,         label: 'Project',    sub: 'Quản trị dự án',                path: '/ppg' },
+  { key: 'todos'         as const, icon: CheckSquare,       label: 'To-do',      sub: 'Công việc · Kanban',            path: '/todos' },
+  { key: 'workspace'     as const, icon: Building2,         label: 'Workspace',  sub: 'Project · Product',             path: '/workspace' },
   { key: 'ba-workflow'   as const, icon: FileText,          label: 'BA',         sub: 'Chọn CR · AI sinh tài liệu',    path: '/ba-workflow' },
   { key: 'test'          as const, icon: FlaskConical,      label: 'Test',       sub: 'Test case theo CR · Capture Studio', path: '/test' },
   { key: 'docs'          as const, icon: BookOpen,          label: 'Tài liệu',   sub: 'Dự án · Sản phẩm',              path: '/docs' },
   { key: 'requests'      as const, icon: Ticket,            label: 'Requests',   sub: 'Change Request · Service Request', path: '/requests' },
-  { key: 'todos'         as const, icon: CheckSquare,       label: 'To-do',      sub: 'Công việc · Kanban',            path: '/todos' },
   { key: 'settings'      as const, icon: SlidersHorizontal, label: 'Cài đặt',    sub: 'AI · Skill · Danh mục',     path: '/settings' },
 ]
 
@@ -34,7 +41,11 @@ function Shell() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const currentApp = APPS.find(a => location.pathname.startsWith(a.path)) || APPS[0]
+  // /projects/:id là trang con của Workspace (quản trị mở rộng dự án) — không có mục
+  // sidebar riêng, nên phải quy về Workspace để breadcrumb và mục đang chọn không nhảy
+  // về Dashboard.
+  const path = location.pathname.startsWith('/projects') ? '/workspace' : location.pathname
+  const currentApp = APPS.find(a => path.startsWith(a.path)) || APPS[0]
 
   return (
     <div className="shell">
@@ -105,7 +116,14 @@ function Shell() {
             <main className="main-content">
               <Routes>
                 <Route path="/dashboard"     element={<DashboardPage />} />
-                <Route path="/ppg"           element={<PPGPage />} />
+                <Route path="/workspace"     element={<WorkspacePage />} />
+                {/* Quản trị mở rộng của một dự án: brief, stage gate, health score,
+                    stakeholder, WSJF, licence, hợp đồng + điều khoản + thanh toán,
+                    handover, integration link, app/job standard.
+                    Trang này đã tồn tại đầy đủ (2.3k dòng, 65 hàm API) nhưng KHÔNG route
+                    nào trỏ tới — 17 nhóm tính năng có backend sống mà không ai vào được.
+                    Vào từ nút [Quản trị mở rộng] trong chi tiết dự án. */}
+                <Route path="/projects/:id"  element={<ProjectDetailPage />} />
                 <Route path="/ba-workflow"   element={<BAWorkflowPage />} />
                 <Route path="/test"          element={<TestHubPage />} />
                 <Route path="/settings"      element={<SettingsPage />} />
@@ -114,7 +132,8 @@ function Shell() {
                 <Route path="/todos"         element={<TodoPage />} />
                 {/* Danh mục đã chuyển vào Cài đặt; Test và Automation đã gộp thành /test.
                     Giữ chuyển hướng cho link cũ và bookmark. */}
-                <Route path="/catalog"       element={<Navigate to="/settings?tab=products" replace />} />
+                <Route path="/ppg"           element={<Navigate to="/workspace" replace />} />
+                <Route path="/catalog"       element={<Navigate to="/workspace?tab=product" replace />} />
                 <Route path="/automation"    element={<Navigate to="/test" replace />} />
                 <Route path="/test-workflow" element={<Navigate to="/test" replace />} />
                 <Route path="*"              element={<Navigate to="/dashboard" replace />} />

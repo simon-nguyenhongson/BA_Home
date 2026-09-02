@@ -14,15 +14,18 @@
  */
 import React, { useEffect, useState, useCallback } from 'react'
 import {
-  LayoutGrid, List, Globe, Smartphone, Timer, RefreshCw, Link2, Package,
-  Users, Tag, Lock, Trash2, Pencil, Check, Star, User,
+  LayoutGrid, Globe, Smartphone, Timer, RefreshCw, Link2, Package, Trash2, Pencil, Check, Star, X,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { Badge, Btn, Modal, StatusBadge } from '../../components/ui'
-import { FilterBar, applyTextFilter, applyDateFilter } from '../../components/FilterBar'
+import { Badge, Btn, EmptyState, Modal } from '../../components/ui'
+import { ViewToggle } from '../../components/ViewToggle'
+import { SegmentGroup } from '../../components/SegmentGroup'
+import { DomainBadge } from '../../components/DomainBadge'
+import { FilterBar, applyDateFilter } from '../../components/FilterBar'
+import { DOMAIN_BADGE_COLORS, USER_TYPE_COLORS } from '../../styles/categorical'
 import {
   getProducts, createProduct, updateProduct, deleteProduct,
-  getProductEnvs, createProductEnv, updateProductEnv, deleteProductEnv,
+  getProductEnvs, createProductEnv, deleteProductEnv,
   getProductLicenses, createProductLicense, deleteProductLicense,
   getProductDetails, upsertProductDetails,
   getCatalogUsers, createCatalogUser, updateCatalogUser, deleteCatalogUser,
@@ -40,8 +43,7 @@ import {
   type ProductLicense, type ProductLicenseCreate,
   type CatalogUser, type CatalogUserCreate,
   type CatalogRole, type CatalogRoleCreate,
-  type CatalogDomain, type UserDomainAssign, type CatalogDomainCreate,
-  type ProductType, type UserType,
+  type CatalogDomain, type UserDomainAssign, type ProductType, type UserType,
 } from '../../api/catalog'
 
 // ── Shared constants ───────────────────────────────────────────────────────
@@ -72,12 +74,10 @@ const ACCESS_LEVEL_VARIANT: Record<string, 'success' | 'warning' | 'danger' | 'n
 }
 
 const DOMAIN_COLORS: Record<string, string> = {
-  HR: '#8b5cf6', FS: '#0ea5e9', RETAIL: '#f59e0b', CARDS: '#ef4444',
-  RISK: '#dc2626', COMPLIANCE: '#6366f1', IT: '#0284c7', DIGITAL: '#10b981',
-  BOS: '#f97316', DATA: '#6b7280', SME: '#d97706', TREASURY: '#7c3aed', ESD: '#059669',
+  ...DOMAIN_BADGE_COLORS,
 }
-function domainBgColor(code: string) { return (DOMAIN_COLORS[code] ?? '#64748b') + '18' }
-function domainFgColor(code: string) { return DOMAIN_COLORS[code] ?? '#64748b' }
+function domainBgColor(code: string) { return (DOMAIN_COLORS[code] ?? 'var(--app-neutral-500)') + '18' }
+function domainFgColor(code: string) { return DOMAIN_COLORS[code] ?? 'var(--app-neutral-500)' }
 
 const ARCH_TYPES = ['Monolith', 'Microservices', 'Event-driven', 'Serverless', 'BFF', 'Hybrid']
 const DEPLOY_METHODS = ['Rolling', 'Blue-green', 'Canary', 'Recreate', 'A/B Testing']
@@ -103,7 +103,7 @@ function statusVariant(s: string): 'success' | 'neutral' | 'warning' | 'danger' 
 
 function SectionTitle({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
-    <div className="eyebrow" style={{ marginBottom: 10, marginTop: 4, borderBottom: '1px solid #F2F4F7', paddingBottom: 6, ...style }}>
+    <div className="eyebrow" style={{ marginBottom: 10, marginTop: 4, borderBottom: '1px solid var(--ds-border-subtle)', paddingBottom: 6, ...style }}>
       {children}
     </div>
   )
@@ -111,7 +111,7 @@ function SectionTitle({ children, style }: { children: React.ReactNode; style?: 
 
 function InfoRow({ label, value }: { label: string; value?: string | null | React.ReactNode }) {
   return (
-    <div style={{ padding: '6px 0', borderBottom: '1px solid #F2F4F7' }}>
+    <div style={{ padding: '6px 0', borderBottom: '1px solid var(--ds-border-subtle)' }}>
       <div style={{ fontSize: 12, lineHeight: '18px', color: 'var(--app-neutral-500)', marginBottom: 1 }}>{label}</div>
       <div style={{ fontSize: 14, lineHeight: '20px', color: 'var(--app-neutral-900)' }}>{value || <span style={{ color: 'var(--app-neutral-400)' }}>—</span>}</div>
     </div>
@@ -130,7 +130,7 @@ function TagList({ items }: { items: string[] }) {
 }
 
 function Lbl({ children, required }: { children: React.ReactNode; required?: boolean }) {
-  return <label style={{ fontSize: 12, lineHeight: '18px', fontWeight: 500, color: 'var(--app-neutral-700)', display: 'block', marginBottom: 4 }}>{children}{required && <span style={{ color: '#F04438', marginLeft: 2 }}>*</span>}</label>
+  return <label style={{ fontSize: 12, lineHeight: '18px', fontWeight: 500, color: 'var(--app-neutral-700)', display: 'block', marginBottom: 4 }}>{children}{required && <span style={{ color: 'var(--ds-danger)', marginLeft: 2 }}>*</span>}</label>
 }
 
 function F({ children, full }: { children: React.ReactNode; full?: boolean }) {
@@ -167,7 +167,14 @@ const DETAIL_TABS: { key: DetailTab; label: string }[] = [
   { key: 'license',       label: 'Licence' },
 ]
 
-function ProductDetailModal({
+/**
+ * ProductDetailModal — hồ sơ sản phẩm 8 tab (Tổng quan · Kiến trúc · Môi trường ·
+ * Deployment · Bảo mật · Vận hành · Chi tiết · Licence).
+ *
+ * Xuất ra ngoài để tab "Sản phẩm bàn giao" trong dự án mở được ĐÚNG hồ sơ này, thay vì
+ * chỉ hiện 4 trường cơ bản rồi buộc người dùng đi sang Workspace → Product để xem tiếp.
+ */
+export function ProductDetailModal({
   product,
   onClose,
   onUpdated,
@@ -179,7 +186,7 @@ function ProductDetailModal({
   const [tab, setTab] = useState<DetailTab>('overview')
   const [envs, setEnvs]         = useState<ProductEnv[]>([])
   const [licenses, setLicenses] = useState<ProductLicense[]>([])
-  const [typeDetails, setTypeDetails] = useState<Record<string, unknown>>({})
+  const [_typeDetails, setTypeDetails] = useState<Record<string, unknown>>({})
   const [saving, setSaving]     = useState(false)
 
   // ── Section edit states (clone from product) ──────────────────
@@ -921,18 +928,13 @@ function ProductForm({
   return (
     <div>
       {/* Section tabs */}
-      <div style={{ display: 'flex', gap: 2, marginBottom: 16, background: 'var(--app-neutral-100)', borderRadius: 20, padding: '3px 4px', flexWrap: 'wrap' }}>
-        {SECTIONS.map(s => (
-          <button key={s.key} onClick={() => setSection(s.key)}
-            style={{
-              padding: '4px 12px', borderRadius: 14, border: 'none', cursor: 'pointer',
-              fontSize: 12, fontWeight: section === s.key ? 700 : 400, fontFamily: 'var(--font)',
-              background: section === s.key ? 'var(--app-primary)' : 'transparent',
-              color: section === s.key ? '#fff' : 'var(--app-neutral-600)',
-            }}>
-            {s.label}
-          </button>
-        ))}
+      <div style={{ marginBottom: 16 }}>
+        <SegmentGroup
+          value={section}
+          onChange={setSection}
+          items={SECTIONS}
+          ariaLabel="Mục của form sản phẩm"
+        />
       </div>
 
       {/* Section: Basic */}
@@ -1183,7 +1185,15 @@ const EMPTY_FORM: CatalogProductCreate = {
   business_metadata: { ...EMPTY_BUSINESS_META },
 }
 
-function ProductsTab({ domains }: { domains: CatalogDomain[] }) {
+/**
+ * ProductsTab — Danh mục sản phẩm toàn tổ chức.
+ *
+ * Xuất ra ngoài vì đã CHUYỂN sang module Workspace (tab Product) theo yêu cầu PO
+ * 2026-09-02: sản phẩm là đối tượng làm việc hằng ngày của BA (CR → BRS → Master Doc →
+ * Test đều gắn sản phẩm), không phải dữ liệu cấu hình như vai trò hay domain. Phần thân
+ * giữ nguyên tại đây để không nhân đôi 330 dòng.
+ */
+export function ProductsTab({ domains }: { domains: CatalogDomain[] }) {
   const [products, setProducts]   = useState<CatalogProduct[]>([])
   const [typeFilter, setTypeFilter] = useState<ProductType | 'all'>('all')
   const [q, setQ]                 = useState('')
@@ -1265,52 +1275,27 @@ function ProductsTab({ domains }: { domains: CatalogDomain[] }) {
 
   return (
     <div>
-      {/* Toolbar */}
+      {/* Dải hành động — trục lát danh sách bên trái, hành động bên phải */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 0, alignItems: 'center', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', gap: 4, background: 'var(--app-neutral-100)', padding: '3px 5px', borderRadius: 20 }}>
-          {PRODUCT_TYPES.map(t => (
-            <button key={t.key} onClick={() => setTypeFilter(t.key)}
-              style={{
-                padding: '3px 10px', borderRadius: 14, border: 'none', cursor: 'pointer',
-                fontSize: 12, fontWeight: 600, fontFamily: 'var(--font)',
-                background: typeFilter === t.key ? 'var(--app-primary)' : 'transparent',
-                color: typeFilter === t.key ? '#fff' : 'var(--app-neutral-600)',
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-              }}>
-              <t.icon size={13} strokeWidth={1.5} /> {t.label}
-            </button>
-          ))}
-        </div>
-        <input className="app-input" style={{ width: 200, flexShrink: 0 }}
-          placeholder="Tìm tên, mã…" value={q} onChange={e => setQ(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && load()} />
+        <SegmentGroup
+          value={typeFilter}
+          onChange={setTypeFilter}
+          items={PRODUCT_TYPES}
+          ariaLabel="Lọc theo loại sản phẩm"
+        />
         <div style={{ flex: 1 }} />
-        {/* View toggle */}
-        <div style={{ display: 'flex', gap: 2, background: 'var(--app-neutral-100)', padding: '3px 4px', borderRadius: 8 }}>
-          {([['grid', ''], ['list', '']] as const).map(([mode, icon]) => (
-            <button key={mode} onClick={() => setViewMode(mode)}
-              title={mode === 'grid' ? 'Dạng thẻ' : 'Dạng bảng'}
-              style={{
-                padding: '4px 10px', border: 'none', cursor: 'pointer', borderRadius: 6,
-                fontSize: 15, fontFamily: 'var(--font)',
-                background: viewMode === mode ? '#fff' : 'transparent',
-                color: viewMode === mode ? 'var(--app-primary)' : 'var(--app-neutral-500)',
-                boxShadow: viewMode === mode ? '0 1px 3px rgba(0,0,0,0.12)' : 'none',
-                transition: 'all 0.15s',
-              }}>
-              {icon}
-            </button>
-          ))}
-        </div>
+        <ViewToggle value={viewMode} onChange={setViewMode} />
         <Btn size="sm" onClick={openCreate}>+ Thêm sản phẩm</Btn>
       </div>
 
-      {/* Filter inner header */}
+      {/* Dải lọc — tìm kiếm nằm CÙNG chỗ với các bộ lọc còn lại, vì chỉ số x/y ở cuối dải
+          là kết quả của cả tìm kiếm lẫn lọc */}
       <FilterBar
+        text={{ value: q, onChange: setQ, placeholder: 'Tìm tên, mã sản phẩm' }}
         selects={[
           {
             key: 'status', value: fStatus, onChange: setFStatus,
-            placeholder: 'Tất cả trạng thái',
+            placeholder: 'Tất cả trạng thái', label: 'Trạng thái',
             options: [
               { value: 'active', label: 'Active' },
               { value: 'planned', label: 'Planned' },
@@ -1321,24 +1306,25 @@ function ProductsTab({ domains }: { domains: CatalogDomain[] }) {
         ]}
         dateFrom={{ value: fFrom, onChange: setFFrom, label: 'Tạo từ' }}
         dateTo={{ value: fTo, onChange: setFTo }}
-        onClear={() => { setFStatus(''); setFFrom(''); setFTo('') }}
-        right={<span style={{ fontSize: 11, color: 'var(--app-neutral-400)' }}>{displayed.length}/{products.length} sản phẩm</span>}
+        onClear={() => { setQ(''); setFStatus(''); setFFrom(''); setFTo('') }}
+        right={<span className="txt_r_xxxs" style={{ color: 'var(--app-neutral-500)' }}>{displayed.length}/{products.length} sản phẩm</span>}
       />
 
       {/* Product list */}
       {loading
         ? <div style={{ padding: 32, textAlign: 'center', color: 'var(--app-neutral-400)' }}>Đang tải…</div>
         : displayed.length === 0
-          ? <div style={{ padding: 32, textAlign: 'center', color: 'var(--app-neutral-400)' }}>
-              {products.length === 0 ? 'Chưa có sản phẩm nào' : 'Không có sản phẩm nào khớp với bộ lọc'}
-            </div>
+          ? (products.length === 0
+              ? <EmptyState title="Chưa có sản phẩm nào" desc="Thêm sản phẩm để gắn CR, BRS, Master Doc và test vào đó"
+                  action={<Btn onClick={openCreate}>+ Thêm sản phẩm</Btn>} />
+              : <EmptyState title="Không có sản phẩm nào khớp bộ lọc" desc="Nới bộ lọc hoặc xoá từ khoá tìm kiếm" />)
           : viewMode === 'grid'
             ? (
               /* ── Grid view ── */
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12, marginTop: 12 }}>
                 {displayed.map(p => (
                   <div key={p.id} onClick={() => setSelected(p)}
-                    style={{ background: '#fff', border: '1px solid var(--app-neutral-200)', borderRadius: 10, padding: 14, cursor: 'pointer', transition: 'box-shadow 0.15s' }}
+                    style={{ background: 'var(--app-white)', border: '1px solid var(--app-neutral-200)', borderRadius: 10, padding: 14, cursor: 'pointer', transition: 'box-shadow 0.15s' }}
                     onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.10)')}
                     onMouseLeave={e => (e.currentTarget.style.boxShadow = 'none')}>
 
@@ -1353,13 +1339,7 @@ function ProductsTab({ domains }: { domains: CatalogDomain[] }) {
                     <div style={{ fontSize: 11, color: 'var(--app-neutral-500)', marginBottom: 6, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                       <Badge variant="neutral">{p.product_code}</Badge>
                       <Badge variant="info">{typeLabel(p.product_type)}</Badge>
-                      {p.domain_code && (
-                        <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
-                          background: domainBgColor(p.domain_code), color: domainFgColor(p.domain_code),
-                          border: `1px solid ${domainFgColor(p.domain_code)}40` }}>
-                          {p.domain_name ?? p.domain_code}
-                        </span>
-                      )}
+                      {p.domain_code && <DomainBadge code={p.domain_code} name={p.domain_name} />}
                     </div>
 
                     {p.description && (
@@ -1371,12 +1351,12 @@ function ProductsTab({ domains }: { domains: CatalogDomain[] }) {
 
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
                       {p.architecture_info?.arch_type && (
-                        <span style={{ fontSize: 10, background: '#e0f2fe', color: '#0284c7', padding: '1px 7px', borderRadius: 8 }}>
+                        <span style={{ fontSize: 10, background: 'var(--app-info-bg)', color: 'var(--app-info)', padding: '1px 7px', borderRadius: 8 }}>
                           {p.architecture_info.arch_type}
                         </span>
                       )}
                       {p.business_metadata?.critical_level && (
-                        <span style={{ fontSize: 10, background: '#fef3c7', color: '#d97706', padding: '1px 7px', borderRadius: 8 }}>
+                        <span style={{ fontSize: 10, background: 'var(--app-warning-bg)', color: 'var(--app-warning)', padding: '1px 7px', borderRadius: 8 }}>
                           {p.business_metadata.critical_level}
                         </span>
                       )}
@@ -1405,11 +1385,11 @@ function ProductsTab({ domains }: { domains: CatalogDomain[] }) {
             )
             : (
               /* ── List view ── */
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <table className="ds-table">
                 <thead>
-                  <tr style={{ background: 'var(--app-neutral-50)', borderBottom: '2px solid var(--app-neutral-200)' }}>
-                    {['Mã', 'Tên sản phẩm', 'Loại', 'Domain', 'Tech Stack', 'Owner', 'Trạng thái', ''].map(h => (
-                      <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: 'var(--app-neutral-500)', whiteSpace: 'nowrap' }}>{h}</th>
+                  <tr>
+                    {['Mã', 'Tên sản phẩm', 'Loại', 'Domain', 'Dự án khai sinh', 'Tech Stack', 'Owner', 'Trạng thái', ''].map(h => (
+                      <th key={h}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -1417,9 +1397,7 @@ function ProductsTab({ domains }: { domains: CatalogDomain[] }) {
                   {displayed.map(p => (
                     <tr key={p.id}
                       onClick={() => setSelected(p)}
-                      style={{ borderBottom: '1px solid var(--app-neutral-100)', cursor: 'pointer', transition: 'background 0.1s' }}
-                      onMouseEnter={e => (e.currentTarget.style.background = 'var(--app-neutral-50)')}
-                      onMouseLeave={e => (e.currentTarget.style.background = '')}>
+                      style={{ cursor: 'pointer' }}>
                       <td style={{ padding: '9px 12px' }}>
                         <Badge variant="neutral">{p.product_code}</Badge>
                       </td>
@@ -1436,19 +1414,30 @@ function ProductsTab({ domains }: { domains: CatalogDomain[] }) {
                         <Badge variant="info">{typeLabel(p.product_type)}</Badge>
                       </td>
                       <td style={{ padding: '9px 12px' }}>
-                        {p.domain_code
-                          ? <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
-                              background: domainBgColor(p.domain_code), color: domainFgColor(p.domain_code),
-                              border: `1px solid ${domainFgColor(p.domain_code)}40`, whiteSpace: 'nowrap' }}>
-                              {p.domain_name ?? p.domain_code}
-                            </span>
-                          : <span style={{ color: 'var(--app-neutral-400)' }}>—</span>
+                        <DomainBadge code={p.domain_code} name={p.domain_name} />
+                      </td>
+                      {/* V052 — dự án đã bàn giao sản phẩm. Không hiện ra thì quan hệ
+                          project→product nằm trong DB mà không màn nào thấy, và người
+                          dùng không biết vì sao một dự án không gắn thêm được sản phẩm. */}
+                      <td style={{ padding: '9px 12px', fontSize: 12, whiteSpace: 'nowrap' }}>
+                        {p.origin_project_code
+                          ? <>
+                              <span className="txt_mono" style={{ fontSize: 11, fontWeight: 700, color: 'var(--app-neutral-700)' }}>
+                                {p.origin_project_code}
+                              </span>
+                              {p.origin_project_name && (
+                                <div style={{ fontSize: 11, color: 'var(--app-neutral-400)', maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  {p.origin_project_name}
+                                </div>
+                              )}
+                            </>
+                          : <span style={{ color: 'var(--app-neutral-400)' }} title="Sản phẩm tiếp nhận từ trước, không sinh từ dự án nào trong hệ">—</span>
                         }
                       </td>
                       <td style={{ padding: '9px 12px', maxWidth: 200 }}>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
                           {p.architecture_info?.arch_type && (
-                            <span style={{ fontSize: 10, background: '#e0f2fe', color: '#0284c7', padding: '1px 7px', borderRadius: 8 }}>
+                            <span style={{ fontSize: 10, background: 'var(--app-info-bg)', color: 'var(--app-info)', padding: '1px 7px', borderRadius: 8 }}>
                               {p.architecture_info.arch_type}
                             </span>
                           )}
@@ -1465,7 +1454,7 @@ function ProductsTab({ domains }: { domains: CatalogDomain[] }) {
                         <Badge variant={statusVariant(p.status)}>{p.status}</Badge>
                         {p.business_metadata?.critical_level && (
                           <div style={{ marginTop: 3 }}>
-                            <span style={{ fontSize: 10, background: '#fef3c7', color: '#d97706', padding: '1px 7px', borderRadius: 8 }}>
+                            <span style={{ fontSize: 10, background: 'var(--app-warning-bg)', color: 'var(--app-warning)', padding: '1px 7px', borderRadius: 8 }}>
                               {p.business_metadata.critical_level}
                             </span>
                           </div>
@@ -1604,24 +1593,22 @@ function UsersTab({ roles, domains }: { roles: CatalogRole[]; domains: CatalogDo
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', gap: 4, background: 'var(--app-neutral-100)', padding: '3px 5px', borderRadius: 20 }}>
-          {USER_TYPES.map(t => (
-            <button key={t.key} onClick={() => setTypeFilter(t.key)}
-              style={{ padding: '3px 10px', borderRadius: 14, border: 'none', cursor: 'pointer',
-                fontSize: 12, fontWeight: 600, fontFamily: 'var(--font)',
-                background: typeFilter === t.key ? 'var(--app-primary)' : 'transparent',
-                color: typeFilter === t.key ? '#fff' : 'var(--app-neutral-600)' }}>
-              {t.label}
-            </button>
-          ))}
-        </div>
-        <input className="app-input" style={{ width: 220, flexShrink: 0 }}
-          placeholder="Tìm tên, email, mã NV…" value={q} onChange={e => setQ(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && load()} />
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+        <SegmentGroup
+          value={typeFilter}
+          onChange={setTypeFilter}
+          items={USER_TYPES}
+          ariaLabel="Lọc theo loại nhân sự"
+        />
         <div style={{ flex: 1 }} />
         <Btn size="sm" onClick={openCreate}>+ Thêm nhân sự</Btn>
       </div>
+
+      <FilterBar
+        text={{ value: q, onChange: setQ, placeholder: 'Tìm tên, email, mã nhân viên' }}
+        onClear={() => setQ('')}
+        right={<span className="txt_r_xxxs" style={{ color: 'var(--app-neutral-500)' }}>{users.length} nhân sự</span>}
+      />
 
       {loading
         ? <div style={{ padding: 32, textAlign: 'center', color: 'var(--app-neutral-400)' }}>Đang tải…</div>
@@ -1662,10 +1649,10 @@ function UsersTab({ roles, domains }: { roles: CatalogRole[]; domains: CatalogDo
                               <option value="">Chọn vai trò</option>
                               {roles.filter(r => r.is_active).map(r => <option key={r.id} value={r.id}>{r.role_code}</option>)}
                             </select>
-                            <button onClick={() => handleAssignRole(u.id)}
-                              style={{ background: 'var(--app-success)', color: '#fff', border: 'none', borderRadius: 4, padding: '0 6px', cursor: 'pointer', fontSize: 11 }}></button>
-                            <button onClick={() => setAssignUserId(null)}
-                              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11 }}></button>
+                            <button onClick={() => handleAssignRole(u.id)} title="Gán vai trò" aria-label="Gán vai trò"
+                              style={{ background: 'var(--app-success)', color: 'var(--app-white)', border: 'none', borderRadius: 4, padding: '2px 6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><Check size={12} strokeWidth={3} /></button>
+                            <button onClick={() => setAssignUserId(null)} title="Hủy" aria-label="Hủy gán vai trò"
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-neutral-400)', display: 'flex', alignItems: 'center' }}><X size={12} /></button>
                           </span>
                         ) : (
                           <button onClick={() => { setAssignUserId(u.id); setAssignRoleId('') }}
@@ -1678,11 +1665,11 @@ function UsersTab({ roles, domains }: { roles: CatalogRole[]; domains: CatalogDo
                     <td style={{ padding: '8px 10px' }}>
                       <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                         {(u.domains ?? []).map(d => (
-                          <span key={d.domain_code} style={{ display: 'inline-flex', alignItems: 'center', gap: 2, background: '#e0f2fe', color: '#0369a1', borderRadius: 10, padding: '2px 8px', fontSize: 11, fontWeight: d.is_primary ? 700 : 400 }}>
+                          <span key={d.domain_code} style={{ display: 'inline-flex', alignItems: 'center', gap: 2, background: 'var(--app-info-bg)', color: 'var(--app-info)', borderRadius: 10, padding: '2px 8px', fontSize: 11, fontWeight: d.is_primary ? 700 : 400 }}>
                             {d.is_primary && <Star size={12} strokeWidth={1.5} style={{ verticalAlign: '-2px', marginRight: 2 }} />}{d.domain_code}
                             {d.role_in_domain ? <span style={{ opacity: 0.7, marginLeft: 2 }}>· {d.role_in_domain}</span> : null}
                             <button onClick={() => handleRemoveDomain(u.id, d.domain_code)}
-                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: 0, fontSize: 11, marginLeft: 2 }}>×</button>
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-neutral-400)', padding: 0, fontSize: 11, marginLeft: 2 }}>×</button>
                           </span>
                         ))}
                         {assignDomainUserId === u.id ? (
@@ -1698,22 +1685,26 @@ function UsersTab({ roles, domains }: { roles: CatalogRole[]; domains: CatalogDo
                               <option value="">Vai trò</option>
                               {DOMAIN_ROLE_OPTIONS.map(r => <option key={r} value={r}>{r}</option>)}
                             </select>
-                            <button onClick={() => handleAssignDomain(u.id)}
-                              style={{ background: 'var(--app-success)', color: '#fff', border: 'none', borderRadius: 4, padding: '0 6px', cursor: 'pointer', fontSize: 11 }}></button>
-                            <button onClick={() => setAssignDomainUserId(null)}
-                              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11 }}></button>
+                            <button onClick={() => handleAssignDomain(u.id)} title="Gán domain" aria-label="Gán domain"
+                              style={{ background: 'var(--app-success)', color: 'var(--app-white)', border: 'none', borderRadius: 4, padding: '2px 6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><Check size={12} strokeWidth={3} /></button>
+                            <button onClick={() => setAssignDomainUserId(null)} title="Hủy" aria-label="Hủy gán domain"
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-neutral-400)', display: 'flex', alignItems: 'center' }}><X size={12} /></button>
                           </span>
                         ) : (
                           <button onClick={() => { setAssignDomainUserId(u.id); setAssignDomainCode(''); setAssignDomainRole('') }}
-                            style={{ background: 'none', border: '1px dashed #93c5fd', borderRadius: 10, padding: '1px 8px', cursor: 'pointer', fontSize: 11, color: '#3b82f6' }}>
+                            style={{ background: 'none', border: '1px dashed var(--ds-border-brand)', borderRadius: 10, padding: '1px 8px', cursor: 'pointer', fontSize: 11, color: 'var(--app-primary-light)' }}>
                             + Domain
                           </button>
                         )}
                       </div>
                     </td>
                     <td style={{ padding: '8px 10px', whiteSpace: 'nowrap' }}>
-                      <Btn size="sm"variant="ghost" onClick={() => openEdit(u)}></Btn>
-                      <Btn size="sm"variant="ghost" onClick={() => handleDelete(u)}><Trash2 size={14} strokeWidth={1.5} /></Btn>
+                      {/* Nút Sửa trước đây RỖNG (emoji bị gỡ khi áp DS, không thay bằng
+                          icon) → 14 nút 18×28px trong suốt trên bảng nhân sự */}
+                      <Btn size="sm" variant="ghost" title="Sửa" aria-label="Sửa nhân sự"
+                        onClick={() => openEdit(u)}><Pencil size={14} strokeWidth={1.5} /></Btn>
+                      <Btn size="sm" variant="ghost" title="Xóa" aria-label="Xóa nhân sự"
+                        onClick={() => handleDelete(u)}><Trash2 size={14} strokeWidth={1.5} /></Btn>
                     </td>
                   </tr>
                 ))
@@ -1792,29 +1783,14 @@ function RolesTab({ roles, onReload }: { roles: CatalogRole[]; onReload: () => v
   }
 
   const categoryColors: Record<string, string> = {
-    system: '#6366f1', business: '#f59e0b', technical: '#0ea5e9', management: '#10b981',
+    ...USER_TYPE_COLORS,
   }
 
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         {/* View mode toggle */}
-        <div style={{ display: 'flex', gap: 2, background: 'var(--app-neutral-100)', padding: '3px 4px', borderRadius: 8 }}>
-          {([['grid', ''], ['list', '']] as const).map(([mode, icon]) => (
-            <button key={mode} onClick={() => setViewMode(mode)}
-              title={mode === 'grid' ? 'Dạng thẻ' : 'Dạng bảng'}
-              style={{
-                padding: '4px 10px', border: 'none', cursor: 'pointer', borderRadius: 6,
-                fontSize: 15, fontFamily: 'var(--font)',
-                background: viewMode === mode ? '#fff' : 'transparent',
-                color: viewMode === mode ? 'var(--app-primary)' : 'var(--app-neutral-500)',
-                boxShadow: viewMode === mode ? '0 1px 3px rgba(0,0,0,0.12)' : 'none',
-                transition: 'all 0.15s',
-              }}>
-              {icon}
-            </button>
-          ))}
-        </div>
+        <ViewToggle value={viewMode} onChange={setViewMode} />
         <Btn size="sm" onClick={openCreate}>+ Thêm vai trò</Btn>
       </div>
 
@@ -1822,7 +1798,7 @@ function RolesTab({ roles, onReload }: { roles: CatalogRole[]; onReload: () => v
         /* ── Grid view ── */
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 12 }}>
           {roles.map(r => (
-            <div key={r.id} style={{ background: '#fff', border: '1px solid var(--app-neutral-200)', borderRadius: 10, padding: 14, opacity: r.is_active ? 1 : 0.6 }}>
+            <div key={r.id} style={{ background: 'var(--app-white)', border: '1px solid var(--app-neutral-200)', borderRadius: 10, padding: 14, opacity: r.is_active ? 1 : 0.6 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
                 <div>
                   <span style={{ fontWeight: 700, fontSize: 15 }}>{r.role_name}</span>
@@ -2050,22 +2026,7 @@ function DomainsTab({ allUsers }: { allUsers: CatalogUser[] }) {
         </div>
         <div style={{ flex: 1 }} />
         {/* View mode toggle */}
-        <div style={{ display: 'flex', gap: 2, background: 'var(--app-neutral-100)', padding: '3px 4px', borderRadius: 8 }}>
-          {([['grid', ''], ['list', '']] as const).map(([mode, icon]) => (
-            <button key={mode} onClick={() => setViewMode(mode)}
-              title={mode === 'grid' ? 'Dạng thẻ' : 'Dạng bảng'}
-              style={{
-                padding: '4px 10px', border: 'none', cursor: 'pointer', borderRadius: 6,
-                fontSize: 15, fontFamily: 'var(--font)',
-                background: viewMode === mode ? '#fff' : 'transparent',
-                color: viewMode === mode ? 'var(--app-primary)' : 'var(--app-neutral-500)',
-                boxShadow: viewMode === mode ? '0 1px 3px rgba(0,0,0,0.12)' : 'none',
-                transition: 'all 0.15s',
-              }}>
-              {icon}
-            </button>
-          ))}
-        </div>
+        <ViewToggle value={viewMode} onChange={setViewMode} />
         <Btn size="sm" onClick={() => setShowCreateModal(true)}>+ Thêm Domain</Btn>
       </div>
 
@@ -2078,7 +2039,7 @@ function DomainsTab({ allUsers }: { allUsers: CatalogUser[] }) {
             {domains.map(d => (
               <div key={d.code} onClick={() => openDetail(d)}
                 style={{
-                  background: '#fff', border: `1px solid ${fgColor(d.code)}44`,
+                  background: 'var(--app-white)', border: `1px solid ${fgColor(d.code)}44`,
                   borderLeft: `4px solid ${fgColor(d.code)}`,
                   borderRadius: 10, padding: 14, cursor: 'pointer', transition: 'box-shadow 0.15s',
                   opacity: d.is_active ? 1 : 0.55,
@@ -2091,8 +2052,8 @@ function DomainsTab({ allUsers }: { allUsers: CatalogUser[] }) {
                     <span style={{ fontSize: 11, fontWeight: 700, background: bgColor(d.code), color: fgColor(d.code), padding: '2px 8px', borderRadius: 6 }}>{d.code}</span>
                     <span style={{ fontWeight: 700, fontSize: 14 }}>{d.name}</span>
                   </div>
-                  <button onClick={e => openEdit(d, e)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-neutral-400)', fontSize: 14, padding: 2 }}></button>
+                  <button onClick={e => openEdit(d, e)} title="Sửa domain" aria-label="Sửa domain"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-neutral-400)', padding: 2, display: 'flex', alignItems: 'center' }}><Pencil size={13} strokeWidth={1.5} /></button>
                 </div>
 
                 {d.description && (
@@ -2177,17 +2138,18 @@ function DomainsTab({ allUsers }: { allUsers: CatalogUser[] }) {
                   <td style={{ padding: '10px 12px' }}>
                     <span style={{
                       fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 20,
-                      background: d.is_active ? '#dcfce7' : '#f1f5f9',
-                      color: d.is_active ? '#16a34a' : '#64748b',
+                      background: d.is_active ? 'var(--app-success-bg)' : 'var(--ds-border-subtle)',
+                      color: d.is_active ? 'var(--app-success)' : 'var(--app-neutral-500)',
                     }}>
                       {d.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </td>
                   <td style={{ padding: '10px 12px' }} onClick={e => e.stopPropagation()}>
-                    <button onClick={e => openEdit(d, e)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-neutral-400)', fontSize: 14, padding: '2px 6px', borderRadius: 4 }}
+                    <button onClick={e => openEdit(d, e)} title="Sửa domain" aria-label="Sửa domain"
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-neutral-400)', padding: '2px 6px', borderRadius: 4, display: 'inline-flex', alignItems: 'center' }}
                       onMouseEnter={e => (e.currentTarget.style.background = 'var(--app-neutral-100)')}
                       onMouseLeave={e => (e.currentTarget.style.background = 'none')}>
+                      <Pencil size={13} strokeWidth={1.5} />
                       
                     </button>
                   </td>
@@ -2298,7 +2260,7 @@ function DomainsTab({ allUsers }: { allUsers: CatalogUser[] }) {
                 placeholder="VD: HR, FS, RETAIL…"
               />
               {editForm.code !== editDomain.code && (
-                <div style={{ fontSize: 11, color: '#d97706', marginTop: 4 }}>
+                <div style={{ fontSize: 11, color: 'var(--app-warning)', marginTop: 4 }}>
                    Đổi mã sẽ cập nhật tất cả project và phân công nhân sự liên quan (ON UPDATE CASCADE)
                 </div>
               )}
@@ -2362,7 +2324,8 @@ function DomainsTab({ allUsers }: { allUsers: CatalogUser[] }) {
 // ══════════════════════════════════════════════════════════════════
 
 export default function CatalogPage() {
-  const [tab, setTab]       = useState<'products' | 'users' | 'roles' | 'domains'>('products')
+  // 'products' đã chuyển sang Workspace → tab Product. Ở đây chỉ còn dữ liệu cấu hình.
+  const [tab, setTab]       = useState<'users' | 'roles' | 'domains'>('users')
   const [roles, setRoles]   = useState<CatalogRole[]>([])
   const [users, setUsers]   = useState<CatalogUser[]>([])
   const [domains, setDomains] = useState<CatalogDomain[]>([])
@@ -2382,7 +2345,6 @@ export default function CatalogPage() {
   useEffect(() => { loadRoles(); loadUsers(); loadDomains() }, [loadRoles, loadUsers, loadDomains])
 
   const TABS = [
-    { key: 'products'as const, label:'Danh mục sản phẩm', icon: '' },
     { key: 'users'as const, label:'Danh mục nhân sự',  icon: '' },
     { key: 'domains'as const, label:'Danh mục Domain',   icon: '' },
     { key: 'roles'as const, label:'Vai trò & Quyền',   icon: '' },
@@ -2406,7 +2368,6 @@ export default function CatalogPage() {
         ))}
       </div>
 
-      {tab === 'products' && <ProductsTab domains={domains} />}
       {tab === 'users'    && <UsersTab roles={roles} domains={domains} />}
       {tab === 'domains'  && <DomainsTab allUsers={users} />}
       {tab === 'roles'    && <RolesTab roles={roles} onReload={loadRoles} />}

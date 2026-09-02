@@ -1,0 +1,31 @@
+<!-- @dsCard group="Spacing" viewport="700x160" name="Focus ring" subtitle="A 4px halo, never a browser outline" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin: 0; padding: 16px 20px; background: var(--ds-surface-page); }
+  .r { display: flex; flex-direction: row; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+  .c { display: flex; flex-direction: column; gap: 10px; }
+  .lbl { font-family: var(--ds-font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ds-text-placeholder); }
+  .hex { font-family: var(--ds-font-mono); font-size: 10px; line-height: 14px; color: var(--ds-text-secondary); }
+  .use { font-size: 10px; line-height: 14px; color: var(--ds-text-placeholder); }
+  .row { display: grid; grid-template-columns: 108px 132px minmax(0, 1fr); gap: 16px; align-items: baseline; padding: 5px 0; }
+  .nm { font-size: 12px; font-weight: 600; color: var(--ds-text-label); }
+</style>
+</head>
+<body>
+<div class="r" style="gap: 28px; align-items: center;">
+  <div class="c" style="gap: 6px;">
+    <div style="width: 200px; height: 40px; border-radius: 8px; background: var(--ds-surface-card); border: 1px solid var(--ds-border-focus); box-shadow: var(--ds-shadow-xs), var(--ds-focus-ring); display: flex; align-items: center; padding: 0 12px; font-size: 14px; color: var(--ds-text-primary);">Focused field</div>
+    <span class="hex">--ds-focus-ring</span>
+  </div>
+  <div class="c" style="gap: 6px;">
+    <div style="width: 200px; height: 40px; border-radius: 8px; background: var(--ds-surface-card); border: 1px solid var(--color-error-300); box-shadow: var(--ds-shadow-xs), var(--ds-focus-ring-danger); display: flex; align-items: center; padding: 0 12px; font-size: 14px; color: var(--ds-text-primary);">Invalid field</div>
+    <span class="hex">--ds-focus-ring-danger</span>
+  </div>
+  <span class="use" style="max-width: 180px;">Border colour changes with the ring; the field's own 1px border is never removed.</span>
+</div>
+</body>
+</html>

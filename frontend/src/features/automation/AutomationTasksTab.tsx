@@ -3,11 +3,13 @@ import {
   CheckCircle2, Download, FileSpreadsheet, Link2, Play, Sparkles, Trash2,
 } from 'lucide-react'
 import {
-  getAutomationTasks, getAutomationTask, generateTestCases, updateTestCase, deleteTestCase,
-  importTestRun, generateTestReport, closeAutomationTask, downloadAutomationExport,
+  getAutomationTasks, getAutomationTask, updateTestCase, deleteTestCase,
+  importTestRun, closeAutomationTask, downloadAutomationExport,
   type AutomationTask, type AutomationCase, type AutomationRun,
 } from '../../api/ai'
 import { Badge, Btn, Card, EmptyState, Modal, Field, AppInput } from '../../components/ui'
+import { AiRunStage } from '../ai/AiRunStage'
+import { useAiRun } from '../ai/useAiRun'
 import { useStore } from '../../stores/auth'
 
 const STUDIO_URL: string =
@@ -133,6 +135,9 @@ function TaskDetail({ taskId, onBack }: { taskId: string; onBack: () => void }) 
   const [runs, setRuns] = useState<AutomationRun[]>([])
   const [studioCases, setStudioCases] = useState<StudioTestcase[]>([])
   const [busy, setBusy] = useState('')
+  // Hai lượt gọi AI của luồng test, mỗi lượt có sân khấu tường thuật riêng
+  const casesRun  = useAiRun()   // sinh test case từ BRS
+  const reportRun = useAiRun()   // sinh báo cáo từ một lượt chạy
   const [importOpen, setImportOpen] = useState(false)
   const [reportView, setReportView] = useState<AutomationRun | null>(null)
 
@@ -174,13 +179,17 @@ function TaskDetail({ taskId, onBack }: { taskId: string; onBack: () => void }) 
     }
   }
 
-  const doGenerate = () => run('gen', async () => {
-    const res = await generateTestCases(taskId)
+  const doGenerate = async () => {
+    const res = await casesRun.run<{
+      meta: { created: number; kept: number; replaced: number; message: string }
+    }>(`/automation/tasks/${taskId}/generate-cases/stream`, {})
+    if (!res) return
+    casesRun.reset()
     addToast(`AI đã sinh ${res.meta.created} test case`, 'success')
     // Sinh lại sẽ THAY các case chưa map script — nếu QA đã sửa tay thì bản sửa đó mất
     if (res.meta.replaced > 0) addToast(res.meta.message, 'warn')
     await load()
-  })
+  }
 
   const doMap = (caseId: string, studioId: string) => run(`map-${caseId}`, async () => {
     await updateTestCase(caseId, { studio_tc_id: studioId || null, status: studioId ? 'mapped' : 'ready' })
@@ -192,12 +201,16 @@ function TaskDetail({ taskId, onBack }: { taskId: string; onBack: () => void }) 
     await load()
   })
 
-  const doGenReport = (runId: string) => run(`report-${runId}`, async () => {
-    const res = await generateTestReport(runId)
+  const doGenReport = async (runId: string) => {
+    const res = await reportRun.run<{ data: AutomationRun }>(
+      `/automation/runs/${runId}/generate-report/stream`, {},
+    )
+    if (!res) return
+    reportRun.reset()
     addToast('AI đã sinh báo cáo kết quả test', 'success')
     setReportView(res.data)
     await load()
-  })
+  }
 
   const doClose = () => run('close', async () => {
     await closeAutomationTask(taskId)
@@ -214,6 +227,33 @@ function TaskDetail({ taskId, onBack }: { taskId: string; onBack: () => void }) 
 
   const closed = task.status === 'closed'
 
+  const liveRun =
+    casesRun.active  || casesRun.error  ? { r: casesRun,  verb: 'sinh', title: `Claude đang sinh test case từ BRS v${task.brs_version ?? '-'}` }
+    : reportRun.active || reportRun.error ? { r: reportRun, verb: 'sinh', title: 'Claude đang viết báo cáo kết quả test' }
+    : null
+
+  if (liveRun) {
+    return (
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+          <Btn variant="ghost" size="sm" onClick={onBack}>← Danh sách</Btn>
+          <code style={{ fontSize: 14, fontWeight: 600 }}>{task.request_code}</code>
+        </div>
+        <AiRunStage
+          title={liveRun.title}
+          steps={liveRun.r.steps}
+          stats={liveRun.r.stats}
+          error={liveRun.r.error}
+          elapsedFrom={liveRun.r.startedAt}
+          verb={liveRun.verb}
+          onCancel={() => { liveRun.r.cancel(); liveRun.r.reset() }}
+          onRetry={() => liveRun.r.reset()}
+          onClose={() => liveRun.r.reset()}
+        />
+      </div>
+    )
+  }
+
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
@@ -229,7 +269,7 @@ function TaskDetail({ taskId, onBack }: { taskId: string; onBack: () => void }) 
         <div style={{ flex: 1 }} />
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {!closed && (
-            <Btn size="sm" onClick={doGenerate} loading={busy === 'gen'}>
+            <Btn size="sm" onClick={doGenerate}>
               <Sparkles size={14} strokeWidth={1.5} /> Gen testcase
             </Btn>
           )}
@@ -359,7 +399,7 @@ function TaskDetail({ taskId, onBack }: { taskId: string; onBack: () => void }) 
                         </Btn>
                       ) : (
                         <Btn variant="secondary" size="sm"
-                          onClick={() => doGenReport(r.id)} loading={busy === `report-${r.id}`}>
+                          onClick={() => doGenReport(r.id)}>
                           <Sparkles size={14} strokeWidth={1.5} /> Gen report
                         </Btn>
                       )}

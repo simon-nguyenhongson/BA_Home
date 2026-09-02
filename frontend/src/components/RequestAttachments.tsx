@@ -65,7 +65,7 @@ export function RequestAttachments({
           disabled={uploading}
           style={{
             padding: '3px 10px', fontSize: 12, borderRadius: 6, cursor: uploading ? 'not-allowed' : 'pointer',
-            border: '1px dashed var(--app-neutral-300)', background: '#fafafa',
+            border: '1px dashed var(--app-neutral-300)', background: 'var(--app-neutral-50)',
             color: 'var(--app-neutral-600)', display: 'flex', alignItems: 'center', gap: 4,
           }}
         >
@@ -76,7 +76,7 @@ export function RequestAttachments({
       </div>
 
       {error && (
-        <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 8, padding: '4px 8px', background: '#fee2e2', borderRadius: 4 }}>
+        <div style={{ fontSize: 12, color: 'var(--ds-text-danger)', marginBottom: 8, padding: '4px 8px', background: 'var(--app-danger-bg)', borderRadius: 4 }}>
           {error}
         </div>
       )}
@@ -91,7 +91,7 @@ export function RequestAttachments({
         {attachments.map(att => (
           <div key={att.id} style={{
             display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px',
-            borderRadius: 6, background: '#f8fafc', border: '1px solid var(--app-neutral-200)',
+            borderRadius: 6, background: 'var(--app-neutral-100)', border: '1px solid var(--app-neutral-200)',
           }}>
             <span style={{ fontSize: 15, flexShrink: 0 }}>{fileIcon(att.filename)}</span>
             <div style={{ flex: 1, minWidth: 0 }}>

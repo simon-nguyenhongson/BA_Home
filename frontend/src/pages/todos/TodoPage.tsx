@@ -3,7 +3,7 @@
  * Views: List | Board (Kanban) | Stats
  * Features: filters, create/edit drawer, detail panel, comments, subtasks
  */
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState, useRef } from 'react'
 import {
   Plus, RefreshCw, LayoutList, Columns, BarChart2,
   ChevronDown, ChevronRight, MessageSquare, Clock,
@@ -60,7 +60,7 @@ function ComboSelect({
         <span style={{ color: 'var(--app-neutral-400)', fontSize: 10 }}>{open ? '▲' : '▼'}</span>
       </div>
       {open && (
-        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1000, background: '#fff', border: '1px solid var(--app-neutral-300)', borderRadius: 6, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', maxHeight: 260, display: 'flex', flexDirection: 'column', minWidth: 220 }}>
+        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1000, background: 'var(--app-white)', border: '1px solid var(--app-neutral-300)', borderRadius: 6, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', maxHeight: 260, display: 'flex', flexDirection: 'column', minWidth: 220 }}>
           <div style={{ padding: '6px 8px', borderBottom: '1px solid var(--app-neutral-200)' }}>
             <input autoFocus className="input input-sm" style={{ width: '100%', fontSize: 12 }}
               placeholder="Tìm..." value={query} onChange={e => setQuery(e.target.value)} onClick={e => e.stopPropagation()} />
@@ -75,9 +75,9 @@ function ComboSelect({
             )}
             {filtered.map(opt => (
               <div key={opt.value}
-                style={{ padding: '7px 12px', cursor: 'pointer', fontSize: 12, background: opt.value === value ? 'var(--app-primary-50,#e6f0fa)' : undefined, borderBottom: '1px solid var(--app-neutral-100)' }}
-                onMouseEnter={e => { if (opt.value !== value) (e.currentTarget as HTMLDivElement).style.background = 'var(--app-neutral-50,#f5f5f5)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = opt.value === value ? 'var(--app-primary-50,#e6f0fa)' : '' }}
+                style={{ padding: '7px 12px', cursor: 'pointer', fontSize: 12, background: opt.value === value ? 'var(--ds-surface-selected)' : undefined, borderBottom: '1px solid var(--app-neutral-100)' }}
+                onMouseEnter={e => { if (opt.value !== value) (e.currentTarget as HTMLDivElement).style.background = 'var(--app-neutral-50)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = opt.value === value ? 'var(--ds-surface-selected)' : '' }}
                 onClick={() => { onChange(opt.value, opt.label); setOpen(false); setQuery('') }}>
                 <div style={{ fontWeight: opt.value === value ? 600 : 400 }}>{opt.label}</div>
                 {opt.meta && <div style={{ fontSize: 11, color: 'var(--app-neutral-500)', marginTop: 1 }}>{opt.meta}</div>}
@@ -101,11 +101,11 @@ import {
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const STATUS_META: Record<TodoStatus, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
-  todo:        { label: 'Khởi tạo',       color: '#6b7280', bg: '#f3f4f6', icon: <Circle size={13} /> },
-  in_progress: { label: 'Đang làm',       color: '#2563eb', bg: '#eff6ff', icon: <Loader2 size={13} /> },
-  pending:     { label: 'Pending',         color: '#f59e0b', bg: '#fef9c3', icon: <AlertTriangle size={13} /> },
-  done:        { label: 'Đã hoàn thành',  color: '#16a34a', bg: '#dcfce7', icon: <CheckCircle2 size={13} /> },
-  cancelled:   { label: 'Hủy',            color: '#9ca3af', bg: '#f9fafb', icon: <Ban size={13} /> },
+  todo:        { label: 'Khởi tạo',       color: 'var(--app-neutral-500)', bg: 'var(--ds-border-subtle)', icon: <Circle size={13} /> },
+  in_progress: { label: 'Đang làm',       color: 'var(--app-primary)', bg: 'var(--ds-brand-subtle)', icon: <Loader2 size={13} /> },
+  pending:     { label: 'Pending',         color: 'var(--app-warning)', bg: 'var(--app-warning-bg)', icon: <AlertTriangle size={13} /> },
+  done:        { label: 'Đã hoàn thành',  color: 'var(--app-success)', bg: 'var(--app-success-bg)', icon: <CheckCircle2 size={13} /> },
+  cancelled:   { label: 'Hủy',            color: 'var(--app-neutral-400)', bg: 'var(--app-neutral-100)', icon: <Ban size={13} /> },
 }
 
 interface StatusTab { label: string; values: TodoStatus[] | null }
@@ -119,10 +119,10 @@ const STATUS_TABS: StatusTab[] = [
 ]
 
 const PRIORITY_META: Record<TodoPriority, { label: string; color: string }> = {
-  critical: { label: 'Critical', color: '#7f1d1d' },
-  high:     { label: 'High',     color: '#dc2626' },
-  medium:   { label: 'Medium',   color: '#f59e0b' },
-  low:      { label: 'Low',      color: '#6b7280' },
+  critical: { label: 'Critical', color: 'var(--ds-text-danger)' },
+  high:     { label: 'High',     color: 'var(--app-danger)' },
+  medium:   { label: 'Medium',   color: 'var(--app-warning)' },
+  low:      { label: 'Low',      color: 'var(--app-neutral-500)' },
 }
 
 const TYPE_META: Record<TodoType, string> = {
@@ -147,10 +147,10 @@ const BOARD_COLS: TodoStatus[] = ['todo', 'in_progress', 'pending', 'done']
 
 const C = {
   primary: 'var(--app-primary)',
-  border:  'var(--app-neutral-200, #e5e7eb)',
-  bg:      'var(--app-neutral-50, #f9fafb)',
-  text:    'var(--app-neutral-700, #374151)',
-  muted:   'var(--app-neutral-400, #9ca3af)',
+  border:  'var(--app-neutral-200)',
+  bg:      'var(--app-neutral-50)',
+  text:    'var(--app-neutral-700)',
+  muted:   'var(--app-neutral-400)',
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -161,9 +161,9 @@ function dueDateLabel(d: string | null) {
   const dt = new Date(d)
   const today = new Date(); today.setHours(0, 0, 0, 0)
   const diff = Math.floor((dt.getTime() - today.getTime()) / 86400000)
-  if (diff < 0)  return { text: `Quá hạn ${-diff}n`, color: '#dc2626' }
-  if (diff === 0) return { text: 'Hôm nay',          color: '#f59e0b' }
-  if (diff === 1) return { text: 'Ngày mai',          color: '#f59e0b' }
+  if (diff < 0)  return { text: `Quá hạn ${-diff}n`, color: 'var(--app-danger)' }
+  if (diff === 0) return { text: 'Hôm nay',          color: 'var(--app-warning)' }
+  if (diff === 1) return { text: 'Ngày mai',          color: 'var(--app-warning)' }
   return { text: dt.toLocaleDateString('vi-VN'), color: C.muted }
 }
 
@@ -197,9 +197,17 @@ function TodoCard({
     <div
       onClick={onClick}
       style={{
-        background: selected ? '#eff6ff' : '#fff',
-        border: `1px solid ${selected ? C.primary : C.border}`,
-        borderLeft: `4px solid ${PRIORITY_META[todo.priority].color}`,
+        background: selected ? 'var(--ds-brand-subtle)' : 'var(--app-white)',
+        // Longhand cả 4 cạnh: trộn shorthand `border` với `borderLeft` làm React cảnh báo
+        // "Updating a style property during rerender" mỗi lần chọn thẻ. Ba chỗ cùng lỗi
+        // (RequestsPage ×2, ProjectCRTab) đã sửa trước, chỗ này bị bỏ sót.
+        borderTopStyle: 'solid', borderRightStyle: 'solid',
+        borderBottomStyle: 'solid', borderLeftStyle: 'solid',
+        borderTopWidth: 1, borderRightWidth: 1, borderBottomWidth: 1, borderLeftWidth: 4,
+        borderTopColor:    selected ? C.primary : C.border,
+        borderRightColor:  selected ? C.primary : C.border,
+        borderBottomColor: selected ? C.primary : C.border,
+        borderLeftColor:   PRIORITY_META[todo.priority].color,
         borderRadius: 8, padding: '10px 12px', cursor: 'pointer',
         boxShadow: selected ? '0 0 0 2px rgba(37,99,235,0.1)' : 'none',
         transition: 'all 0.1s',
@@ -245,7 +253,7 @@ function TodoCard({
               </span>
             )}
             {todo.tags.slice(0, 2).map(t => (
-              <span key={t} style={{ fontSize: 10, background: '#f3f4f6', borderRadius: 4, padding: '1px 5px', color: '#6b7280' }}>{t}</span>
+              <span key={t} style={{ fontSize: 10, background: 'var(--ds-border-subtle)', borderRadius: 4, padding: '1px 5px', color: 'var(--app-neutral-500)' }}>{t}</span>
             ))}
           </div>
         </div>
@@ -281,8 +289,16 @@ function TodoForm({
     tags:        initial?.tags        ?? [],
   })
   const [tagInput, setTagInput] = useState('')
+  // Lỗi theo TỪNG trường. Trước đây submit chỉ `if (!form.title.trim()) return` — bấm
+  // Tạo task khi thiếu tiêu đề thì KHÔNG có gì xảy ra, không ô nào được đánh dấu.
+  const [errors, setErrors] = useState<Partial<Record<keyof TodoCreate, string>>>({})
+  const formRef = useRef<HTMLFormElement>(null)
 
-  const set = (k: keyof TodoCreate, v: unknown) => setForm(f => ({ ...f, [k]: v }))
+  const set = (k: keyof TodoCreate, v: unknown) => {
+    setForm(f => ({ ...f, [k]: v }))
+    // Người dùng bắt đầu sửa thì bỏ dấu lỗi của đúng ô đó
+    setErrors(e => (e[k] ? { ...e, [k]: undefined } : e))
+  }
 
   const addTag = () => {
     const t = tagInput.trim()
@@ -292,14 +308,29 @@ function TodoForm({
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.title.trim()) return
+    const errs: Partial<Record<keyof TodoCreate, string>> = {}
+    if (!form.title.trim()) errs.title = 'Nhập tiêu đề task'
+    if (Object.keys(errs).length) {
+      setErrors(errs)
+      // Đưa con trỏ về ô sai đầu tiên — với form dài thì ô lỗi có thể ngoài vùng nhìn
+      formRef.current?.querySelector<HTMLElement>('.has-error')?.focus()
+      return
+    }
+    setErrors({})
     setSaving(true)
-    try { await onSave(form) } finally { setSaving(false) }
+    try {
+      await onSave(form)
+    } catch {
+      // Nơi gọi đã hiện toast lỗi. Bắt ở đây để không thành unhandled rejection và để
+      // nút thoát khỏi trạng thái đang lưu — trước đây chỉ có finally nên lỗi lan ra ngoài.
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
-    <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <Field label="Tiêu đề" required>
+    <form ref={formRef} onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <Field label="Tiêu đề" required error={errors.title}>
         <AppInput value={form.title} onChange={e => set('title', e.target.value)} placeholder="Nhập tên task..." autoFocus />
       </Field>
       <Field label="Mô tả">
@@ -335,16 +366,16 @@ function TodoForm({
         <Field label="Người thực hiện">
           <UserSelect value={form.assignee_id ?? ''} onChange={val => set('assignee_id', val)} placeholder="Chọn nhân sự..." />
         </Field>
-        <Field label="Due date">
+        <Field label="Due date" hint="Không bắt buộc">
           <AppInput type="date" value={form.due_date ?? ''} onChange={e => set('due_date', e.target.value)} />
         </Field>
       </div>
       <Field label="Tags">
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
           {(form.tags ?? []).map(t => (
-            <span key={t} style={{ background: '#eff6ff', borderRadius: 4, padding: '2px 8px', fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span key={t} style={{ background: 'var(--ds-brand-subtle)', borderRadius: 4, padding: '2px 8px', fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}>
               {t}
-              <button type="button" onClick={() => removeTag(t)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#6b7280' }}><X size={10} /></button>
+              <button type="button" onClick={() => removeTag(t)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--app-neutral-500)' }}><X size={10} /></button>
             </span>
           ))}
         </div>
@@ -406,15 +437,24 @@ function TodoDetail({
       assignee_id: data.assignee_id ?? null, due_date: data.due_date ?? null,
       tags: data.tags,
     }
-    const r = await updateTodo(todo.id, upd)
-    setTodo(r.data); onUpdated(r.data); setEditing(false)
-    addToast('Đã cập nhật task', 'success')
+    try {
+      const r = await updateTodo(todo.id, upd)
+      setTodo(r.data); onUpdated(r.data); setEditing(false)
+      addToast('Đã cập nhật task', 'success')
+    } catch (e) {
+      addToast((e as Error).message, 'error')
+      throw e
+    }
   }
 
   const handleDelete = async () => {
     if (!todo) return
-    await deleteTodo(todo.id); onDeleted(todo.id); onClose()
-    addToast('Đã xoá task', 'success')
+    try {
+      await deleteTodo(todo.id); onDeleted(todo.id); onClose()
+      addToast('Đã xoá task', 'success')
+    } catch (e) {
+      addToast((e as Error).message, 'error')
+    }
   }
 
   const submitComment = async () => {
@@ -459,7 +499,7 @@ function TodoDetail({
           </div>
           <div style={{ display: 'flex', gap: 4 }}>
             <button type="button" onClick={() => setEditing(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, borderRadius: 4, color: C.muted }} title="Chỉnh sửa"><Edit2 size={15} /></button>
-            <button type="button" onClick={() => setConfirmDelete(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, borderRadius: 4, color: '#dc2626' }} title="Xoá"><Trash2 size={15} /></button>
+            <button type="button" onClick={() => setConfirmDelete(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, borderRadius: 4, color: 'var(--app-danger)' }} title="Xoá"><Trash2 size={15} /></button>
             <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, borderRadius: 4, color: C.muted }}><X size={15} /></button>
           </div>
         </div>
@@ -493,14 +533,14 @@ function TodoDetail({
           {todo.project_name && <div style={{ color: C.muted }}>Dự án: <span style={{ color: C.text, fontWeight: 500 }}>{todo.project_name}</span></div>}
           {todo.created_by   && <div style={{ color: C.muted }}>Tạo bởi: <span style={{ color: C.text }}>{todo.created_by}</span></div>}
           <div style={{ color: C.muted }}>Tạo lúc: <span style={{ color: C.text }}>{new Date(todo.created_at).toLocaleDateString('vi-VN')}</span></div>
-          {todo.completed_at && <div style={{ color: '#16a34a' }}>Hoàn thành: {new Date(todo.completed_at).toLocaleDateString('vi-VN')}</div>}
+          {todo.completed_at && <div style={{ color: 'var(--app-success)' }}>Hoàn thành: {new Date(todo.completed_at).toLocaleDateString('vi-VN')}</div>}
         </div>
 
         {/* Tags */}
         {todo.tags.length > 0 && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
             {todo.tags.map(t => (
-              <span key={t} style={{ background: '#eff6ff', borderRadius: 4, padding: '2px 8px', fontSize: 12, color: C.primary }}>
+              <span key={t} style={{ background: 'var(--ds-brand-subtle)', borderRadius: 4, padding: '2px 8px', fontSize: 12, color: C.primary }}>
                 <Tag size={10} style={{ marginRight: 4 }} />{t}
               </span>
             ))}
@@ -580,7 +620,7 @@ function TodoDetail({
               style={{ flex: 1, fontSize: 13 }}
             />
             <button type="button" onClick={submitComment} disabled={sendingComment || !commentText.trim()}
-              style={{ padding: '0 12px', borderRadius: 8, border: `1px solid ${C.primary}`, background: C.primary, color: '#fff', cursor: 'pointer', opacity: commentText.trim() ? 1 : 0.4 }}>
+              style={{ padding: '0 12px', borderRadius: 8, border: `1px solid ${C.primary}`, background: C.primary, color: 'var(--app-white)', cursor: 'pointer', opacity: commentText.trim() ? 1 : 0.4 }}>
               <Send size={14} />
             </button>
           </div>
@@ -595,7 +635,7 @@ function TodoDetail({
       {/* Confirm delete */}
       {confirmDelete && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: '#fff', borderRadius: 12, padding: 24, width: 360 }}>
+          <div style={{ background: 'var(--app-white)', borderRadius: 12, padding: 24, width: 360 }}>
             <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>Xoá task?</div>
             <div style={{ fontSize: 13, color: C.muted, marginBottom: 20 }}>Hành động này không thể hoàn tác. Subtasks và comments cũng sẽ bị xoá.</div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
@@ -619,37 +659,37 @@ function StatsPanel({ stats }: { stats: TodoStats }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px,1fr))', gap: 16, marginBottom: 20 }}>
       {/* Overview */}
-      <div style={{ background: '#fff', border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}>
+      <div style={{ background: 'var(--app-white)', border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}>
         <div style={{ fontSize: 12, color: C.muted, marginBottom: 8 }}>Tổng quan</div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
           <span style={{ fontSize: 24, fontWeight: 700, color: C.primary }}>{stats.total_open}</span>
           <span style={{ fontSize: 12, color: C.muted, alignSelf: 'flex-end' }}>task đang mở</span>
         </div>
-        <ProgressBar value={pct} color="#16a34a" />
+        <ProgressBar value={pct} color="var(--app-success)" />
         <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>{doneCount} / {total} hoàn thành ({pct}%)</div>
       </div>
 
       {/* Alerts */}
-      <div style={{ background: '#fff', border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}>
+      <div style={{ background: 'var(--app-white)', border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}>
         <div style={{ fontSize: 12, color: C.muted, marginBottom: 12 }}>Cần chú ý</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 13, color: '#dc2626', display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={14} /> Quá hạn</span>
-            <span style={{ fontWeight: 700, color: '#dc2626' }}>{stats.overdue_count}</span>
+            <span style={{ fontSize: 13, color: 'var(--app-danger)', display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={14} /> Quá hạn</span>
+            <span style={{ fontWeight: 700, color: 'var(--app-danger)' }}>{stats.overdue_count}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 13, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: 6 }}><Calendar size={14} /> Hôm nay</span>
-            <span style={{ fontWeight: 700, color: '#f59e0b' }}>{stats.due_today}</span>
+            <span style={{ fontSize: 13, color: 'var(--app-warning)', display: 'flex', alignItems: 'center', gap: 6 }}><Calendar size={14} /> Hôm nay</span>
+            <span style={{ fontWeight: 700, color: 'var(--app-warning)' }}>{stats.due_today}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 13, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={14} /> Pending</span>
-            <span style={{ fontWeight: 700, color: '#f59e0b' }}>{stats.by_status?.pending ?? 0}</span>
+            <span style={{ fontSize: 13, color: 'var(--app-warning)', display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={14} /> Pending</span>
+            <span style={{ fontWeight: 700, color: 'var(--app-warning)' }}>{stats.by_status?.pending ?? 0}</span>
           </div>
         </div>
       </div>
 
       {/* By status */}
-      <div style={{ background: '#fff', border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}>
+      <div style={{ background: 'var(--app-white)', border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}>
         <div style={{ fontSize: 12, color: C.muted, marginBottom: 12 }}>Theo trạng thái</div>
         {(Object.keys(STATUS_META) as TodoStatus[]).map(s => {
           const cnt = stats.by_status?.[s] ?? 0
@@ -657,7 +697,7 @@ function StatsPanel({ stats }: { stats: TodoStats }) {
           return (
             <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, fontSize: 12 }}>
               <span style={{ color: STATUS_META[s].color, width: 70, flexShrink: 0 }}>{STATUS_META[s].label}</span>
-              <div style={{ flex: 1, background: '#f3f4f6', borderRadius: 4, height: 6, overflow: 'hidden' }}>
+              <div style={{ flex: 1, background: 'var(--ds-border-subtle)', borderRadius: 4, height: 6, overflow: 'hidden' }}>
                 <div style={{ width: `${pctBar}%`, height: '100%', background: STATUS_META[s].color, borderRadius: 4 }} />
               </div>
               <span style={{ width: 24, textAlign: 'right', color: C.text, fontWeight: 600 }}>{cnt}</span>
@@ -668,7 +708,7 @@ function StatsPanel({ stats }: { stats: TodoStats }) {
 
       {/* Workload */}
       {stats.workload?.length > 0 && (
-        <div style={{ background: '#fff', border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, gridColumn: '1 / -1' }}>
+        <div style={{ background: 'var(--app-white)', border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, gridColumn: '1 / -1' }}>
           <div style={{ fontSize: 12, color: C.muted, marginBottom: 12 }}>Workload thành viên</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px,1fr))', gap: 8 }}>
             {stats.workload.slice(0, 12).map(w => (
@@ -676,8 +716,8 @@ function StatsPanel({ stats }: { stats: TodoStats }) {
                 <div style={{ fontSize: 12, fontWeight: 600, color: C.text, marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.assignee_id}</div>
                 <div style={{ display: 'flex', gap: 8, fontSize: 11 }}>
                   <span style={{ color: C.primary }}>{w.open_count} mở</span>
-                  <span style={{ color: '#16a34a' }}>{w.done_count} xong</span>
-                  {w.overdue_count > 0 && <span style={{ color: '#dc2626' }}>{w.overdue_count} trễ</span>}
+                  <span style={{ color: 'var(--app-success)' }}>{w.done_count} xong</span>
+                  {w.overdue_count > 0 && <span style={{ color: 'var(--app-danger)' }}>{w.overdue_count} trễ</span>}
                 </div>
               </div>
             ))}
@@ -788,9 +828,18 @@ export default function TodoPage() {
   useEffect(() => { loadData() }, [loadData])
 
   const handleCreate = async (data: TodoCreate) => {
-    await createTodo({ ...data, project_id: data.project_id || filterProject || undefined })
-    setShowCreate(false); loadData()
-    addToast('Đã tạo task', 'success')
+    // Trước đây không có catch và addToast('Đã tạo task') nằm SAU await: khi API lỗi thì
+    // promise reject lan ra ngoài thành unhandled rejection — không toast lỗi, không toast
+    // thành công, modal vẫn mở. Người dùng chỉ thấy "bấm Tạo task mà không có gì xảy ra".
+    try {
+      await createTodo({ ...data, project_id: data.project_id || filterProject || undefined })
+      setShowCreate(false); loadData()
+      addToast('Đã tạo task', 'success')
+    } catch (e) {
+      // Giữ modal mở để không mất nội dung người dùng đã nhập
+      addToast((e as Error).message, 'error')
+      throw e   // để TodoForm biết là thất bại và không tự dọn form
+    }
   }
 
   const handleStatusChange = async (id: string, status: TodoStatus) => {
@@ -832,18 +881,18 @@ export default function TodoPage() {
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
       {/* ── Layer 1: View tabs (List / Board / Stats) + title + actions ── */}
-      <div style={{ background: '#fff', borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
+      <div style={{ background: 'var(--app-white)', borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
         <div style={{ padding: '10px 20px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
           {/* Title */}
           <span style={{ fontSize: 15, fontWeight: 700, color: C.text, marginRight: 4 }}> To-do List</span>
           <span style={{ fontSize: 12, color: C.muted }}>
             {todos.length} task
-            {(stats?.overdue_count ?? 0) > 0 && <> · <span style={{ color: '#dc2626' }}>{stats!.overdue_count} trễ</span></>}
+            {(stats?.overdue_count ?? 0) > 0 && <> · <span style={{ color: 'var(--app-danger)' }}>{stats!.overdue_count} trễ</span></>}
           </span>
           <div style={{ flex: 1 }} />
           {/* Refresh */}
           <button type="button" onClick={loadData}
-            style={{ padding: '5px 8px', borderRadius: 6, border: `1px solid ${C.border}`, background: '#fff', cursor: 'pointer', color: C.muted, display: 'flex', alignItems: 'center' }}>
+            style={{ padding: '5px 8px', borderRadius: 6, border: `1px solid ${C.border}`, background: 'var(--app-white)', cursor: 'pointer', color: C.muted, display: 'flex', alignItems: 'center' }}>
             <RefreshCw size={14} style={loading ? { animation: 'spin 1s linear infinite' } : {}} />
           </button>
           {/* Create */}
@@ -875,7 +924,7 @@ export default function TodoPage() {
       </div>
 
       {/* ── Layer 2: Status tabs + inline filters (1 row) ── */}
-      <div style={{ background: '#fff', borderBottom: `1px solid ${C.border}`, flexShrink: 0, padding: '0 20px', display: 'flex', alignItems: 'center', gap: 0 }}>
+      <div style={{ background: 'var(--app-white)', borderBottom: `1px solid ${C.border}`, flexShrink: 0, padding: '0 20px', display: 'flex', alignItems: 'center', gap: 0 }}>
         {/* Status tabs */}
         {STATUS_TABS.map((tab, idx) => {
           const cnt = countForTab(tab)
@@ -892,8 +941,8 @@ export default function TodoPage() {
               }}>
               {tab.label}
               <span style={{
-                background: active ? C.primary : '#f3f4f6',
-                color: active ? '#fff' : C.muted,
+                background: active ? C.primary : 'var(--ds-border-subtle)',
+                color: active ? 'var(--app-white)' : C.muted,
                 borderRadius: 10, padding: '0 7px', fontSize: 11, fontWeight: 600,
               }}>{cnt}</span>
             </button>
@@ -931,7 +980,7 @@ export default function TodoPage() {
         {/* Clear */}
         {activeL2Filters > 0 && (
           <button type="button" onClick={clearL2}
-            style={{ marginLeft: 6, padding: '3px 8px', borderRadius: 6, border: `1px solid ${C.border}`, background: '#fff', cursor: 'pointer', fontSize: 11, color: C.muted, display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0, whiteSpace: 'nowrap' }}>
+            style={{ marginLeft: 6, padding: '3px 8px', borderRadius: 6, border: `1px solid ${C.border}`, background: 'var(--app-white)', cursor: 'pointer', fontSize: 11, color: C.muted, display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0, whiteSpace: 'nowrap' }}>
             <X size={10} />Xoá lọc
           </button>
         )}
@@ -953,7 +1002,7 @@ export default function TodoPage() {
 
               {view === 'list' && (
                 visibleTodos.length === 0 ? (
-                  <EmptyState icon=""title="Chưa có task nào"desc="Tạo task đầu tiên để bắt đầu." action={<Btn onClick={() => setShowCreate(true)}><Plus size={14} /> Tạo task</Btn>} />
+                  <EmptyState title="Chưa có task nào"desc="Tạo task đầu tiên để bắt đầu." action={<Btn onClick={() => setShowCreate(true)}><Plus size={14} /> Tạo task</Btn>} />
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     {(Object.keys(STATUS_META) as TodoStatus[]).map(s => {
@@ -980,7 +1029,7 @@ export default function TodoPage() {
 
               {view === 'board' && (
                 visibleTodos.length === 0 ? (
-                  <EmptyState icon=""title="Chưa có task nào"desc="Tạo task đầu tiên để bắt đầu." action={<Btn onClick={() => setShowCreate(true)}><Plus size={14} /> Tạo task</Btn>} />
+                  <EmptyState title="Chưa có task nào"desc="Tạo task đầu tiên để bắt đầu." action={<Btn onClick={() => setShowCreate(true)}><Plus size={14} /> Tạo task</Btn>} />
                 ) : (
                   <BoardView todos={visibleTodos} selectedId={selectedId} onSelect={id => setSelectedId(id === selectedId ? null : id)} onStatusChange={handleStatusChange} />
                 )
@@ -993,7 +1042,7 @@ export default function TodoPage() {
         {showDetail && (
           <div style={{
             width: 380, flexShrink: 0, borderLeft: `1px solid ${C.border}`,
-            background: '#fff', display: 'flex', flexDirection: 'column', overflow: 'hidden',
+            background: 'var(--app-white)', display: 'flex', flexDirection: 'column', overflow: 'hidden',
           }}>
             <TodoDetail
               todoId={selectedId!}

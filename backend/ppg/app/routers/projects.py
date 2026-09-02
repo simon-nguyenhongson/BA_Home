@@ -6,9 +6,11 @@ from typing import List, Optional
 from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
+from pydantic import field_validator
 import asyncpg, json, os, logging
 
 from app.auth import CurrentUser
+from app.models.coercion import empty_str_to_none
 from app.database import get_db
 
 router = APIRouter(prefix="/projects", tags=["projects"])
@@ -34,6 +36,9 @@ class ProjectCreate(BaseModel):
     start_date: Optional[date] = None
     end_date: Optional[date] = None
     domain_code: Optional[str] = Field(None, max_length=50)
+
+    # Form dự án gửi start_date/end_date = '' khi để trống → 422 trước khi vào hàm
+    _dates_empty = field_validator("start_date", "end_date", mode="before")(empty_str_to_none)
 
 
 class ProjectUpdate(BaseModel):

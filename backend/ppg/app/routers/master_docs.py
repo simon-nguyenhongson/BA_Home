@@ -22,6 +22,7 @@ from pydantic import BaseModel, Field
 from app.auth import CurrentUser
 from app.database import get_db
 from app.services.ai_agent import assert_skill_for_step, run_skill
+from app.services.ai_sse import sse_response, step_done, step_running, vi_num
 from app.services.audit_service import log_audit
 
 router = APIRouter(tags=["master-docs"])
@@ -802,3 +803,153 @@ async def cr_master_doc_impact(
             **build_diff(base_content, r["content"]),
         })
     return {"data": impacts}
+
+
+# ── Merge Master Doc có tường thuật tiến độ (SSE) ────────────────────────────
+
+MERGE_STEPS = [
+    {"id": "brs",     "label": "Kiểm tra BRS đã golive"},
+    {"id": "doc",     "label": "Đọc Master Doc hiện hành"},
+    {"id": "ai",      "label": "Claude hợp nhất BRS vào Master Doc"},
+    {"id": "diff",    "label": "Tính khác biệt so với bản hiện hành"},
+    {"id": "save",    "label": "Lưu bản ĐỀ XUẤT (chờ duyệt)"},
+]
+
+
+@router.post("/brs/{brs_id}/merge-master-doc/stream")
+async def merge_brs_into_master_doc_stream(
+    user: CurrentUser,
+    brs_id: str,
+    body: MergeRequest,
+):
+    """
+    [Merge Master Doc] có tường thuật — cùng kết quả với POST /brs/{id}/merge-master-doc.
+
+    Master Doc KHÔNG đổi ở bước này: kết quả là một bản ĐỀ XUẤT trạng thái pending, phải
+    được duyệt mới thay bản hiện hành. Bước cuối nói rõ điều đó trên giao diện.
+    """
+    actor = user.sub
+
+    async def work(db: asyncpg.Connection, emit) -> dict:
+        assert_skill_for_step("update_master_doc", body.skill_code)
+        brs = await db.fetchrow("SELECT * FROM cr_brs_documents WHERE id = $1", brs_id)
+        if not brs:
+            raise HTTPException(404, detail={"code": "NOT_FOUND", "message": "BRS không tồn tại"})
+        if brs["status"] != "golive":
+            raise HTTPException(409, detail={
+                "code": "BRS_NOT_GOLIVE",
+                "message": "BRS phải ở trạng thái golive trước khi merge vào Master Doc.",
+            })
+        step_done(emit, "brs", f"v{brs['version']} · {vi_num(len(brs['content'] or ''))} ký tự")
+
+        step_running(emit, "doc")
+        cr = await db.fetchrow(
+            """
+            SELECT cr.*, p.code AS project_code, p.name AS project_name
+            FROM change_requests cr
+            LEFT JOIN projects p ON p.id = cr.project_id
+            WHERE cr.id = $1
+            """,
+            brs["cr_id"],
+        )
+        if not cr:
+            raise HTTPException(404, detail={"code": "NOT_FOUND", "message": "CR không tồn tại"})
+        if not cr["product_id"]:
+            raise HTTPException(409, detail={
+                "code": "CR_NO_PRODUCT",
+                "message": "CR chưa gắn hệ thống (product). Gán hệ thống cho CR trước khi merge.",
+            })
+        doc = await db.fetchrow(
+            "SELECT * FROM master_documents WHERE product_id = $1", cr["product_id"]
+        )
+        if not doc:
+            raise HTTPException(409, detail={
+                "code": "MASTER_DOC_MISSING",
+                "message": "Hệ thống này chưa có Master Doc. Tạo Master Doc trước khi merge.",
+            })
+        pending = await db.fetchrow(
+            "SELECT id FROM master_doc_versions "
+            "WHERE master_doc_id = $1 AND status = 'pending' AND brs_id = $2",
+            doc["id"], brs_id,
+        )
+        if pending:
+            raise HTTPException(409, detail={
+                "code": "MERGE_PENDING",
+                "message": "BRS này đã có bản đề xuất đang chờ duyệt.",
+                "version_id": str(pending["id"]),
+            })
+        step_done(emit, "doc", f"{doc['current_version']} · {vi_num(len(doc['content'] or ''))} ký tự")
+
+        prompt = (
+            f"=== MASTER DOC HIỆN HÀNH ({doc['current_version']}) ===\n{doc['content']}\n\n"
+            f"=== CHANGE REQUEST ===\n"
+            f"Mã: {cr['request_code']} — {cr['title']}\n"
+            f"Mô tả: {cr['description'] or ''}\n\n"
+            f"=== BRS ĐÃ GOLIVE (v{brs['version']}) ===\n{brs['content']}\n\n"
+            f"{('Ghi chú của BA: ' + body.note) if body.note.strip() else ''}\n"
+            "Cập nhật Master Doc theo BRS trên."
+        )
+        step_running(emit, "ai")
+        raw = await run_skill(db, body.skill_code, prompt, on_event=_md_hook(emit))
+        change_summary, new_content = _split_ai_merge_output(raw)
+        step_done(emit, "ai")
+
+        step_running(emit, "diff")
+        diff = build_diff(doc["content"], new_content)
+        st = diff.get("stats", {})
+        changed_total = st.get("added", 0) + st.get("removed", 0) + st.get("changed", 0)
+        step_done(emit, "diff",
+                  f"+{st.get('added', 0)} thêm · −{st.get('removed', 0)} xoá · "
+                  f"{st.get('changed', 0)} sửa"
+                  if changed_total else "nội dung không đổi so với bản hiện hành")
+
+        step_running(emit, "save")
+        version_id = str(uuid4())
+        async with db.transaction():
+            await db.execute(
+                """
+                INSERT INTO master_doc_versions
+                    (id, master_doc_id, version_no, version, content, change_summary,
+                     source, status, base_version_no, brs_id, created_by)
+                VALUES ($1, $2, NULL, $3, $4, $5, 'cr_merge', 'pending', $6, $7, $8)
+                """,
+                version_id, doc["id"], f"v{doc['current_version_no'] + 1}.0 (đề xuất)",
+                new_content, change_summary, doc["current_version_no"], brs_id, actor,
+            )
+            await db.execute(
+                """
+                INSERT INTO master_doc_version_crs
+                    (id, version_id, master_doc_id, cr_id, cr_code, cr_title, cr_description,
+                     cr_change_type, cr_priority, cr_notes, project_id, project_code,
+                     project_name, merged_by)
+                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+                """,
+                str(uuid4()), version_id, doc["id"], cr["id"], cr["request_code"], cr["title"],
+                cr["description"] or "", cr["change_type"], cr["priority"], cr["notes"],
+                cr["project_id"], cr["project_code"], cr["project_name"], actor,
+            )
+        await log_audit(
+            db=db, entity_type="master_doc_versions", entity_id=version_id, action="CREATE",
+            changed_by=actor,
+            new_values={"master_doc_id": str(doc["id"]), "brs_id": brs_id, "status": "pending"},
+        )
+        step_done(emit, "save",
+                  f"bản đề xuất v{doc['current_version_no'] + 1}.0 — Master Doc VẪN "
+                  f"{doc['current_version']} cho tới khi bản này được duyệt")
+        return {
+            "data": {
+                "version_id": version_id,
+                "master_doc_id": str(doc["id"]),
+                "change_summary": change_summary,
+                "status": "pending",
+            },
+            "diff": diff,
+        }
+
+    return sse_response(MERGE_STEPS, work)
+
+
+def _md_hook(emit):
+    async def h(ev: dict) -> None:
+        emit(ev)
+    return h

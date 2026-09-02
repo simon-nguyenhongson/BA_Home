@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" />
+<link rel="stylesheet" href="./ds/fig-tokens.css" />
+<style>
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: #FFFFFF; font-family: Inter, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #155EEF; text-decoration: none; }
+  a:hover { color: #004EEB; }
+  ::selection { background: #D1E0FF; }
+</style>
+</helmet>
+
+<div style="display: grid; grid-template-columns: 264px minmax(0, 1fr); min-height: 100vh; background: #FFFFFF; color: #101828;">
+
+  <dc-import name="SideNav" page="Design System.dc.html" hint-size="264px,100%"></dc-import>
+
+  <main style="min-width: 0;">
+    <div style="height: 12px; background: linear-gradient(90deg, #027FFE 15.24%, #02CCCC 72.81%, #02E2BD 89.43%);"></div>
+
+    <section id="overview" style="padding: 64px 80px 72px 80px; border-bottom: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 48px;">
+      <div style="display: flex; flex-direction: column; gap: 20px; max-width: 860px;">
+        <span style="display: inline-flex; align-self: flex-start; padding: 4px 12px; border-radius: 16px; background: #EFF4FF; border: 1px solid #D1E0FF; font-size: 12px; font-weight: 500; color: #155EEF;">Trích xuất từ Figma · 48 page · 296 component set</span>
+        <h1 style="margin: 0; font-size: 60px; line-height: 72px; letter-spacing: -0.02em; font-weight: 600; color: #101828;">Design System</h1>
+        <p style="margin: 0; font-size: 18px; line-height: 28px; color: #475467; text-wrap: pretty;">Nền tảng và thư viện component dùng chung cho toàn bộ sản phẩm. Mọi giá trị màu, typography, spacing và variant trên trang này đọc trực tiếp từ file Figma nguồn — không làm tròn, không thay bằng giá trị mặc định của thư viện khác.</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; max-width: 1040px;">
+        <div style="padding: 20px; border: 1px solid #EAECF0; border-radius: 12px; box-shadow: 0px 1px 2px 0px rgba(16,24,40,0.05); display: flex; flex-direction: column; gap: 6px;">
+          <span style="font-size: 36px; line-height: 44px; font-weight: 600; letter-spacing: -0.02em; color: #101828;">296</span>
+          <span style="font-size: 14px; line-height: 20px; color: #667085;">Component set</span>
+        </div>
+        <div style="padding: 20px; border: 1px solid #EAECF0; border-radius: 12px; box-shadow: 0px 1px 2px 0px rgba(16,24,40,0.05); display: flex; flex-direction: column; gap: 6px;">
+          <span style="font-size: 36px; line-height: 44px; font-weight: 600; letter-spacing: -0.02em; color: #101828;">{{ iconTotal }}</span>
+          <span style="font-size: 14px; line-height: 20px; color: #667085;">Icon đã trích xuất</span>
+        </div>
+        <div style="padding: 20px; border: 1px solid #EAECF0; border-radius: 12px; box-shadow: 0px 1px 2px 0px rgba(16,24,40,0.05); display: flex; flex-direction: column; gap: 6px;">
+          <span style="font-size: 36px; line-height: 44px; font-weight: 600; letter-spacing: -0.02em; color: #101828;">178</span>
+          <span style="font-size: 14px; line-height: 20px; color: #667085;">Figma Variable</span>
+        </div>
+        <div style="padding: 20px; border: 1px solid #EAECF0; border-radius: 12px; box-shadow: 0px 1px 2px 0px rgba(16,24,40,0.05); display: flex; flex-direction: column; gap: 6px;">
+          <span style="font-size: 36px; line-height: 44px; font-weight: 600; letter-spacing: -0.02em; color: #101828;">Inter</span>
+          <span style="font-size: 14px; line-height: 20px; color: #667085;">Typeface giao diện</span>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
+        <a href="Buttons.dc.html" style="padding: 24px; border: 1px solid #EAECF0; border-radius: 12px; display: flex; flex-direction: column; gap: 8px; color: #101828;" style-hover="border-color: #B2CCFF; background: #F5F8FF; color: #101828;">
+          <span style="font-size: 18px; line-height: 28px; font-weight: 600;">Button</span>
+          <span style="font-size: 14px; line-height: 20px; color: #667085;">Cấp bậc, size &amp; spacing, ma trận trạng thái, filter, loading, button group</span>
+        </a>
+        <a href="Badges.dc.html" style="padding: 24px; border: 1px solid #EAECF0; border-radius: 12px; display: flex; flex-direction: column; gap: 8px; color: #101828;" style-hover="border-color: #B2CCFF; background: #F5F8FF; color: #101828;">
+          <span style="font-size: 18px; line-height: 28px; font-weight: 600;">Badge, Avatar, Checkbox</span>
+          <span style="font-size: 14px; line-height: 20px; color: #667085;">624 variant badge, avatar 6 size, check group, breadcrumb, callout</span>
+        </a>
+        <a href="Forms.dc.html" style="padding: 24px; border: 1px solid #EAECF0; border-radius: 12px; display: flex; flex-direction: column; gap: 8px; color: #101828;" style-hover="border-color: #B2CCFF; background: #F5F8FF; color: #101828;">
+          <span style="font-size: 18px; line-height: 28px; font-weight: 600;">Form &amp; Input</span>
+          <span style="font-size: 14px; line-height: 20px; color: #667085;">Input, currency, select, date picker, toggle</span>
+        </a>
+        <a href="Navigation.dc.html" style="padding: 24px; border: 1px solid #EAECF0; border-radius: 12px; display: flex; flex-direction: column; gap: 8px; color: #101828;" style-hover="border-color: #B2CCFF; background: #F5F8FF; color: #101828;">
+          <span style="font-size: 18px; line-height: 28px; font-weight: 600;">Navigation &amp; Overlay</span>
+          <span style="font-size: 14px; line-height: 20px; color: #667085;">Tab, step, breadcrumb, modal, drawer, tooltip</span>
+        </a>
+        <a href="Table.dc.html" style="padding: 24px; border: 1px solid #EAECF0; border-radius: 12px; display: flex; flex-direction: column; gap: 8px; color: #101828;" style-hover="border-color: #B2CCFF; background: #F5F8FF; color: #101828;">
+          <span style="font-size: 18px; line-height: 28px; font-weight: 600;">Table &amp; Data</span>
+          <span style="font-size: 14px; line-height: 20px; color: #667085;">50 kiểu ô, header, pagination, description list</span>
+        </a>
+      </div>
+    </section>
+
+    <section id="colors" style="padding: 64px 80px 72px 80px; border-bottom: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 40px;">
+      <div style="display: flex; flex-direction: column; gap: 12px; max-width: 760px;">
+        <h2 style="margin: 0; font-size: 36px; line-height: 44px; font-weight: 600; letter-spacing: -0.02em; color: #101828;">Màu sắc</h2>
+        <p style="margin: 0; font-size: 16px; line-height: 24px; color: #475467; text-wrap: pretty;">Bảng màu dưới đây là các màu thực sự đang dùng trong file, kèm số lần xuất hiện. Con số này cho biết màu nào là nền tảng và màu nào chỉ dành cho trường hợp đặc biệt.</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <span style="font-size: 14px; font-weight: 600; color: #344054;">Brand gradient</span>
+        <span style="font-size: 14px; line-height: 20px; color: #667085;">Dải nhận diện, dùng ở đầu mỗi trang tài liệu và trong logo.</span>
+        <div style="height: 64px; border-radius: 12px; background: linear-gradient(90deg, #027FFE 15.24%, #02CCCC 72.81%, #02E2BD 89.43%); margin-top: 8px;"></div>
+        <div style="display: flex; flex-direction: row; gap: 24px; margin-top: 4px;">
+          <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #475467;">#027FFE · 15%</span>
+          <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #475467;">#02CCCC · 73%</span>
+          <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #475467;">#02E2BD · 89%</span>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 40px; align-items: start; padding-top: 24px; border-top: 1px solid #F2F4F7;">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-size: 14px; font-weight: 600; color: #344054;">Base</span>
+          <span style="font-size: 14px; line-height: 20px; color: #667085;">Nền và mực cơ bản.</span>
+        </div>
+        <div style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 20px;">
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #FFFFFF; border: 1px solid #EAECF0;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">White</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#FFFFFF</span><span style="font-size: 11px; color: #98A2B3;">10.938 lần</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #000000;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">Black</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#000000</span><span style="font-size: 11px; color: #98A2B3;">1.631 lần</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #161616;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">Ink</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#161616</span><span style="font-size: 11px; color: #98A2B3;">1.928 lần</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 40px; align-items: start; padding-top: 24px; border-top: 1px solid #F2F4F7;">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-size: 14px; font-weight: 600; color: #344054;">Blue dark — Primary</span>
+          <span style="font-size: 14px; line-height: 20px; color: #667085;">Màu thương hiệu. Dùng cho yếu tố tương tác: button, link, filled, focused.</span>
+        </div>
+        <div style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 20px;">
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #F5F8FF; border: 1px solid #EAECF0;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">Blue 25</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#F5F8FF</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #EFF4FF; border: 1px solid #EAECF0;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">Blue 50</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#EFF4FF</span><span style="font-size: 11px; color: #98A2B3;">296 lần</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #D1E0FF;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">Blue 100</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#D1E0FF</span><span style="font-size: 11px; color: #98A2B3;">264 lần</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #B2CCFF;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">Blue 200</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#B2CCFF</span><span style="font-size: 11px; color: #98A2B3;">164 lần</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #528BFF;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">Blue 400</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#528BFF</span><span style="font-size: 11px; color: #98A2B3;">160 lần</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #2970FF;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">Blue 500</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#2970FF</span><span style="font-size: 11px; color: #98A2B3;">149 lần</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #155EEF; box-shadow: 0px 1px 2px 0px rgba(16,24,40,0.05);"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 600; color: #155EEF;">Blue 600 · primary</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#155EEF</span><span style="font-size: 11px; color: #98A2B3;">577 lần</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 40px; align-items: start; padding-top: 24px; border-top: 1px solid #F2F4F7;">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-size: 14px; font-weight: 600; color: #344054;">Gray — Neutral</span>
+          <span style="font-size: 14px; line-height: 20px; color: #667085;">Nền tảng của hệ màu: text, border, background, divider.</span>
+        </div>
+        <div style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 20px;">
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #FCFCFD; border: 1px solid #EAECF0;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">Gray 25</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#FCFCFD</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #F9FAFB; border: 1px solid #EAECF0;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">Gray 50</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#F9FAFB</span><span style="font-size: 11px; color: #98A2B3;">1.012 lần</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #F2F4F7;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">Gray 100</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#F2F4F7</span><span style="font-size: 11px; color: #98A2B3;">617 lần</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #EAECF0;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 600; color: #344054;">Gray 200 · border</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#EAECF0</span><span style="font-size: 11px; color: #98A2B3;">4.513 lần</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #D0D5DD;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">Gray 300</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#D0D5DD</span><span style="font-size: 11px; color: #98A2B3;">968 lần</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #98A2B3;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">Gray 400</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#98A2B3</span><span style="font-size: 11px; color: #98A2B3;">207 lần</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #667085;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">Gray 500</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#667085</span><span style="font-size: 11px; color: #98A2B3;">1.307 lần</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #475467;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">Gray 600</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#475467</span><span style="font-size: 11px; color: #98A2B3;">553 lần</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #344054;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">Gray 700</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#344054</span><span style="font-size: 11px; color: #98A2B3;">1.299 lần</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #101828;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 600; color: #344054;">Gray 900 · text</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#101828</span><span style="font-size: 11px; color: #98A2B3;">1.684 lần</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #D3DAE6;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">Gray blue 300</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#D3DAE6</span><span style="font-size: 11px; color: #98A2B3;">102 lần</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 40px; align-items: start; padding-top: 24px; border-top: 1px solid #F2F4F7;">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-size: 14px; font-weight: 600; color: #344054;">Secondary</span>
+          <span style="font-size: 14px; line-height: 20px; color: #667085;">Chỉ dùng bổ trợ: badge, thông báo, tag, label. Luôn ưu tiên màu chính trước. Hai tông violet là màu <em>primary</em> riêng của họ Badge và Tab trong file — không trùng với Blue 600 của button.</span>
+        </div>
+        <div style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 20px;">
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #FDA29B;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">Error 300</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#FDA29B</span><span style="font-size: 11px; color: #98A2B3;">109 lần</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #F04438;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 600; color: #344054;">Error 500 · danger</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#F04438</span><span style="font-size: 11px; color: #98A2B3;">392 lần</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #D92D20;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">Error 600</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#D92D20</span><span style="font-size: 11px; color: #98A2B3;">109 lần</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #F9F5FF; border: 1px solid #EAECF0;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">Purple 50</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#F9F5FF</span><span style="font-size: 11px; color: #98A2B3;">147 lần</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #9747FF;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">Purple 500</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#9747FF</span><span style="font-size: 11px; color: #98A2B3;">114 lần</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #7F56D9;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">Violet 600</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#7F56D9</span><span style="font-size: 11px; color: #98A2B3;">badge · tab active</span></div>
+          </div>
+          <div style="width: 128px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 72px; border-radius: 8px; background: #6941C6;"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 500; color: #344054;">Violet 700</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #667085;">#6941C6</span><span style="font-size: 11px; color: #98A2B3;">gạch chân tab</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="type" style="padding: 64px 80px 72px 80px; border-bottom: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 40px;">
+      <div style="display: flex; flex-direction: column; gap: 12px; max-width: 760px;">
+        <h2 style="margin: 0; font-size: 36px; line-height: 44px; font-weight: 600; letter-spacing: -0.02em; color: #101828;">Typography</h2>
+        <p style="margin: 0; font-size: 16px; line-height: 24px; color: #475467; text-wrap: pretty;">Inter là typeface duy nhất cho giao diện. IBM Plex Sans chỉ dùng cho logotype. Hai size chiếm đa số là 14px (body) và 12px (caption, label bảng).</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 16px; padding-bottom: 32px; border-bottom: 1px solid #F2F4F7;">
+        <span style="font-size: 48px; line-height: 100%; color: #101828;">Inter</span>
+        <span style="font-size: 112px; line-height: 100%; color: #101828;">Ag</span>
+        <span style="font-size: 32px; line-height: 44px; letter-spacing: -0.02em; color: #101828; text-wrap: pretty;">ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789 !@#$%^&amp;*()</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column;">
+        <div style="display: grid; grid-template-columns: 200px 280px minmax(0, 1fr); gap: 32px; align-items: baseline; padding: 24px 0; border-bottom: 1px solid #F2F4F7;">
+          <span style="font-size: 14px; font-weight: 600; color: #344054;">Display md</span>
+          <span style="font-size: 13px; line-height: 20px; color: #667085;">36px / 2.25rem · line 44px</span>
+          <span style="font-size: 36px; line-height: 44px; font-weight: 600; letter-spacing: -0.02em; color: #101828;">Display md</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 200px 280px minmax(0, 1fr); gap: 32px; align-items: baseline; padding: 24px 0; border-bottom: 1px solid #F2F4F7;">
+          <span style="font-size: 14px; font-weight: 600; color: #344054;">Display sm</span>
+          <span style="font-size: 13px; line-height: 20px; color: #667085;">30px / 1.875rem · line 38px</span>
+          <span style="font-size: 30px; line-height: 38px; font-weight: 600; letter-spacing: -0.02em; color: #101828;">Display sm</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 200px 280px minmax(0, 1fr); gap: 32px; align-items: baseline; padding: 24px 0; border-bottom: 1px solid #F2F4F7;">
+          <span style="font-size: 14px; font-weight: 600; color: #344054;">Display xs</span>
+          <span style="font-size: 13px; line-height: 20px; color: #667085;">24px / 1.5rem · line 32px</span>
+          <span style="font-size: 24px; line-height: 32px; font-weight: 600; color: #101828;">Display xs</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 200px 280px minmax(0, 1fr); gap: 32px; align-items: baseline; padding: 24px 0; border-bottom: 1px solid #F2F4F7;">
+          <span style="font-size: 14px; font-weight: 600; color: #344054;">Text xl</span>
+          <span style="font-size: 13px; line-height: 20px; color: #667085;">20px / 1.25rem · line 30px</span>
+          <span style="font-size: 20px; line-height: 30px; font-weight: 500; color: #101828;">Text xl</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 200px 280px minmax(0, 1fr); gap: 32px; align-items: baseline; padding: 24px 0; border-bottom: 1px solid #F2F4F7;">
+          <span style="font-size: 14px; font-weight: 600; color: #344054;">Text lg</span>
+          <span style="font-size: 13px; line-height: 20px; color: #667085;">18px / 1.125rem · line 28px</span>
+          <span style="font-size: 18px; line-height: 28px; font-weight: 500; color: #101828;">Text lg</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 200px 280px minmax(0, 1fr); gap: 32px; align-items: baseline; padding: 24px 0; border-bottom: 1px solid #F2F4F7;">
+          <span style="font-size: 14px; font-weight: 600; color: #344054;">Text md</span>
+          <span style="font-size: 13px; line-height: 20px; color: #667085;">16px / 1rem · line 24px</span>
+          <span style="font-size: 16px; line-height: 24px; color: #101828;">Text md — body dài</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 200px 280px minmax(0, 1fr); gap: 32px; align-items: baseline; padding: 24px 0; border-bottom: 1px solid #F2F4F7; background: #FCFCFD;">
+          <span style="font-size: 14px; font-weight: 600; color: #155EEF;">Text sm · mặc định</span>
+          <span style="font-size: 13px; line-height: 20px; color: #667085;">14px / 0.875rem · line 20px</span>
+          <span style="font-size: 14px; line-height: 20px; color: #101828;">Text sm — size dùng nhiều nhất (1.555 lần Regular, 865 lần Medium)</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 200px 280px minmax(0, 1fr); gap: 32px; align-items: baseline; padding: 24px 0; border-bottom: 1px solid #F2F4F7;">
+          <span style="font-size: 14px; font-weight: 600; color: #344054;">Text xs</span>
+          <span style="font-size: 13px; line-height: 20px; color: #667085;">12px / 0.75rem · line 18px</span>
+          <span style="font-size: 12px; line-height: 18px; color: #101828;">Text xs — caption, label bảng</span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 32px;">
+        <div style="display: flex; flex-direction: column; gap: 6px;"><span style="font-size: 12px; color: #667085;">Regular · 400</span><span style="font-size: 24px; font-weight: 400; color: #101828;">Aa Bb Cc</span></div>
+        <div style="display: flex; flex-direction: column; gap: 6px;"><span style="font-size: 12px; color: #667085;">Medium · 500</span><span style="font-size: 24px; font-weight: 500; color: #101828;">Aa Bb Cc</span></div>
+        <div style="display: flex; flex-direction: column; gap: 6px;"><span style="font-size: 12px; color: #667085;">Semi Bold · 600</span><span style="font-size: 24px; font-weight: 600; color: #101828;">Aa Bb Cc</span></div>
+        <div style="display: flex; flex-direction: column; gap: 6px;"><span style="font-size: 12px; color: #667085;">Bold · 700</span><span style="font-size: 24px; font-weight: 700; color: #101828;">Aa Bb Cc</span></div>
+      </div>
+    </section>
+
+    <section id="shadow" style="padding: 64px 80px 72px 80px; border-bottom: 1px solid #EAECF0; display: flex; flex-direction: column; gap: 40px;">
+      <div style="display: flex; flex-direction: column; gap: 12px; max-width: 760px;">
+        <h2 style="margin: 0; font-size: 36px; line-height: 44px; font-weight: 600; letter-spacing: -0.02em; color: #101828;">Shadow</h2>
+        <p style="margin: 0; font-size: 16px; line-height: 24px; color: #475467; text-wrap: pretty;">Toàn bộ shadow đổ bằng một tông duy nhất — <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px;">#101828</span> ở các mức alpha 3%, 5%, 8%. Không dùng shadow đen thuần.</p>
+      </div>
+      <div style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 32px; background: #FCFCFD; border: 1px solid #F2F4F7; border-radius: 16px; padding: 48px;">
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="width: 176px; height: 112px; border-radius: 12px; background: #FFFFFF; box-shadow: 0px 1px 2px 0px rgba(16,24,40,0.05);"></div>
+          <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 600; color: #344054;">Shadow xs</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; line-height: 16px; color: #667085;">0 1px 2px rgba(16,24,40,.05)</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="width: 176px; height: 112px; border-radius: 12px; background: #FFFFFF; box-shadow: 0px 1px 3px 0px rgba(16,24,40,0.10), 0px 1px 2px 0px rgba(16,24,40,0.06);"></div>
+          <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 600; color: #344054;">Shadow sm</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; line-height: 16px; color: #667085;">0 1px 3px rgba(16,24,40,.10)<br />0 1px 2px rgba(16,24,40,.06)</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="width: 176px; height: 112px; border-radius: 12px; background: #FFFFFF; box-shadow: 0px 4px 8px -2px rgba(16,24,40,0.10), 0px 2px 4px -2px rgba(16,24,40,0.06);"></div>
+          <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 600; color: #344054;">Shadow md</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; line-height: 16px; color: #667085;">0 4px 8px -2px rgba(16,24,40,.10)<br />0 2px 4px -2px rgba(16,24,40,.06)</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="width: 176px; height: 112px; border-radius: 12px; background: #FFFFFF; box-shadow: 0px 12px 16px -4px rgba(16,24,40,0.08), 0px 4px 6px -2px rgba(16,24,40,0.03);"></div>
+          <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 600; color: #344054;">Shadow lg</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; line-height: 16px; color: #667085;">0 12px 16px -4px rgba(16,24,40,.08)<br />0 4px 6px -2px rgba(16,24,40,.03)</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="width: 176px; height: 112px; border-radius: 12px; background: #FFFFFF; box-shadow: 0px 20px 24px -4px rgba(16,24,40,0.08), 0px 8px 8px -4px rgba(16,24,40,0.03);"></div>
+          <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 13px; font-weight: 600; color: #344054;">Shadow xl</span><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; line-height: 16px; color: #667085;">0 20px 24px -4px rgba(16,24,40,.08)<br />0 8px 8px -4px rgba(16,24,40,.03)</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="icons" style="padding: 64px 80px 96px 80px; display: flex; flex-direction: column; gap: 32px;">
+      <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: flex-end; gap: 32px; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 12px; max-width: 640px;">
+          <h2 style="margin: 0; font-size: 36px; line-height: 44px; font-weight: 600; letter-spacing: -0.02em; color: #101828;">Icon</h2>
+          <p style="margin: 0; font-size: 16px; line-height: 24px; color: #475467; text-wrap: pretty;">Bộ icon stroke đồng nhất, dựng trên grid 32px, tô bằng <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px;">currentColor</span> nên đổi màu theo text.</p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; width: 320px;">
+          <label for="icon-search" style="font-size: 13px; font-weight: 500; color: #344054;">Tìm icon</label>
+          <input id="icon-search" type="text" placeholder="arrow, chart, user…" value="{{ q }}" onChange="{{ onQ }}" style="height: 40px; padding: 0 12px; border: 1px solid #D0D5DD; border-radius: 8px; background: #FFFFFF; font-family: Inter, sans-serif; font-size: 14px; color: #101828; box-shadow: 0px 1px 2px 0px rgba(16,24,40,0.05); outline: none;" style-focus="border-color: #84ADFF; box-shadow: 0px 1px 2px 0px rgba(16,24,40,0.05), 0px 0px 0px 4px #EFF4FF;" />
+          <span style="font-size: 12px; color: #667085;">{{ iconShown }} / {{ iconTotal }} icon</span>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px;">
+        <sc-for list="{{ iconItems }}" as="item" hint-placeholder-count="24">
+          <div title="{{ item.name }}" style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 8px; border: 1px solid #F2F4F7; border-radius: 8px; background: #FFFFFF; color: #344054; overflow: hidden;" style-hover="border-color: #B2CCFF; background: #F5F8FF; color: #155EEF;">
+            <div style="display: flex; align-items: center; justify-content: center; min-height: 40px;">{{ item.svg }}</div>
+            <span style="font-size: 10px; line-height: 14px; text-align: center; color: #667085; word-break: break-word;">{{ item.label }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <sc-if value="{{ noIconMatch }}" hint-placeholder-val="{{ false }}">
+        <div style="padding: 48px; text-align: center; border: 1px dashed #D0D5DD; border-radius: 12px; font-size: 14px; color: #667085;">Không có icon nào khớp từ khoá.</div>
+      </sc-if>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;iconSize&quot;: {
+    &quot;editor&quot;: &quot;range&quot;,
+    &quot;min&quot;: 16,
+    &quot;max&quot;: 40,
+    &quot;step&quot;: 4,
+    &quot;default&quot;: 24,
+    &quot;unit&quot;: &quot;px&quot;,
+    &quot;tsType&quot;: &quot;number&quot;,
+    &quot;section&quot;: &quot;Icons&quot;
+  }
+}">
+class Component extends DCLogic {
+  state = { icons: null, q: "" };
+
+  componentDidMount() {
+    import("./ds/icons/icon-data.js")
+      .then((m) => this.setState({ icons: m.default || m }))
+      .catch(() => this.setState({ icons: {} }));
+  }
+
+  renderVals() {
+    const icons = this.state.icons || {};
+    const size = this.props.iconSize ?? 24;
+    const q = this.state.q.trim().toLowerCase();
+    const names = Object.keys(icons).sort();
+    const shown = q ? names.filter((n) => n.toLowerCase().includes(q)) : names;
+
+    return {
+      q: this.state.q,
+      onQ: (e) => this.setState({ q: e.target.value }),
+      iconTotal: names.length,
+      iconShown: shown.length,
+      noIconMatch: names.length > 0 && shown.length === 0,
+      iconItems: shown.map((n) => ({
+        name: n,
+        label: n.replace(/^Icon/, ""),
+        svg: React.createElement("svg", {
+          width: size,
+          height: size,
+          viewBox: icons[n].viewBox,
+          fill: "none",
+          style: { display: "block" },
+          dangerouslySetInnerHTML: { __html: icons[n].body },
+        }),
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>

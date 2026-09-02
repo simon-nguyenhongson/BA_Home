@@ -28,6 +28,7 @@ from pydantic import BaseModel, Field
 from app.auth import CurrentUser
 from app.database import get_db
 from app.services.ai_agent import assert_skill_for_step, run_skill
+from app.services.ai_sse import sse_response, step_done, step_running, vi_num
 from app.services.audit_service import log_audit
 
 router = APIRouter(prefix="/automation", tags=["automation"])
@@ -648,3 +649,230 @@ async def export_task(
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+# ── Sinh test case / báo cáo có tường thuật tiến độ (SSE) ────────────────────
+
+GEN_CASES_STEPS = [
+    {"id": "task",  "label": "Kiểm tra công việc test và BRS"},
+    {"id": "keep",  "label": "Rà test case đã map script"},
+    {"id": "ai",    "label": "Claude sinh bộ test case"},
+    {"id": "save",  "label": "Lưu test case"},
+]
+
+GEN_REPORT_STEPS = [
+    {"id": "run",     "label": "Đọc lượt chạy"},
+    {"id": "results", "label": "Ghép kết quả của CHÍNH lượt chạy này"},
+    {"id": "ai",      "label": "Claude viết báo cáo"},
+    {"id": "save",    "label": "Lưu báo cáo vào lượt chạy"},
+]
+
+
+def _at_hook(emit):
+    async def h(ev: dict) -> None:
+        emit(ev)
+    return h
+
+
+@router.post("/tasks/{task_id}/generate-cases/stream")
+async def generate_cases_stream(
+    user: CurrentUser,
+    task_id: str,
+    body: GenerateCasesRequest,
+):
+    """[Gen testcase] có tường thuật — cùng kết quả với POST /tasks/{id}/generate-cases."""
+    actor = user.sub
+
+    async def work(db: asyncpg.Connection, emit) -> dict:
+        assert_skill_for_step("gen_test_case", body.skill_code)
+        task = await _get_task_or_404(db, task_id)
+        if task["status"] == "closed":
+            raise HTTPException(409, detail={"code": "TASK_CLOSED",
+                                             "message": "Task test đã đóng."})
+        if not task["brs_content"]:
+            raise HTTPException(409, detail={
+                "code": "BRS_MISSING",
+                "message": "Task chưa gắn BRS có nội dung. Duyệt BRS của CR trước.",
+            })
+        if task["brs_status"] not in ("approved", "golive"):
+            raise HTTPException(409, detail={
+                "code": "BRS_NOT_APPROVED",
+                "message": "BRS phải được duyệt trước khi sinh test case.",
+            })
+        step_done(emit, "task", f"{task['request_code']} · BRS v{task['brs_version']} "
+                                f"({task['brs_status']}) · "
+                                f"{vi_num(len(task['brs_content'] or ''))} ký tự")
+
+        step_running(emit, "keep")
+        kept = await db.fetch(
+            "SELECT code FROM automation_test_cases "
+            "WHERE task_id = $1 AND studio_tc_id IS NOT NULL",
+            task_id,
+        )
+        kept_codes = {r["code"] for r in kept}
+        will_replace = await db.fetchval(
+            "SELECT COUNT(*) FROM automation_test_cases "
+            "WHERE task_id = $1 AND studio_tc_id IS NULL",
+            task_id,
+        ) or 0
+        step_done(emit, "keep",
+                  f"giữ {len(kept_codes)} case đã map script · "
+                  f"sẽ thay {will_replace} case chưa map"
+                  + (" (bản QA sửa tay ở các case này sẽ mất)" if will_replace else ""))
+
+        prompt = (
+            f"=== CHANGE REQUEST ===\n{task['request_code']} — {task['cr_title']}\n"
+            f"{task['cr_description'] or ''}\n\n"
+            f"=== BRS ĐÃ DUYỆT (v{task['brs_version']}) ===\n{task['brs_content']}\n\n"
+            f"{('Ghi chú của QA: ' + body.note) if body.note.strip() else ''}\n"
+            "Sinh bộ test case cho thay đổi trên."
+        )
+        step_running(emit, "ai")
+        raw = await run_skill(db, body.skill_code, prompt, on_event=_at_hook(emit))
+        parsed = _parse_cases_json(raw)
+        step_done(emit, "ai", f"{len(parsed)} test case trong phản hồi")
+
+        step_running(emit, "save")
+        created = 0
+        async with db.transaction():
+            replaced = will_replace
+            await db.execute(
+                "DELETE FROM automation_test_cases WHERE task_id = $1 AND studio_tc_id IS NULL",
+                task_id,
+            )
+            for idx, item in enumerate(parsed):
+                code = str(item.get("code") or f"TC-{idx + 1:02d}").strip()[:40]
+                if code in kept_codes:
+                    continue
+                priority = str(item.get("priority") or "medium").lower()
+                if priority not in VALID_PRIORITIES:
+                    priority = "medium"
+                await db.execute(
+                    """
+                    INSERT INTO automation_test_cases
+                        (id, task_id, code, title, precondition, steps, expected,
+                         priority, status, sort_order, created_by)
+                    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'ready',$9,$10)
+                    """,
+                    str(uuid4()), task_id, code,
+                    str(item.get("title") or code)[:300],
+                    str(item.get("precondition") or ""),
+                    str(item.get("steps") or ""),
+                    str(item.get("expected") or ""),
+                    priority, idx, actor,
+                )
+                created += 1
+            await db.execute(
+                "UPDATE automation_test_tasks SET status = 'cases_generated', updated_at = NOW() "
+                "WHERE id = $1 AND status = 'need_test'",
+                task_id,
+            )
+        await log_audit(
+            db=db, entity_type="automation_test_tasks", entity_id=task_id, action="CREATE",
+            changed_by=actor,
+            new_values={"generated_cases": created, "kept_mapped": len(kept_codes),
+                        "replaced_unmapped": replaced},
+        )
+        cases = await db.fetch(
+            "SELECT * FROM automation_test_cases WHERE task_id = $1 ORDER BY sort_order, code",
+            task_id,
+        )
+        step_done(emit, "save", f"tạo {created} · giữ {len(kept_codes)} · thay {replaced}")
+        return {
+            "data": [dict(c) for c in cases],
+            "meta": {
+                "created": created, "kept": len(kept_codes), "replaced": replaced,
+                "message": (
+                    f"Đã thay {replaced} test case chưa map script"
+                    if replaced else "Không có test case nào bị thay"
+                ) + (f", giữ {len(kept_codes)} case đã map." if kept_codes else "."),
+            },
+        }
+
+    return sse_response(GEN_CASES_STEPS, work)
+
+
+@router.post("/runs/{run_id}/generate-report/stream")
+async def generate_report_stream(
+    user: CurrentUser,
+    run_id: str,
+    body: ReportRequest,
+):
+    """[Gen report] có tường thuật — cùng kết quả với POST /runs/{id}/generate-report."""
+
+    async def work(db: asyncpg.Connection, emit) -> dict:
+        assert_skill_for_step("gen_test_report", body.skill_code)
+        run = await db.fetchrow("SELECT * FROM automation_test_runs WHERE id = $1", run_id)
+        if not run:
+            raise HTTPException(404, detail={"code": "NOT_FOUND",
+                                             "message": "Lượt chạy không tồn tại"})
+        task = await _get_task_or_404(db, str(run["task_id"]))
+        step_done(emit, "run", f"{run['run_ref'] or run_id} · {task['request_code']}")
+
+        step_running(emit, "results")
+        cases = await db.fetch(
+            "SELECT code, title, priority, status, expected, studio_tc_id "
+            "FROM automation_test_cases WHERE task_id = $1 ORDER BY sort_order, code",
+            run["task_id"],
+        )
+        summary = run["summary"] if isinstance(run["summary"], dict) \
+            else json.loads(run["summary"] or "{}")
+        run_results: dict[str, dict] = {}
+        for item in (summary.get("cases") or []):
+            key = str(item.get("studio_tc_id") or item.get("testcaseId") or item.get("id") or "")
+            if key:
+                run_results[key] = item
+
+        case_lines_parts: list[str] = []
+        missing_in_run = 0
+        for c in cases:
+            res = run_results.get(str(c["studio_tc_id"] or ""))
+            if res:
+                outcome = str(res.get("status") or "không rõ")
+                note = (res.get("error") or res.get("message") or res.get("note") or "").strip()
+                duration = res.get("duration_ms")
+            else:
+                missing_in_run += 1
+                outcome = "KHÔNG CÓ TRONG LƯỢT CHẠY NÀY"
+                note = ""
+                duration = None
+            line = (f"- {c['code']} | {c['title']} | ưu tiên {c['priority']} | "
+                    f"kết quả: {outcome}")
+            if duration:
+                line += f" | {duration} ms"
+            line += f" | ghi nhận: {note if note else 'không có ghi nhận lỗi từ công cụ chạy'}"
+            case_lines_parts.append(line)
+        case_lines = "\n".join(case_lines_parts)
+        if missing_in_run:
+            case_lines += (
+                f"\n\nLƯU Ý: {missing_in_run} test case không có kết quả trong lượt chạy này "
+                "(chưa map script hoặc chưa được chọn để chạy). Phải nêu rõ trong báo cáo là "
+                "CHƯA CHẠY, tuyệt đối không suy ra là đạt."
+            )
+        step_done(emit, "results",
+                  f"{len(cases)} case · {len(cases) - missing_in_run} có kết quả trong lượt này"
+                  + (f" · {missing_in_run} CHƯA CHẠY" if missing_in_run else ""))
+
+        prompt = (
+            f"=== CHANGE REQUEST ===\n{task['request_code']} — {task['cr_title']}\n"
+            f"Dự án: {task['project_code'] or ''} {task['project_name'] or ''}\n"
+            f"BRS: v{task['brs_version'] or '-'}\n\n"
+            f"=== LƯỢT CHẠY ===\nMã lượt chạy: {run['run_ref'] or run_id}\n"
+            f"Thời điểm: {run['created_at']}\n"
+            f"Số liệu tổng hợp: {json.dumps(summary, ensure_ascii=False)}\n\n"
+            f"=== DANH SÁCH TEST CASE ===\n{case_lines}\n\n"
+            "Viết báo cáo kết quả kiểm thử cho lượt chạy trên."
+        )
+        step_running(emit, "ai")
+        content = await run_skill(db, body.skill_code, prompt, on_event=_at_hook(emit))
+        step_done(emit, "ai")
+
+        step_running(emit, "save")
+        row = await db.fetchrow(
+            "UPDATE automation_test_runs SET report_content = $2 WHERE id = $1 RETURNING *",
+            run_id, content,
+        )
+        step_done(emit, "save", f"{vi_num(len(content))} ký tự")
+        return {"data": dict(row)}
+
+    return sse_response(GEN_REPORT_STEPS, work)

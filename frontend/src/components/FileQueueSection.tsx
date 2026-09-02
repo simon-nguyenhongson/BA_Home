@@ -1,3 +1,4 @@
+import { X } from 'lucide-react'
 import React, { useRef } from 'react'
 
 export const FILE_ACCEPT = '.xlsx,.xls,.doc,.docx,.pdf,.txt,.sql,.csv,.json,.xml,.png,.jpg,.jpeg,.gif,.zip,.rar,.html,.htm'
@@ -44,7 +45,7 @@ export function FileQueueSection({
           onClick={() => ref.current?.click()}
           style={{
             padding: '3px 10px', fontSize: 12, borderRadius: 6, cursor: 'pointer',
-            border: '1px dashed var(--app-neutral-300)', background: '#fafafa',
+            border: '1px dashed var(--app-neutral-300)', background: 'var(--app-neutral-50)',
             color: 'var(--app-neutral-600)', display: 'flex', alignItems: 'center', gap: 4,
           }}
         >
@@ -72,7 +73,7 @@ export function FileQueueSection({
             key={i}
             style={{
               display: 'flex', alignItems: 'center', gap: 8, padding: '5px 8px',
-              borderRadius: 6, background: '#f8fafc', border: '1px solid var(--app-neutral-200)',
+              borderRadius: 6, background: 'var(--app-neutral-100)', border: '1px solid var(--app-neutral-200)',
             }}
           >
             <span style={{ fontSize: 14, flexShrink: 0 }}>{fileIcon(f.name)}</span>
@@ -85,9 +86,11 @@ export function FileQueueSection({
             <button
               type="button"
               onClick={() => onRemove(i)}
-              style={{ fontSize: 14, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-neutral-400)', padding: '2px 4px', flexShrink: 0 }}
+              style={{ fontSize: 14, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-neutral-400)', padding: '2px 4px', flexShrink: 0, display: 'flex', alignItems: 'center' }}
               title="Bỏ file"
+              aria-label="Bỏ file khỏi danh sách"
             >
+              <X size={14} />
               
             </button>
           </div>

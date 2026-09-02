@@ -6,7 +6,8 @@ import React, { useState } from 'react'
 import { Plus, Edit, ArrowRight } from 'lucide-react'
 import { StatusBadge, Btn, EmptyState } from '../ui'
 import { CoverageSummary } from './CoverageIndicator'
-import type { TestDocument, TestDocType, TestDocStatus } from '../../lib/types/workflow-doc'
+import type { TestDocument, TestDocType } from '../../lib/types/workflow-doc'
+import { SEVERITY_COLORS as CATEGORICAL_SEVERITY_COLORS } from '../../styles/categorical'
 
 const DOC_TYPE_LABELS: Record<TestDocType, string> = {
   TEST_PLAN: 'Test Plan',
@@ -16,16 +17,11 @@ const DOC_TYPE_LABELS: Record<TestDocType, string> = {
 
 const DOC_TYPE_COLORS: Record<TestDocType, string> = {
   TEST_PLAN: 'var(--app-primary)',
-  BUG_REPORT: '#DC2626',
-  UAT_SIGNOFF: '#059669',
+  BUG_REPORT: 'var(--app-danger)',
+  UAT_SIGNOFF: 'var(--app-success)',
 }
 
-const SEVERITY_COLORS: Record<string, string> = {
-  critical: '#DC2626',
-  high: '#EA580C',
-  medium: '#D97706',
-  low: '#65A30D',
-}
+const SEVERITY_COLORS: Record<string, string> = CATEGORICAL_SEVERITY_COLORS
 
 interface TestDocumentListProps {
   documents: TestDocument[]
@@ -112,8 +108,7 @@ export function TestDocumentList({
       {loading ? (
         <div className="empty-state">Đang tải...</div>
       ) : filtered.length === 0 ? (
-        <EmptyState
-          icon=""
+        <EmptyState 
           title="Không có tài liệu test"
           desc="Chưa có tài liệu test nào"
           action={

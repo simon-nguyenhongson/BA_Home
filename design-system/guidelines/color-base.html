@@ -1,0 +1,29 @@
+<!-- @dsCard group="Colors" viewport="700x150" name="Base ink" subtitle="Two blacks: #000 for glyph geometry, #161616 for ink" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin: 0; padding: 16px 20px; background: var(--ds-surface-page); }
+  .r { display: flex; flex-direction: row; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+  .c { display: flex; flex-direction: column; gap: 10px; }
+  .sw { display: flex; flex-direction: column; gap: 6px; width: 96px; }
+  .chip { height: 56px; border-radius: var(--ds-radius-md); }
+  .nm { font-size: 11px; font-weight: 500; line-height: 14px; color: var(--ds-text-label); }
+  .hex { font-family: var(--ds-font-mono); font-size: 10px; line-height: 14px; color: var(--ds-text-secondary); }
+  .use { font-size: 10px; line-height: 14px; color: var(--ds-text-placeholder); }
+  .lbl { font-family: var(--ds-font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ds-text-placeholder); }
+</style>
+</head>
+<body>
+<div class="r">
+  <div class="sw"><div class="chip" style="background: #FFFFFF; border: 1px solid var(--ds-border-default);"></div>
+    <div><div class="nm">White</div><div class="hex">#FFFFFF</div><div class="use">10,938×</div></div></div>
+  <div class="sw"><div class="chip" style="background: #161616;"></div>
+    <div><div class="nm">Ink</div><div class="hex">#161616</div><div class="use">icon fill · 1,928×</div></div></div>
+  <div class="sw"><div class="chip" style="background: #000000;"></div>
+    <div><div class="nm">Black</div><div class="hex">#000000</div><div class="use">1,631×</div></div></div>
+</div>
+</body>
+</html>

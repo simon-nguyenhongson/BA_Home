@@ -71,7 +71,7 @@ export function ComboSelect({
       {open && !disabled && (
         <div style={{
           position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 999,
-          background: '#fff', border: '1px solid var(--app-neutral-300)',
+          background: 'var(--app-white)', border: '1px solid var(--app-neutral-300)',
           borderRadius: 6, boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
           maxHeight: 260, display: 'flex', flexDirection: 'column',
         }}>
@@ -109,13 +109,13 @@ export function ComboSelect({
                 key={opt.value}
                 style={{
                   padding: '8px 12px', cursor: 'pointer', fontSize: 13,
-                  background: opt.value === value ? 'var(--app-primary-50, #e6f0fa)' : undefined,
+                  background: opt.value === value ? 'var(--ds-surface-selected)' : undefined,
                   borderBottom: '1px solid var(--app-neutral-100)',
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'var(--app-neutral-50, #f5f5f5)' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'var(--app-neutral-50)' }}
                 onMouseLeave={e => {
                   (e.currentTarget as HTMLDivElement).style.background =
-                    opt.value === value ? 'var(--app-primary-50, #e6f0fa)' : ''
+                    opt.value === value ? 'var(--ds-surface-selected)' : ''
                 }}
                 onClick={() => { onChange(opt.value, opt.label); setOpen(false); setQuery('') }}
               >

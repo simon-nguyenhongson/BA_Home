@@ -25,8 +25,10 @@ from typing import Optional
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
+from pydantic import field_validator
 
 from app.auth import CurrentUser
+from app.models.coercion import empty_str_to_none
 from app.database import get_db
 
 router = APIRouter(prefix="/api/v1/todos", tags=["todos"])
@@ -101,6 +103,9 @@ class TodoCreate(BaseModel):
     priority:     str  = Field("medium", pattern="^(critical|high|medium|low)$")
     assignee_id:  Optional[str] = None
     due_date:     Optional[date] = None   # ISO date object
+
+    # <input type="date"> để trống gửi '' — coi là "không có ngày", không phải lỗi kiểu
+    _due_date_empty = field_validator("due_date", mode="before")(empty_str_to_none)
     milestone_id: Optional[str] = None
     parent_id:    Optional[str] = None
     ref_type:     Optional[str] = None
@@ -123,6 +128,8 @@ class TodoUpdate(BaseModel):
     tags:         Optional[list[str]] = None
     sort_order:   Optional[int]  = None
     recurrence:   Optional[dict] = None
+
+    _due_date_empty = field_validator("due_date", mode="before")(empty_str_to_none)
 
 
 class TodoStatusRequest(BaseModel):

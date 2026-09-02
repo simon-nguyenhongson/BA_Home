@@ -1,11 +1,11 @@
 'use client'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import {
   // existing
   getProject, getProjectDashboard, getProjectBrief, upsertProjectBrief,
   getAppRegistry, createAppRegistryObject,
-  getMilestones, getMilestonesByTrack, updateMilestone, regenerateMilestones,
+  getMilestones, updateMilestone, regenerateMilestones,
   getProjectFolders,
   getMembers, createMember, deleteMember,
   getFiles, createFile, uploadNewVersion, exportFileGnm,
@@ -15,14 +15,11 @@ import {
   // management
   getStageGates, createStageGate, updateStageGate,
   getLatestHealth, createHealthScore,
-  getStakeholders, createStakeholder, deleteStakeholder,
-  getPriority, upsertPriority,
+  getStakeholders, createStakeholder, getPriority, upsertPriority,
   // products
-  getProducts, createProduct, deleteProduct,
-  getEnvironments, upsertEnvironment,
+  getProducts, createProduct, getEnvironments, upsertEnvironment,
   getAppDetail, upsertAppDetail,
-  getBatchJobs, createBatchJob, deleteBatchJob,
-  getAppStandard, upsertAppStandard,
+  getBatchJobs, createBatchJob, getAppStandard, upsertAppStandard,
   getJobStandard, upsertJobStandard,
   // compliance
   getLicenses, createLicense, deleteLicense,
@@ -48,7 +45,6 @@ import {
 } from '../../api/ppg'
 import ProjectCRTab from './ProjectCRTab'
 import { DiagramsPanel } from '../../features/diagrams/DiagramsPanel'
-import { X } from 'lucide-react'
 import { StatusBadge } from '../../components/StatusBadge'
 import { KpiCard } from '../../components/KpiCard'
 import { ProgressBar } from '../../components/ProgressBar'
@@ -2328,7 +2324,7 @@ export default function ProjectDetailPage() {
         </div>
       )}
 
-      {/* ── CR (Project Change Request) ─────────────────────────────────── */}
+      {/* ── CR (Change Request) ────────────────────────────────────────── */}
       {tab === 'requests' && id && (
         <ProjectCRTab
           projectId={id}

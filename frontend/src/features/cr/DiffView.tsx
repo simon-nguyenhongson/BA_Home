@@ -1,9 +1,9 @@
 import type { DiffResult } from '../../api/ai'
 
 const ROW_BG: Record<string, string> = {
-  add: '#ECFDF3',
-  del: '#FEF3F2',
-  change: '#FFFAEB',
+  add: 'var(--app-success-bg)',
+  del: 'var(--app-danger-bg)',
+  change: 'var(--app-warning-bg)',
   same: 'transparent',
 }
 
@@ -37,7 +37,7 @@ export function DiffView({ diff, compact = false }: { diff: DiffResult; compact?
       ) : (
         <div style={{
           border: '1px solid var(--app-neutral-200)', borderRadius: 8, overflow: 'auto',
-          maxHeight: 520, background: '#fff',
+          maxHeight: 520, background: 'var(--app-white)',
         }}>
           <table style={{
             width: '100%', borderCollapse: 'collapse',

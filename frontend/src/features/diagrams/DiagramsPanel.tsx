@@ -19,6 +19,8 @@ import {
   diagramApi, type Diagram, type DiagramOwnerType, type DiagramType, type DiagramVersion,
 } from '../../api/diagrams'
 import { useStore } from '../../stores/auth'
+import { AiRunStage } from '../ai/AiRunStage'
+import { useAiRun } from '../ai/useAiRun'
 
 const SOURCE_LABEL: Record<string, string> = {
   ai:        'AI vẽ',
@@ -28,9 +30,9 @@ const SOURCE_LABEL: Record<string, string> = {
 }
 
 const STATUS_STYLE: Record<string, { color: string; bg: string; label: string }> = {
-  draft:    { color: '#B54708', bg: '#FFFAEB', label: 'Nháp' },
-  approved: { color: '#027A48', bg: '#ECFDF3', label: 'Đã duyệt' },
-  archived: { color: '#667085', bg: '#F2F4F7', label: 'Lưu trữ' },
+  draft:    { color: 'var(--app-warning)', bg: 'var(--app-warning-bg)', label: 'Nháp' },
+  approved: { color: 'var(--app-success)', bg: 'var(--app-success-bg)', label: 'Đã duyệt' },
+  archived: { color: 'var(--app-neutral-500)', bg: 'var(--ds-border-subtle)', label: 'Lưu trữ' },
 }
 
 interface Props {
@@ -51,6 +53,11 @@ export function DiagramsPanel({ ownerType, ownerId, ownerLabel }: Props) {
   const [importOpen, setImportOpen] = useState(false)
   const [busy,       setBusy]       = useState(false)
 
+  // Hai lượt gọi AI có tường thuật riêng: vẽ mới và chỉnh bản có sẵn. Nhập Mermaid không
+  // vẽ lại thì không gọi AI nên vẫn dùng `busy` như cũ.
+  const draw   = useAiRun()
+  const redraw = useAiRun()
+
   const [viewing,  setViewing]  = useState<Diagram | null>(null)
   const [versions, setVersions] = useState<DiagramVersion[]>([])
   const [editOpen, setEditOpen] = useState(false)
@@ -62,6 +69,8 @@ export function DiagramsPanel({ ownerType, ownerId, ownerLabel }: Props) {
   const [gName,   setGName]   = useState('')
   const [gBrief,  setGBrief]  = useState('')
   const [gCtx,    setGCtx]    = useState(true)
+  // Lỗi theo trường — DS đòi viền đỏ + dòng lỗi tại field, không chỉ toast
+  const [gErr,    setGErr]    = useState<Record<string, string>>({})
 
   // ── form nhập nguồn ─────────────────────────────────────────────
   const [iType,   setIType]   = useState('workflow')
@@ -69,6 +78,7 @@ export function DiagramsPanel({ ownerType, ownerId, ownerLabel }: Props) {
   const [iFormat, setIFormat] = useState<'mermaid' | 'drawio'>('mermaid')
   const [iText,   setIText]   = useState('')
   const [iRedraw, setIRedraw] = useState(true)
+  const [iErr,    setIErr]    = useState<Record<string, string>>({})
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -93,31 +103,32 @@ export function DiagramsPanel({ ownerType, ownerId, ownerLabel }: Props) {
 
   // ── hành động ───────────────────────────────────────────────────
   async function doGenerate() {
-    if (!gName.trim()) { addToast('Cần đặt tên cho diagram', 'warn'); return }
-    setBusy(true)
-    try {
-      const d = await diagramApi.generate({
-        owner_type: ownerType, owner_id: ownerId,
-        diagram_type: gType, name: gName.trim(),
-        brief: gBrief.trim(), include_context: gCtx,
-      })
-      if (d.sanitized?.length) {
-        addToast(`Đã gỡ khỏi diagram: ${d.sanitized.join(', ')}`, 'warn')
-      }
-      addToast(`Đã vẽ «${d.name}»`, 'success')
-      setGenOpen(false); setGName(''); setGBrief('')
-      await load()
-      openViewer(d.id)
-    } catch (e) {
-      addToast((e as Error).message, 'error')
-    } finally {
-      setBusy(false)
+    if (!gName.trim()) { setGErr({ name: 'Đặt tên cho sơ đồ' }); return }
+    setGErr({})
+    const d = await draw.run<Diagram & { sanitized?: string[] }>('/diagrams/generate/stream', {
+      owner_type: ownerType, owner_id: ownerId,
+      diagram_type: gType, name: gName.trim(),
+      brief: gBrief.trim(), include_context: gCtx,
+    })
+    // Lỗi đã hiện ngay trên sân khấu kèm mã lỗi và các bước đã qua — không đóng hộp
+    // thoại, để người dùng sửa lại yêu cầu mà không phải nhập lại từ đầu.
+    if (!d) return
+    if (d.sanitized?.length) {
+      addToast(`Đã gỡ khỏi diagram: ${d.sanitized.join(', ')}`, 'warn')
     }
+    addToast(`Đã vẽ «${d.name}»`, 'success')
+    setGenOpen(false); setGName(''); setGBrief('')
+    draw.reset()
+    await load()
+    openViewer(d.id)
   }
 
   async function doImport() {
-    if (!iName.trim()) { addToast('Cần đặt tên cho diagram', 'warn'); return }
-    if (!iText.trim()) { addToast('Cần dán nội dung nguồn', 'warn'); return }
+    const ie: Record<string, string> = {}
+    if (!iName.trim()) ie.name = 'Đặt tên cho sơ đồ'
+    if (!iText.trim()) ie.text = 'Dán nội dung Mermaid hoặc draw.io'
+    if (Object.keys(ie).length) { setIErr(ie); return }
+    setIErr({})
     setBusy(true)
     try {
       const d = await diagramApi.importSource({
@@ -152,17 +163,18 @@ export function DiagramsPanel({ ownerType, ownerId, ownerLabel }: Props) {
     if (!viewing || instruction.trim().length < 3) {
       addToast('Nêu rõ cần chỉnh gì', 'warn'); return
     }
-    setBusy(true)
-    try {
-      await diagramApi.regenerate(viewing.id, instruction.trim())
-      addToast('Đã chỉnh lại diagram', 'success')
-      setEditOpen(false); setInstruction('')
-      await Promise.all([load(), openViewer(viewing.id)])
-    } catch (e) {
-      addToast((e as Error).message, 'error')
-    } finally {
-      setBusy(false)
+    const id = viewing.id
+    const d = await redraw.run<Diagram & { sanitized?: string[] }>(`/diagrams/${id}/regenerate/stream`, {
+      instruction: instruction.trim(),
+    })
+    if (!d) return
+    if (d.sanitized?.length) {
+      addToast(`Đã gỡ khỏi diagram: ${d.sanitized.join(', ')}`, 'warn')
     }
+    addToast(`Đã chỉnh lại diagram — v${d.version}`, 'success')
+    setEditOpen(false); setInstruction('')
+    redraw.reset()
+    await Promise.all([load(), openViewer(id)])
   }
 
   async function doApprove() {
@@ -297,7 +309,30 @@ export function DiagramsPanel({ ownerType, ownerId, ownerLabel }: Props) {
       )}
 
       {/* ── Vẽ bằng AI ────────────────────────────────────────────── */}
-      <Modal title="Vẽ sơ đồ bằng AI" open={genOpen} onClose={() => setGenOpen(false)} width="620px">
+      <Modal
+        title={draw.error ? 'Lượt vẽ đã dừng' : draw.active ? 'AI đang vẽ sơ đồ' : 'Vẽ sơ đồ bằng AI'}
+        open={genOpen}
+        onClose={() => {
+          // Đóng giữa lượt = dừng lượt vẽ. Nói rõ trong sân khấu để không ai đóng nhầm.
+          if (draw.active) draw.cancel()
+          draw.reset(); setGenOpen(false)
+        }}
+        width="620px"
+      >
+        {(draw.active || draw.error) ? (
+          <AiRunStage
+            title={`Claude đang vẽ «${gName.trim() || 'sơ đồ'}»`}
+            steps={draw.steps}
+            stats={draw.stats}
+            error={draw.error}
+            elapsedFrom={draw.startedAt}
+            onCancel={() => { draw.cancel(); draw.reset() }}
+            onRetry={() => draw.reset()}
+            onClose={() => { draw.reset(); setGenOpen(false) }}
+            verb="vẽ" 
+          />
+        ) : (
+        <>
         <Field label="Loại sơ đồ" required>
           <AppSelect value={gType} onChange={e => setGType(e.target.value)}>
             {types.map(t => <option key={t.code} value={t.code}>{t.label}</option>)}
@@ -308,8 +343,8 @@ export function DiagramsPanel({ ownerType, ownerId, ownerLabel }: Props) {
             {typeHint}
           </div>
         )}
-        <Field label="Tên sơ đồ" required>
-          <AppInput value={gName} onChange={e => setGName(e.target.value)}
+        <Field label="Tên sơ đồ" required error={gErr.name}>
+          <AppInput value={gName} onChange={e => { setGName(e.target.value); setGErr({}) }}
             placeholder="Ví dụ: Luồng chuyển tiền liên ngân hàng 24/7" />
         </Field>
         <Field label="Mô tả nội dung cần vẽ">
@@ -327,10 +362,12 @@ export function DiagramsPanel({ ownerType, ownerId, ownerLabel }: Props) {
         </label>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <Btn variant="secondary" onClick={() => setGenOpen(false)}>Hủy</Btn>
-          <Btn onClick={doGenerate} disabled={busy}>
-            {busy ? <><Loader2 size={14} className="spin" /> Đang vẽ…</> : <><Wand2 size={14} strokeWidth={1.5} /> Vẽ</>}
+          <Btn onClick={doGenerate}>
+            <Wand2 size={14} strokeWidth={1.5} /> Vẽ
           </Btn>
         </div>
+        </>
+        )}
       </Modal>
 
       {/* ── Nhập nguồn ────────────────────────────────────────────── */}
@@ -346,11 +383,11 @@ export function DiagramsPanel({ ownerType, ownerId, ownerLabel }: Props) {
             {types.map(t => <option key={t.code} value={t.code}>{t.label}</option>)}
           </AppSelect>
         </Field>
-        <Field label="Tên sơ đồ" required>
-          <AppInput value={iName} onChange={e => setIName(e.target.value)} />
+        <Field label="Tên sơ đồ" required error={iErr.name}>
+          <AppInput value={iName} onChange={e => { setIName(e.target.value); setIErr(p => ({ ...p, name: '' })) }} />
         </Field>
-        <Field label="Dán nội dung nguồn" required>
-          <AppTextarea rows={9} value={iText} onChange={e => setIText(e.target.value)}
+        <Field label="Dán nội dung nguồn" required error={iErr.text}>
+          <AppTextarea rows={9} value={iText} onChange={e => { setIText(e.target.value); setIErr(p => ({ ...p, text: '' })) }}
             style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 12 }}
             placeholder={iFormat === 'mermaid'
               ? 'flowchart TD\n  A[Khách hàng] --> B{Đủ hạn mức?}\n  B -->|Có| C[Ghi nợ]\n  B -->|Không| D[Từ chối]'
@@ -414,7 +451,7 @@ export function DiagramsPanel({ ownerType, ownerId, ownerLabel }: Props) {
                 sandbox=""
                 style={{
                   width: '100%', flex: 1, minHeight: 460, border: '1px solid var(--app-neutral-200)',
-                  borderRadius: 12, background: '#fff',
+                  borderRadius: 12, background: 'var(--app-white)',
                 }}
               />
             ) : (
@@ -444,8 +481,8 @@ export function DiagramsPanel({ ownerType, ownerId, ownerLabel }: Props) {
                       title={`${v.change_summary} — ${v.created_by ?? ''}`}
                       style={{
                         border: '1px solid var(--app-neutral-200)', borderRadius: 8,
-                        background: viewing.version === v.version ? 'var(--app-primary)' : '#fff',
-                        color: viewing.version === v.version ? '#fff' : 'var(--app-neutral-700)',
+                        background: viewing.version === v.version ? 'var(--app-primary)' : 'var(--app-white)',
+                        color: viewing.version === v.version ? 'var(--app-white)' : 'var(--app-neutral-700)',
                         fontSize: 12, padding: '3px 10px', cursor: 'pointer',
                         fontFamily: 'var(--font)',
                       }}>
@@ -460,7 +497,29 @@ export function DiagramsPanel({ ownerType, ownerId, ownerLabel }: Props) {
       </Drawer>
 
       {/* ── Sửa bằng AI ───────────────────────────────────────────── */}
-      <Modal title="Chỉnh sơ đồ bằng AI" open={editOpen} onClose={() => setEditOpen(false)} width="560px">
+      <Modal
+        title={redraw.error ? 'Lượt chỉnh đã dừng' : redraw.active ? 'AI đang chỉnh sơ đồ' : 'Chỉnh sơ đồ bằng AI'}
+        open={editOpen}
+        onClose={() => {
+          if (redraw.active) redraw.cancel()
+          redraw.reset(); setEditOpen(false)
+        }}
+        width="620px"
+      >
+        {(redraw.active || redraw.error) ? (
+          <AiRunStage
+            title={`Claude đang chỉnh «${viewing?.name ?? 'sơ đồ'}»`}
+            steps={redraw.steps}
+            stats={redraw.stats}
+            error={redraw.error}
+            elapsedFrom={redraw.startedAt}
+            onCancel={() => { redraw.cancel(); redraw.reset() }}
+            onRetry={() => redraw.reset()}
+            onClose={() => { redraw.reset(); setEditOpen(false) }}
+            verb="chỉnh" 
+          />
+        ) : (
+        <>
         <Field label="Cần chỉnh gì?" required>
           <AppTextarea rows={5} value={instruction} onChange={e => setInstruction(e.target.value)}
             placeholder="Ví dụ: thêm bước kiểm tra AML sau khi xác thực OTP; tô đậm nhánh từ chối." />
@@ -470,10 +529,12 @@ export function DiagramsPanel({ ownerType, ownerId, ownerLabel }: Props) {
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <Btn variant="secondary" onClick={() => setEditOpen(false)}>Hủy</Btn>
-          <Btn onClick={doRegenerate} disabled={busy}>
-            {busy ? <><Loader2 size={14} className="spin" /> Đang chỉnh…</> : 'Chỉnh'}
+          <Btn onClick={doRegenerate}>
+            <Wand2 size={14} strokeWidth={1.5} /> Chỉnh
           </Btn>
         </div>
+        </>
+        )}
       </Modal>
 
       <Confirm

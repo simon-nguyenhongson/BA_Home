@@ -10,6 +10,32 @@ export default {
           red:   '#F04438',
           gray:  '#F9FAFB',
         },
+        // GHI ĐÈ thang gray MẶC ĐỊNH của Tailwind bằng gray của DS.
+        //
+        // VÌ SAO: app dùng 552 lượt class gray-* của Tailwind (text-gray-600 ×161,
+        // text-gray-400 ×117, text-gray-500 ×113, border-gray-200 ×53…). Thang gray của
+        // Tailwind KHÔNG khớp DS — gray-600 #4B5563 vs #475467, gray-500 #6B7280 vs
+        // #667085, gray-200 #E5E7EB vs #EAECF0, gray-900 #111827 vs #101828. Nên 552 chỗ
+        // đó đang tô màu lệch DS mà không ai thấy vì lệch rất nhỏ.
+        // Ghi đè ở đây sửa cả 552 chỗ bằng một thay đổi, không phải sửa từng file.
+        //
+        // Giá trị lấy từ design-system/tokens/palette.css. DS không có bước 800 và 950:
+        //  - 800 dùng #1D2939 (extension BA_Home, đã ghi trong styles.css)
+        //  - 950 KHÔNG khai — nếu ai đó viết gray-950 thì Tailwind báo class không tồn tại,
+        //    đó là chủ ý: buộc dùng bước có trong DS.
+        gray: {
+          25:  '#FCFCFD',
+          50:  '#F9FAFB',
+          100: '#F2F4F7',
+          200: '#EAECF0',
+          300: '#D0D5DD',
+          400: '#98A2B3',
+          500: '#667085',
+          600: '#475467',
+          700: '#344054',
+          800: '#1D2939',
+          900: '#101828',
+        },
         // SooBinZHongSon DS palette (xem docs/design/DS-ADOPTION-SPEC.md)
         ds: {
           blue: {

@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react'
-import { X } from 'lucide-react'
+import { X, Trash2 } from 'lucide-react'
 import {
   crApi, srApi,
   ChangeRequest, ServiceRequest,
   CRCreate, SRCreate,
-  CRChangeType, CRStatus, SRRequestType, SRStatus, Priority,
+  CRChangeType, SRRequestType, SRStatus, Priority,
   RequestHistoryEntry,
 } from '../../api/requests'
 import { getProjects, Project } from '../../api/ppg'
@@ -18,6 +18,7 @@ import { createTodo, TodoType } from '../../api/todos'
 import { UserSelect } from '../../components/UserSelect'
 import { ComboSelect, type ComboOption } from '../../components/ComboSelect'
 import { CrDetailPanel } from '../../features/cr/CrDetailPanel'
+import { useStore } from '../../stores/auth'
 import {
   CR_CHANGE_TYPE_LABELS, CR_STATUS_LABELS, CR_STATUS_TABS,
   CR_PRIORITY_LABELS as PRIORITY_LABELS, TODO_TYPE_LABELS,
@@ -75,7 +76,7 @@ function SRFlowBar({ current }: { current: SRStatus }) {
           <span style={{
             padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600,
             background: !isTerminal && i <= idx ? 'var(--app-primary)' : 'var(--app-neutral-200)',
-            color: !isTerminal && i <= idx ? '#fff' : 'var(--app-neutral-500)',
+            color: !isTerminal && i <= idx ? 'var(--app-white)' : 'var(--app-neutral-500)',
           }}>{SR_STATUS_LABELS[s]}</span>
           {i < SR_FLOW.length - 1 && <span style={{ color: 'var(--app-neutral-400)', fontSize: 10 }}>›</span>}
         </React.Fragment>
@@ -83,7 +84,7 @@ function SRFlowBar({ current }: { current: SRStatus }) {
       {isTerminal && (
         <span style={{
           padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600,
-          background: '#fee2e2', color: '#b91c1c',
+          background: 'var(--app-danger-bg)', color: 'var(--ds-text-danger)',
         }}>{SR_STATUS_LABELS[current]}</span>
       )}
     </div>
@@ -156,7 +157,7 @@ function CreateTaskFromRequestModal({
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: '#fff', borderRadius: 14, width: '75vw', maxWidth: '75vw',
+          background: 'var(--app-white)', borderRadius: 14, width: '75vw', maxWidth: '75vw',
           boxShadow: '0 20px 60px rgba(0,0,0,0.25)', display: 'flex', flexDirection: 'column',
         }}
       >
@@ -183,25 +184,25 @@ function CreateTaskFromRequestModal({
         <form onSubmit={submit} style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           {/* Ref badge */}
           <div style={{
-            padding: '6px 10px', borderRadius: 6, background: '#eff6ff',
-            border: '1px solid #bfdbfe', fontSize: 12, color: '#1d4ed8',
+            padding: '6px 10px', borderRadius: 6, background: 'var(--ds-brand-subtle)',
+            border: '1px solid var(--ds-border-brand)', fontSize: 12, color: 'var(--app-primary)',
             display: 'flex', gap: 8, alignItems: 'center',
           }}>
             <span style={{ fontFamily: 'monospace', fontWeight: 700 }}>{refCode}</span>
-            <span style={{ color: '#60a5fa' }}>·</span>
+            <span style={{ color: 'var(--app-primary-light)' }}>·</span>
             <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {refTitle}
             </span>
             <span style={{
               fontSize: 11, fontWeight: 600, padding: '1px 6px', borderRadius: 8,
-              background: '#bfdbfe', color: '#1e40af',
+              background: 'var(--ds-border-brand)', color: 'var(--app-primary)',
             }}>{refType}</span>
           </div>
 
           {/* Title */}
           <div>
             <label className="form-label" style={{ display: 'block', marginBottom: 4 }}>
-              Tiêu đề <span style={{ color: 'var(--app-danger)' }}>*</span>
+              Tiêu đề <span className="req" aria-hidden="true">*</span><span className="sr-only"> (bắt buộc)</span>
             </label>
             <input
               className="input"
@@ -264,7 +265,7 @@ function CreateTaskFromRequestModal({
           </div>
 
           {error && (
-            <div style={{ padding: '7px 10px', background: '#fee2e2', borderRadius: 6, fontSize: 13, color: '#b91c1c' }}>
+            <div style={{ padding: '7px 10px', background: 'var(--app-danger-bg)', borderRadius: 6, fontSize: 13, color: 'var(--ds-text-danger)' }}>
               {error}
             </div>
           )}
@@ -359,7 +360,7 @@ function CRTab() {
                   <span style={{
                     fontSize: 11, fontWeight: 700, padding: '1px 6px', borderRadius: 10,
                     background: active ? 'var(--app-primary)' : 'var(--app-neutral-200)',
-                    color: active ? '#fff' : 'var(--app-neutral-600)',
+                    color: active ? 'var(--app-white)' : 'var(--app-neutral-600)',
                   }}>
                     {count}
                   </span>
@@ -374,7 +375,7 @@ function CRTab() {
           selects={[
             {
               key: 'project', value: filterProject, onChange: setFProj,
-              placeholder: 'Tất cả dự án',
+              placeholder: 'Tất cả dự án', label: 'Dự án',
               options: projects.map(p => ({ value: p.id, label: p.name })),
             },
           ]}
@@ -385,7 +386,7 @@ function CRTab() {
             <div style={{ display: 'flex', gap: 6 }}>
               <button
                 className="btn btn-sm"
-                style={{ border: '1px solid var(--app-neutral-300)', background: '#fff', color: 'var(--app-neutral-700)' }}
+                style={{ border: '1px solid var(--app-neutral-300)', background: 'var(--app-white)', color: 'var(--app-neutral-700)' }}
                 onClick={() => crApi.export({ project_id: filterProject || undefined }).catch(e => alert(e.message))}
               >
                 ↓ Excel
@@ -413,8 +414,8 @@ function CRTab() {
                 style={{
                   cursor: 'pointer',
                   background: isSelected
-                    ? 'var(--app-primary-50, #eff6ff)'
-                    : isHovered ? 'var(--app-neutral-50, #f9fafb)' : '#fff',
+                    ? 'var(--ds-surface-selected)'
+                    : isHovered ? 'var(--app-neutral-50)' : 'var(--app-white)',
                   borderRadius: 8,
                   // Longhand cả 4 cạnh: trộn shorthand `border` với `borderLeft` làm React
                   // cảnh báo "Updating a style property during rerender" mỗi lần chọn dòng
@@ -458,7 +459,7 @@ function CRTab() {
                     <div style={{ fontSize: 12, color: 'var(--app-neutral-500)' }}>
                       {cr.product_name
                         ? cr.product_name
-                        : <span style={{ color: '#B54708' }}>chưa gắn sản phẩm</span>}
+                        : <span style={{ color: 'var(--app-warning)' }}>chưa gắn sản phẩm</span>}
                       {cr.project_code && ` · dự án ${cr.project_code}`}
                       {' · '}{cr.requested_by}
                       {cr.target_date && (
@@ -486,7 +487,7 @@ function CRTab() {
           })}
           {!loading && displayed.length === 0 && (
             <div className="empty-state">
-              {items.length === 0 ? 'Chưa có Project Change Request nào' : 'Không có kết quả khớp với bộ lọc'}
+              {items.length === 0 ? 'Chưa có Change Request nào' : 'Không có kết quả khớp với bộ lọc'}
             </div>
           )}
         </div>
@@ -589,8 +590,14 @@ function CRCreateModal({
     setSaving(true); setError(null)
     try {
       const result = await crApi.create(form)
+      // Upload từng file; KHÔNG nuốt lỗi — CR đã tạo xong nhưng file hỏng thì người
+      // dùng phải biết file nào để đính kèm lại, thay vì tưởng đã có đủ hồ sơ.
+      const failed: string[] = []
       for (const file of queuedFiles) {
-        try { await crApi.uploadAttachment(result.id, file) } catch (_) {}
+        try { await crApi.uploadAttachment(result.id, file) } catch (_) { failed.push(file.name) }
+      }
+      if (failed.length) {
+        useStore.getState().addToast(`CR đã tạo nhưng ${failed.length} file đính kèm thất bại: ${failed.join(', ')}. Mở CR để đính kèm lại.`, 'warn')
       }
       setForm(BLANK); setQueuedFiles([])
       onCreated()
@@ -604,7 +611,7 @@ function CRCreateModal({
     <dialog ref={dialogRef} onClick={e => { if (e.target === e.currentTarget) closeDialog() }}>
       <div className="modal-panel" style={{ height: '88vh', display: 'flex', flexDirection: 'column' }}>
         <div className="modal-header">
-          <span style={{ fontWeight: 700, fontSize: 16 }}>Tạo Project Change Request</span>
+          <span style={{ fontWeight: 700, fontSize: 16 }}>Tạo Change Request</span>
           <button className="btn-icon" type="button" onClick={closeDialog}><X size={18} /></button>
         </div>
         <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
@@ -619,7 +626,7 @@ function CRCreateModal({
             <div style={{ padding: '20px 24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
                 <label className="form-label" style={{ marginBottom: 6, display: 'block' }}>
-                  Sản phẩm bị tác động <span style={{ color: 'var(--app-danger)' }}>*</span>
+                  Sản phẩm bị tác động <span className="req" aria-hidden="true">*</span><span className="sr-only"> (bắt buộc)</span>
                 </label>
                 <ComboSelect
                   options={productOptions}
@@ -661,7 +668,7 @@ function CRCreateModal({
 
               <div>
                 <label className="form-label" style={{ marginBottom: 6, display: 'block' }}>
-                  Tiêu đề <span style={{ color: 'var(--app-danger)' }}>*</span>
+                  Tiêu đề <span className="req" aria-hidden="true">*</span><span className="sr-only"> (bắt buộc)</span>
                 </label>
                 <input className="input" value={form.title}
                   onChange={e => set('title', e.target.value)}
@@ -710,7 +717,7 @@ function CRCreateModal({
               </div>
 
               <div>
-                <label className="form-label" style={{ marginBottom: 6, display: 'block' }}>Người yêu cầu <span style={{ color: 'var(--app-danger)' }}>*</span></label>
+                <label className="form-label" style={{ marginBottom: 6, display: 'block' }}>Người yêu cầu <span className="req" aria-hidden="true">*</span><span className="sr-only"> (bắt buộc)</span></label>
                 <UserSelect
                   value={form.requested_by}
                   onChange={val => set('requested_by', val)}
@@ -880,7 +887,7 @@ function SRTab() {
                   <span style={{
                     fontSize: 11, fontWeight: 700, padding: '1px 6px', borderRadius: 10,
                     background: active ? 'var(--app-primary)' : 'var(--app-neutral-200)',
-                    color: active ? '#fff' : 'var(--app-neutral-600)',
+                    color: active ? 'var(--app-white)' : 'var(--app-neutral-600)',
                   }}>
                     {count}
                   </span>
@@ -895,7 +902,7 @@ function SRTab() {
           selects={[
             {
               key: 'product', value: filterProduct, onChange: setFProd,
-              placeholder: 'Tất cả ứng dụng',
+              placeholder: 'Tất cả ứng dụng', label: 'Ứng dụng',
               options: productOptions,
             },
           ]}
@@ -906,7 +913,7 @@ function SRTab() {
             <div style={{ display: 'flex', gap: 6 }}>
               <button
                 className="btn btn-sm"
-                style={{ border: '1px solid var(--app-neutral-300)', background: '#fff', color: 'var(--app-neutral-700)' }}
+                style={{ border: '1px solid var(--app-neutral-300)', background: 'var(--app-white)', color: 'var(--app-neutral-700)' }}
                 onClick={() => srApi.export({}).catch(e => alert(e.message))}
               >
                 ↓ Excel
@@ -934,8 +941,8 @@ function SRTab() {
                 style={{
                   cursor: 'pointer',
                   background: isSelected
-                    ? 'var(--app-primary-50, #eff6ff)'
-                    : isHovered ? 'var(--app-neutral-50, #f9fafb)' : '#fff',
+                    ? 'var(--ds-surface-selected)'
+                    : isHovered ? 'var(--app-neutral-50)' : 'var(--app-white)',
                   borderRadius: 8,
                   // Longhand cả 4 cạnh: trộn shorthand `border` với `borderLeft` làm React
                   // cảnh báo "Updating a style property during rerender" mỗi lần chọn dòng
@@ -1028,7 +1035,15 @@ function SRTab() {
                 </span>
                 <h3 style={{ margin: '4px 0 0', fontSize: 16 }}>{selected.title}</h3>
               </div>
-              <button className="btn btn-ghost btn-sm" onClick={() => setSelected(null)}></button>
+              <div style={{ display: 'flex', gap: 4 }}>
+                {/* handleDelete tồn tại từ đầu nhưng CHƯA TỪNG có nút gọi — SR không xoá được
+                    từ UI trong khi CR có nút xoá ở CrDetailPanel. Nối lại cho cân xứng. */}
+                <button className="btn-icon" title="Xoá SR" aria-label="Xoá SR"
+                  style={{ color: 'var(--app-danger)' }}
+                  onClick={() => handleDelete(selected.id)}><Trash2 size={15} /></button>
+                <button className="btn-icon" title="Đóng" aria-label="Đóng chi tiết SR"
+                  onClick={() => setSelected(null)}><X size={17} /></button>
+              </div>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1225,8 +1240,13 @@ function SRCreateModal({
     setSaving(true); setError(null)
     try {
       const result = await srApi.create(form)
+      // Cùng lý do với form CR: file hỏng phải báo, không im lặng.
+      const failed: string[] = []
       for (const file of queuedFiles) {
-        try { await srApi.uploadAttachment(result.id, file) } catch (_) {}
+        try { await srApi.uploadAttachment(result.id, file) } catch (_) { failed.push(file.name) }
+      }
+      if (failed.length) {
+        useStore.getState().addToast(`SR đã tạo nhưng ${failed.length} file đính kèm thất bại: ${failed.join(', ')}. Mở SR để đính kèm lại.`, 'warn')
       }
       setForm(BLANK); setQueuedFiles([])
       onCreated()
@@ -1283,7 +1303,7 @@ function SRCreateModal({
 
               <div>
                 <label className="form-label" style={{ marginBottom: 6, display: 'block' }}>
-                  Tiêu đề <span style={{ color: 'var(--app-danger)' }}>*</span>
+                  Tiêu đề <span className="req" aria-hidden="true">*</span><span className="sr-only"> (bắt buộc)</span>
                 </label>
                 <input className="input" value={form.title}
                   onChange={e => set('title', e.target.value)}
@@ -1355,7 +1375,7 @@ function SRCreateModal({
 
               <div style={{ borderTop: '1px solid var(--app-neutral-200)', paddingTop: 14 }}>
                 <label className="form-label" style={{ marginBottom: 6, display: 'block' }}>
-                  Người yêu cầu <span style={{ color: 'var(--app-danger)' }}>*</span>
+                  Người yêu cầu <span className="req" aria-hidden="true">*</span><span className="sr-only"> (bắt buộc)</span>
                 </label>
                 <UserSelect
                   value={form.requested_by}
@@ -1396,14 +1416,14 @@ export default function RequestsPage() {
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid var(--app-neutral-200)', marginBottom: 16 }}>
         {([
-          { key: 'cr'as Tab, label:' Project Change Request', desc: 'Thay đổi trong dự án đang chạy' },
-          { key: 'sr'as Tab, label:' Service Request',        desc: 'Yêu cầu với ứng dụng vận hành' },
+          { key: 'cr'as Tab, label: 'Change Request' },
+          { key: 'sr'as Tab, label: 'Service Request' },
         ] as const).map(t => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
             style={{
-              padding: '10px 20px', border: 'none', background: 'transparent', cursor: 'pointer',
+              padding: '9px 18px', border: 'none', background: 'transparent', cursor: 'pointer',
               fontWeight: 600, fontSize: 14, fontFamily: 'var(--font)',
               borderBottom: tab === t.key ? '2px solid var(--app-primary)' : '2px solid transparent',
               color: tab === t.key ? 'var(--app-primary)' : 'var(--app-neutral-500)',
@@ -1411,7 +1431,6 @@ export default function RequestsPage() {
             }}
           >
             {t.label}
-            <div style={{ fontSize: 11, fontWeight: 400, color: 'var(--app-neutral-400)' }}>{t.desc}</div>
           </button>
         ))}
       </div>

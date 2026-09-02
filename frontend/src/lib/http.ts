@@ -14,8 +14,20 @@ export function authHeaders(): HeadersInit {
 export function extractErrorMessage(detail: unknown): string {
   if (typeof detail === 'string') return detail
   if (Array.isArray(detail)) {
+    // Lỗi 422 của FastAPI có `loc` chỉ ra TRƯỜNG sai — trước đây bị bỏ, nên thông báo chỉ
+    // là "Input should be a valid date or datetime" mà không nói trường nào trong form.
+    // Với form 10+ ô như tạo task hay tạo dự án, thiếu tên trường thì người dùng phải đoán.
     const msgs = detail
-      .map(d => (d && typeof d === 'object' && 'msg' in d ? String((d as { msg: unknown }).msg) : null))
+      .map(d => {
+        if (!d || typeof d !== 'object' || !('msg' in d)) return null
+        const msg = String((d as { msg: unknown }).msg)
+        const loc = (d as { loc?: unknown }).loc
+        // loc thường là ['body', '<tên trường>'] — bỏ tiền tố 'body'
+        const field = Array.isArray(loc)
+          ? loc.filter(x => typeof x === 'string' && x !== 'body').join('.')
+          : ''
+        return field ? `${field}: ${msg}` : msg
+      })
       .filter((m): m is string => !!m)
     if (msgs.length) return msgs.join('; ')
   }

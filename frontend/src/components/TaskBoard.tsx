@@ -1,4 +1,3 @@
-import { StatusBadge } from './StatusBadge'
 
 const STATUS_ORDER = ['todo', 'in_progress', 'done', 'blocked']
 const STATUS_LABEL: Record<string, string> = {

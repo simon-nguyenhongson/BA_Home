@@ -94,13 +94,13 @@ export function StudioPanel() {
     return (
       <div style={{
         border: '1px solid var(--app-neutral-200)', borderRadius: 12,
-        padding: 20, maxWidth: 640, background: '#fff',
+        padding: 20, maxWidth: 640, background: 'var(--app-white)',
       }}>
         <div style={{
           display: 'flex', alignItems: 'center', gap: 8, fontSize: 14,
           fontWeight: 600, color: 'var(--app-neutral-900)', marginBottom: 6,
         }}>
-          <AlertCircle size={16} strokeWidth={1.5} color="#B54708" />
+          <AlertCircle size={16} strokeWidth={1.5} color="var(--app-warning)" />
           Capture Studio chưa chạy trên máy này
         </div>
         <p style={{ fontSize: 14, color: 'var(--app-neutral-500)', margin: '0 0 12px' }}>
@@ -142,8 +142,8 @@ export function StudioPanel() {
                 display: 'inline-flex', alignItems: 'center', gap: 6, height: 32,
                 padding: '0 12px', borderRadius: 8, cursor: 'pointer',
                 border: `1px solid ${isActive ? 'var(--app-primary)' : 'var(--app-neutral-200)'}`,
-                background: isActive ? 'var(--app-primary)' : '#fff',
-                color: isActive ? '#fff' : 'var(--app-neutral-700)',
+                background: isActive ? 'var(--app-primary)' : 'var(--app-white)',
+                color: isActive ? 'var(--app-white)' : 'var(--app-neutral-700)',
                 fontFamily: 'var(--font)', fontSize: 13,
                 fontWeight: isActive ? 600 : 500,
               }}>
@@ -151,7 +151,7 @@ export function StudioPanel() {
               {v.label}
               {v.key === 'record' && state?.recording && (
                 <span style={{
-                  width: 7, height: 7, borderRadius: '50%', background: '#D92D20',
+                  width: 7, height: 7, borderRadius: '50%', background: 'var(--app-danger)',
                   boxShadow: '0 0 0 3px rgba(217,45,32,0.18)',
                 }} />
               )}
@@ -160,7 +160,7 @@ export function StudioPanel() {
                   fontSize: 11, fontWeight: 600, minWidth: 18, textAlign: 'center',
                   padding: '1px 5px', borderRadius: 16,
                   background: isActive ? 'rgba(255,255,255,0.25)' : 'var(--app-neutral-100)',
-                  color: isActive ? '#fff' : 'var(--app-neutral-500)',
+                  color: isActive ? 'var(--app-white)' : 'var(--app-neutral-500)',
                 }}>{count}</span>
               )}
             </button>
@@ -181,7 +181,7 @@ export function StudioPanel() {
         title="Capture Studio"
         src={`${STUDIO_URL}/?embed=1`}
         style={{
-          flex: 1, width: '100%', minHeight: 520, background: '#fff',
+          flex: 1, width: '100%', minHeight: 520, background: 'var(--app-white)',
           border: '1px solid var(--app-neutral-200)', borderRadius: 12,
         }}
       />

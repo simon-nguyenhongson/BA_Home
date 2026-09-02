@@ -1,0 +1,54 @@
+<!-- @dsCard group="Colors" viewport="700x210" name="Semantic roles" subtitle="Reach for these aliases, not raw palette steps" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin: 0; padding: 16px 20px; background: var(--ds-surface-page); }
+  .r { display: flex; flex-direction: row; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+  .c { display: flex; flex-direction: column; gap: 10px; }
+  .sw { display: flex; flex-direction: column; gap: 6px; width: 96px; }
+  .chip { height: 56px; border-radius: var(--ds-radius-md); }
+  .nm { font-size: 11px; font-weight: 500; line-height: 14px; color: var(--ds-text-label); }
+  .hex { font-family: var(--ds-font-mono); font-size: 10px; line-height: 14px; color: var(--ds-text-secondary); }
+  .use { font-size: 10px; line-height: 14px; color: var(--ds-text-placeholder); }
+  .lbl { font-family: var(--ds-font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ds-text-placeholder); }
+</style>
+</head>
+<body>
+<div class="r" style="gap: 24px;">
+  <div class="c" style="gap: 8px;">
+    <span class="lbl">text</span>
+    <div style="font-size: 14px; color: var(--ds-text-primary);">--ds-text-primary</div>
+    <div style="font-size: 14px; color: var(--ds-text-body);">--ds-text-body</div>
+    <div style="font-size: 14px; color: var(--ds-text-secondary);">--ds-text-secondary</div>
+    <div style="font-size: 14px; color: var(--ds-text-placeholder);">--ds-text-placeholder</div>
+    <div style="font-size: 14px; color: var(--ds-text-link);">--ds-text-link</div>
+    <div style="font-size: 14px; color: var(--ds-text-danger);">--ds-text-danger</div>
+  </div>
+  <div class="c" style="gap: 8px;">
+    <span class="lbl">surface</span>
+    <div class="r" style="gap: 8px;">
+      <div style="width: 84px; height: 40px; border-radius: 6px; background: var(--ds-surface-card); border: 1px solid var(--ds-border-default);"></div>
+      <div style="width: 84px; height: 40px; border-radius: 6px; background: var(--ds-surface-muted); border: 1px solid var(--ds-border-default);"></div>
+      <div style="width: 84px; height: 40px; border-radius: 6px; background: var(--ds-surface-selected); border: 1px solid var(--ds-border-brand);"></div>
+      <div style="width: 84px; height: 40px; border-radius: 6px; background: var(--ds-surface-inverse);"></div>
+    </div>
+    <div class="r" style="gap: 8px;">
+      <span class="hex" style="width: 84px;">card</span><span class="hex" style="width: 84px;">muted</span><span class="hex" style="width: 84px;">selected</span><span class="hex" style="width: 84px;">inverse</span>
+    </div>
+    <span class="lbl" style="margin-top: 6px;">border</span>
+    <div class="r" style="gap: 8px;">
+      <div style="width: 84px; height: 0; border-top: 1px solid var(--ds-border-subtle);"></div>
+      <div style="width: 84px; height: 0; border-top: 1px solid var(--ds-border-default);"></div>
+      <div style="width: 84px; height: 0; border-top: 1px solid var(--ds-border-field);"></div>
+      <div style="width: 84px; height: 0; border-top: 1px solid var(--ds-border-focus);"></div>
+    </div>
+    <div class="r" style="gap: 8px;">
+      <span class="hex" style="width: 84px;">subtle</span><span class="hex" style="width: 84px;">default</span><span class="hex" style="width: 84px;">field</span><span class="hex" style="width: 84px;">focus</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

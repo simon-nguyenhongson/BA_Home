@@ -19,6 +19,9 @@ from pydantic import BaseModel, Field
 from app.auth import CurrentUser
 from app.database import get_db
 from app.services.ai_agent import assert_skill_for_step, run_skill
+from app.services.ai_sse import (
+    sse_response, step_done, step_running, vi_num,
+)
 from app.services.audit_service import log_audit
 
 router = APIRouter(tags=["cr-brs"])
@@ -534,3 +537,189 @@ async def list_brs(
         *params,
     )
     return {"data": [dict(r) for r in rows]}
+
+
+# ── Sinh / chỉnh BRS có tường thuật tiến độ (SSE) ────────────────────────────
+#
+# Cùng kết quả với hai endpoint thường ở trên. Xem app/services/ai_sse.py để biết vì sao
+# lỗi phải đi ra bằng sự kiện chứ không bằng mã HTTP.
+
+GEN_BRS_STEPS = [
+    {"id": "cr",      "label": "Kiểm tra Change Request"},
+    {"id": "context", "label": "Nạp Master Doc làm bối cảnh AS-IS"},
+    {"id": "ai",      "label": "Claude viết BRS"},
+    {"id": "save",    "label": "Lưu BRS và ghi lịch sử"},
+]
+
+REVISE_BRS_STEPS = [
+    {"id": "brs",     "label": "Đọc BRS hiện tại"},
+    {"id": "context", "label": "Nạp Master Doc và CR"},
+    {"id": "ai",      "label": "Claude chỉnh BRS"},
+    {"id": "save",    "label": "Lưu bản mới và ghi lịch sử"},
+]
+
+
+@router.post("/requests/change-requests/{cr_id}/brs/generate/stream")
+async def generate_brs_stream(
+    user: CurrentUser,
+    cr_id: str,
+    body: BrsGenerateRequest,
+):
+    """[Gen BRS] có tường thuật — cùng kết quả với POST .../brs/generate."""
+    actor = user.sub
+
+    async def work(db: asyncpg.Connection, emit) -> dict:
+        assert_skill_for_step("gen_brs", body.skill_code)
+        cr = await _get_cr_or_404(db, cr_id)
+        if cr["status"] not in ("approved", "implementing", "implemented"):
+            raise HTTPException(409, detail={
+                "code": "CR_NOT_APPROVED",
+                "message": "CR phải được duyệt trước khi sinh BRS.",
+            })
+        existing = await db.fetchrow("SELECT * FROM cr_brs_documents WHERE cr_id = $1", cr_id)
+        if existing and existing["status"] in ("approved", "golive"):
+            raise HTTPException(409, detail={
+                "code": "BRS_LOCKED",
+                "message": "BRS đã duyệt/golive — không sinh lại được. "
+                           "Tạo CR mới nếu cần thay đổi.",
+            })
+        step_done(emit, "cr", f"{cr['request_code']} · {cr['status']}"
+                              + (f" · sẽ tạo v{existing['version'] + 1}" if existing else " · BRS đầu tiên"))
+
+        step_running(emit, "context")
+        master_ctx = await _master_doc_context(db, cr.get("product_id"))
+        step_done(emit, "context", f"{vi_num(len(master_ctx))} ký tự từ Master Doc "
+                                   f"của {cr.get('product_name') or 'sản phẩm'}")
+
+        prompt = (
+            f"{master_ctx}\n{_cr_block(cr)}\n"
+            f"{('Yêu cầu bổ sung từ BA: ' + body.note) if body.note.strip() else ''}\n\n"
+            "Viết tài liệu BRS cho Change Request trên."
+        )
+        step_running(emit, "ai")
+        content = await run_skill(db, body.skill_code, prompt, on_event=_hook(emit))
+        step_done(emit, "ai")
+
+        step_running(emit, "save")
+        title = f"BRS — {cr['request_code']} {cr['title']}"
+        if existing:
+            new_version = existing["version"] + 1
+            row = await db.fetchrow(
+                """
+                UPDATE cr_brs_documents
+                SET title = $2, content = $3, version = $4, status = 'draft',
+                    skill_code = $5, updated_by = $6, updated_at = NOW()
+                WHERE id = $1 RETURNING *
+                """,
+                existing["id"], title, content, new_version, body.skill_code, actor,
+            )
+            brs_id = str(existing["id"])
+        else:
+            brs_id = str(uuid4())
+            new_version = 1
+            row = await db.fetchrow(
+                """
+                INSERT INTO cr_brs_documents
+                    (id, cr_id, title, content, version, status, skill_code, created_by, updated_by)
+                VALUES ($1, $2, $3, $4, 1, 'draft', $5, $6, $6)
+                RETURNING *
+                """,
+                brs_id, cr_id, title, content, body.skill_code, actor,
+            )
+        await _save_history(db, brs_id, new_version, content, "generate", body.note, actor)
+        await _log_cr_history(db, cr_id, "BRS_GENERATED", f"AI sinh BRS v{new_version}", actor)
+        await log_audit(
+            db=db, entity_type="cr_brs_documents", entity_id=brs_id, action="CREATE",
+            changed_by=actor,
+            new_values={"cr_id": cr_id, "version": new_version, "skill": body.skill_code},
+        )
+        step_done(emit, "save", f"BRS v{new_version} · {vi_num(len(content))} ký tự · trạng thái nháp")
+        return {"data": dict(row)}
+
+    return sse_response(GEN_BRS_STEPS, work)
+
+
+@router.post("/brs/{brs_id}/revise/stream")
+async def revise_brs_stream(
+    user: CurrentUser,
+    brs_id: str,
+    body: BrsReviseRequest,
+):
+    """[AI chỉnh sửa] có tường thuật — cùng kết quả với POST /brs/{id}/revise."""
+    actor = user.sub
+
+    async def work(db: asyncpg.Connection, emit) -> dict:
+        assert_skill_for_step("revise_brs", body.skill_code)
+        brs = await _get_brs_or_404(db, brs_id)
+        if brs["status"] not in ("draft", "in_review"):
+            raise HTTPException(409, detail={
+                "code": "BRS_LOCKED",
+                "message": "Chỉ chỉnh sửa được BRS ở trạng thái nháp hoặc đang review.",
+            })
+        step_done(emit, "brs", f"v{brs['version']} · {brs['status']} · "
+                               f"{vi_num(len(brs['content'] or ''))} ký tự")
+
+        step_running(emit, "context")
+        cr = await _get_cr_or_404(db, str(brs["cr_id"]))
+        master_ctx = await _master_doc_context(db, cr.get("product_id"))
+        step_done(emit, "context", f"{cr['request_code']} · {vi_num(len(master_ctx))} ký tự bối cảnh")
+
+        prompt = (
+            f"{master_ctx}\n{_cr_block(cr)}\n"
+            f"=== BRS HIỆN TẠI ===\n{brs['content']}\n\n"
+            f"=== YÊU CẦU CHỈNH SỬA CỦA BA ===\n{body.instruction}\n\n"
+            "Trả về TOÀN BỘ tài liệu BRS sau khi đã chỉnh sửa theo yêu cầu trên, "
+            "giữ nguyên cấu trúc và các phần không liên quan."
+        )
+        step_running(emit, "ai")
+        content = await run_skill(db, body.skill_code, prompt, on_event=_hook(emit))
+        step_done(emit, "ai")
+
+        step_running(emit, "save")
+        new_version = brs["version"] + 1
+        reset_review = brs["status"] == "in_review"
+        new_status = "draft" if reset_review else brs["status"]
+        async with db.transaction():
+            row = await db.fetchrow(
+                """
+                UPDATE cr_brs_documents
+                SET content = $2, version = $3, status = $5, updated_by = $4, updated_at = NOW()
+                WHERE id = $1 RETURNING *
+                """,
+                brs_id, content, new_version, actor, new_status,
+            )
+            await _save_history(db, brs_id, new_version, content, "revise",
+                                body.instruction, actor)
+            if reset_review:
+                await _log_cr_history(
+                    db, str(brs["cr_id"]), "brs_revised_reset",
+                    f"BRS được AI chỉnh khi đang review → trả về nháp để review lại: "
+                    f"{body.instruction[:200]}",
+                    actor, from_status="in_review", to_status="draft",
+                )
+        await log_audit(
+            db=db, entity_type="cr_brs_documents", entity_id=brs_id, action="UPDATE",
+            changed_by=actor,
+            new_values={"version": new_version, "mode": "ai_revise", "status": new_status},
+            notes=body.instruction[:500],
+        )
+        step_done(emit, "save",
+                  f"v{new_version} · {vi_num(len(content))} ký tự"
+                  + (" · đã trả về nháp, cần gửi duyệt lại" if reset_review else ""))
+        return {
+            "data": dict(row),
+            "meta": {
+                "review_reset": reset_review,
+                "message": ("Nội dung đã đổi nên BRS trả về trạng thái nháp — "
+                            "cần gửi duyệt lại." if reset_review else ""),
+            },
+        }
+
+    return sse_response(REVISE_BRS_STEPS, work)
+
+
+def _hook(emit):
+    """Chuyển sự kiện tiến độ của run_skill thành sự kiện SSE."""
+    async def h(ev: dict) -> None:
+        emit(ev)
+    return h

@@ -42,10 +42,40 @@ def _details(row) -> dict:
 
 
 _PRODUCT_SELECT = """
-    SELECT p.*, pd.name AS domain_name
+    SELECT p.*, pd.name AS domain_name,
+           op.code AS origin_project_code, op.name AS origin_project_name
     FROM catalog_products p
     LEFT JOIN project_domains pd ON pd.code = p.domain_code
+    LEFT JOIN projects op       ON op.id   = p.origin_project_id
 """
+
+async def _assert_project_free(
+    db: asyncpg.Connection, project_id: UUID, exclude_product: UUID | None = None,
+) -> None:
+    """
+    Dự án tồn tại và chưa khai sinh sản phẩm nào khác (V052: tối đa 1 sản phẩm/dự án).
+    """
+    prj = await db.fetchrow("SELECT code, name FROM projects WHERE id = $1", project_id)
+    if not prj:
+        raise HTTPException(404, f"Dự án '{project_id}' không tồn tại")
+
+    taken = await db.fetchrow(
+        "SELECT id, product_code, product_name FROM catalog_products "
+        "WHERE origin_project_id = $1 AND ($2::uuid IS NULL OR id <> $2)",
+        project_id, exclude_product,
+    )
+    if taken:
+        raise HTTPException(
+            409,
+            detail={
+                "code": "PROJECT_ALREADY_HAS_PRODUCT",
+                "message": f"Dự án {prj['code']} đã khai sinh sản phẩm "
+                           f"{taken['product_code']} — {taken['product_name']}. "
+                           "Mỗi dự án bàn giao đúng một sản phẩm (V052). Bỏ gắn sản phẩm "
+                           "cũ trước, hoặc tạo sản phẩm không gắn dự án.",
+            },
+        )
+
 
 async def _get_product_or_404(product_id: UUID, db: asyncpg.Connection) -> asyncpg.Record:
     row = await db.fetchrow(
@@ -66,6 +96,8 @@ async def list_products(
     department: str | None = None,
     domain: str | None = None,
     q: str | None = None,
+    # Sản phẩm khai sinh từ một dự án cụ thể (tab Sản phẩm trong trang dự án)
+    origin_project_id: UUID | None = None,
     db: asyncpg.Connection = Depends(get_db),
 ):
     conditions = ["1=1"]
@@ -79,6 +111,9 @@ async def list_products(
         conditions.append(f"p.department = ${i}"); params.append(department); i += 1
     if domain:
         conditions.append(f"p.domain_code = ${i}"); params.append(domain); i += 1
+    if origin_project_id:
+        conditions.append(f"p.origin_project_id = ${i}")
+        params.append(origin_project_id); i += 1
     if q:
         conditions.append(f"(p.product_name ILIKE ${i} OR p.product_code ILIKE ${i} OR p.description ILIKE ${i})")
         params.append(f"%{q}%"); i += 1
@@ -96,23 +131,30 @@ async def create_product(
     body: CatalogProductCreate,
     db: asyncpg.Connection = Depends(get_db),
 ):
+    # V052: một dự án khai sinh TỐI ĐA một sản phẩm. Kiểm trước khi INSERT để trả câu
+    # nói rõ sản phẩm nào đang chiếm chỗ — nếu để UNIQUE index bắt thì thông báo chỉ là
+    # "already exists" và người dùng tưởng trùng mã sản phẩm.
+    if body.origin_project_id:
+        await _assert_project_free(db, body.origin_project_id)
+
     try:
         ins = await db.fetchrow(
             """INSERT INTO catalog_products
                (product_code, product_name, product_type, description,
                 domain_code, business_owner, technical_owner, owner_team, department,
-                status, tags, notes,
+                status, tags, notes, origin_project_id,
                 architecture_info, deployment_info, security_info,
                 monitoring_info, resource_info, business_metadata,
                 created_by)
-               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,
-                       $13,$14,$15,$16,$17,$18,$19) RETURNING id""",
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,
+                       $14,$15,$16,$17,$18,$19,$20) RETURNING id""",
             body.product_code, body.product_name, body.product_type,
             body.description, body.domain_code,
             body.business_owner, body.technical_owner,
             body.owner_team, body.department, body.status,
             body.tags,       # TEXT[] — pass list directly
             body.notes,
+            body.origin_project_id,
             body.architecture_info.model_dump(),
             body.deployment_info.model_dump(),
             body.security_info.model_dump(),
@@ -159,6 +201,9 @@ async def update_product(
     if not updates:
         raise HTTPException(400, "No fields to update")
 
+    if updates.get("origin_project_id"):
+        await _assert_project_free(db, updates["origin_project_id"], exclude_product=product_id)
+
     set_parts = [f"{k} = ${i+2}" for i, k in enumerate(updates.keys())]
     result = await db.fetchrow(
         f"UPDATE catalog_products SET {', '.join(set_parts)}, updated_at = NOW() "
@@ -169,6 +214,30 @@ async def update_product(
         raise HTTPException(404, "Product not found")
     row = await _get_product_or_404(product_id, db)
     return _prod(row)
+
+
+@router.delete("/{product_id}/origin-project", status_code=200,
+               response_model=CatalogProductOut)
+async def unlink_origin_project(
+    user: CurrentUser,
+    product_id: UUID,
+    db: asyncpg.Connection = Depends(get_db),
+):
+    """
+    Bỏ gắn dự án khai sinh khỏi sản phẩm.
+
+    Phải là endpoint riêng vì PUT dùng model_dump(exclude_none=True): gửi
+    origin_project_id=null sẽ bị loại khỏi payload, không phân biệt được "không sửa
+    trường này" với "xoá về NULL". Không có endpoint này thì gắn sai một lần là kẹt
+    vĩnh viễn — mà UNIQUE index chỉ cho mỗi dự án đúng một sản phẩm.
+    """
+    await _get_product_or_404(product_id, db)
+    await db.execute(
+        "UPDATE catalog_products SET origin_project_id = NULL, updated_at = NOW() "
+        "WHERE id = $1",
+        product_id,
+    )
+    return _prod(await _get_product_or_404(product_id, db))
 
 
 @router.delete("/{product_id}", status_code=204)
